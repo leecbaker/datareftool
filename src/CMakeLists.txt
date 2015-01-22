@@ -1,0 +1,77 @@
+
+SET(SRC about_window.cpp plugin.cpp viewer_window.cpp datarefs.cpp)
+SET(HDR about_window.h viewer_window.h datarefs.h)
+
+SET(ALL_SRC ${SRC} ${HDR})
+#LIST(SORT ${ALL_SRC})
+
+
+if(APPLE)
+	add_executable(plugin ${ALL_SRC})
+endif(APPLE)
+if(WIN32)
+	add_library(plugin MODULE ${COMMON_SOURCES} ${RECOGNIZER_SOURCES} ${PLUGIN_SOURCES} ${OTHER_SOURCES})
+	SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+	SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+endif(WIN32)
+
+
+#libraries
+if(APPLE)
+	target_include_directories(plugin SYSTEM PUBLIC "../lib/xplane_sdk/CHeaders/XPLM/" "../lib/xplane_sdk/CHeaders/Widgets/" "../lib/xplane_sdk/CHeaders/Wrappers/")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
+endif(APPLE)
+if(WIN32)
+	target_include_directories(plugin SYSTEM PUBLIC "..\\lib\\xplane_sdk\\CHeaders\\XPLM" "..\\lib\\xplane_sdk\\CHeaders\\Widgets" "..\\lib\\xplane_sdk\\CHeaders\\Wrappers")
+endif(WIN32)
+
+# X-Plane stuff
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DXPLM200=1 -DXPLM210=1")
+if(APPLE)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAPL=1 -DIBM=0 -DLIN=0")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall --std=c++11")
+endif(APPLE)
+if(WIN32)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAPL=0 -DIBM=1 -DLIN=0 -D_CRT_SECURE_NO_WARNINGS -DSODIUM_STATIC /bigobj")
+endif(WIN32)
+
+if(APPLE)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHECK_RESULT_USED=\"__attribute__ ((warn_unused_result))\"")
+endif(APPLE)
+if(WIN32)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHECK_RESULT_USED=_Check_return_")
+endif(WIN32)
+
+#linking
+link_libraries(m)
+if(APPLE)
+	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ../lib/xplane_sdk/Libraries/Mac/)
+	FIND_LIBRARY(XPLM_LIBRARY XPLM ../lib/xplane_sdk/Libraries/Mac/)
+	FIND_LIBRARY(XPWIDGETS_LIBRARY XPWidgets ../lib/xplane_sdk/Libraries/Mac/)
+endif(APPLE)
+if(WIN32)
+	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "..\\lib\\xplane_sdk\\Libraries\\Win\\")
+	if("${BITS}" EQUAL "64")
+		set(PC_STATIC_LIB_DIR "..\\lib\\win64")
+		FIND_LIBRARY(XPLM_LIBRARY XPLM_64 ../lib/xplane_sdk/Libraries/Win/)
+		FIND_LIBRARY(XPWIDGETS_LIBRARY XPWidgets_64 ../lib/xplane_sdk/Libraries/Win/)
+	ELSE(64BIT)
+		FIND_LIBRARY(XPLM_LIBRARY XPLM ../lib/xplane_sdk/Libraries/Win/)
+		FIND_LIBRARY(XPWIDGETS_LIBRARY XPWidgets ../lib/xplane_sdk/Libraries/Win/)
+	endif(64BIT)
+
+endif(WIN32)
+target_link_libraries(plugin ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
+
+#output
+if(APPLE)
+	set(PLUGIN_OUTPUT_FILENAME "mac.xpl")
+	SET_TARGET_PROPERTIES(plugin PROPERTIES LINK_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fPIC -fvisibility=hidden -bundle -framework OpenGL")
+endif(APPLE)
+if(WIN32)
+	set(PLUGIN_OUTPUT_FILENAME "win.xpl")
+endif(WIN32)
+
+set_target_properties(plugin PROPERTIES OUTPUT_NAME "${PLUGIN_OUTPUT_FILENAME}")
