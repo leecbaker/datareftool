@@ -4,6 +4,8 @@
 #include <string>
 #include "XPLMDataAccess.h"
 
+#define PREVIEW_DATAREF_ARRAY_COUNT 4
+#define PREVIEW_DATAREF_BYTEARRAY_COUNT 20
 
 class DataRefRecord {
 	std::string name;
@@ -12,6 +14,9 @@ class DataRefRecord {
 		float f_val;
 		double lf_val;
 		int i_val;
+		float fv_val[PREVIEW_DATAREF_ARRAY_COUNT];
+		int iv_val[PREVIEW_DATAREF_ARRAY_COUNT];
+		char b_val[PREVIEW_DATAREF_BYTEARRAY_COUNT];
 	};
 
 	XPLMDataTypeID type;

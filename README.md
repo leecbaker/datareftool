@@ -22,10 +22,10 @@ These are the features that I'm planning on completing:
     [X] See only recently changed datarefs
     [X] Color datarefs if recently changed
     [X] Make it easy to deselect the search field (unlike DRE). Use enter, return, escape, or tab, or click elsewhere in the DRT window.
-    [ ] Multiple DRT windows viewable at once
-    [ ] Display basic data types (float double int)
-    [ ] Display other data types (arrays, byte arrays)
-    [ ] Display multiple elements of an array at once
+    [X] Multiple DRT windows viewable at once
+    [X] Display basic data types (float double int)
+    [X] Display other data types (arrays, byte arrays)
+    [X] Display multiple elements of an array at once
     [?] Windows support 
 
 Stuff that I'm not planning (but welcome pull requests for):
