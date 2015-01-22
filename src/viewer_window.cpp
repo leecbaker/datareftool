@@ -9,7 +9,7 @@
 
 #include <algorithm>
 #include <iostream>
-#include <vector>
+#include <set>
 
 constexpr const XPLMFontID font = xplmFont_Basic;
 
@@ -17,6 +17,10 @@ constexpr int bottom_row_height = 20;
 constexpr int right_col_width = 20;
 constexpr int toggle_button_width = 28;
 constexpr int title_bar_height = 20;
+
+class DatarefViewerWindow;
+
+void closeViewerWindow(DatarefViewerWindow * window);
 
 class DatarefViewerWindow {
 	XPLMWindowID window = nullptr;
@@ -48,7 +52,7 @@ class DatarefViewerWindow {
 				obj->moveScroll(mouse_info->delta);
 				return 1;
 			case xpMessage_CloseButtonPushed:
-				closeViewerWindows();
+				closeViewerWindow(obj);
 				return 1;
 			case xpMsg_MouseDown:
 				XPGetWidgetGeometry(obj->window, &obj->drag_start_window_left, &obj->drag_start_window_top, &obj->drag_start_window_right, &obj->drag_start_window_bottom);
@@ -291,33 +295,38 @@ public:
 	}
 };
 /////////////////
-DatarefViewerWindow * viewer_window = nullptr;
+std::set<DatarefViewerWindow *> viewer_windows;
+
+void closeViewerWindow(DatarefViewerWindow * window) {
+	delete window;
+	viewer_windows.erase(window);
+}
 
 void closeViewerWindows() {
-	delete viewer_window;
-	viewer_window = nullptr;
+	for(DatarefViewerWindow * window : viewer_windows) {
+		delete window;
+	}
+
+	viewer_windows.clear();
 }
 
 void showViewerWindow() {
-	if(viewer_window) {
-		viewer_window->show();
-	} else {
-		XPLMDataRef window_width_ref = XPLMFindDataRef("sim/graphics/view/window_width");
-		XPLMDataRef window_height_ref = XPLMFindDataRef("sim/graphics/view/window_height");
+	XPLMDataRef window_width_ref = XPLMFindDataRef("sim/graphics/view/window_width");
+	XPLMDataRef window_height_ref = XPLMFindDataRef("sim/graphics/view/window_height");
 
-		if(nullptr == window_width_ref || nullptr == window_height_ref) {
-			std::cerr << "Couldn't open datarefs for window width and height" << std::endl;
-			return;
-		}
-		int width = XPLMGetDatai(window_width_ref);
-		int height = XPLMGetDatai(window_height_ref);
-
-		constexpr int window_width = 500;
-		constexpr int window_height = 400;
-
-		int x = width/2 - window_width / 2, x2 = width/2 + window_width / 2;
-		int y = height/2 + window_height / 2, y2 = height/2 - window_height / 2;
-
-		viewer_window = new DatarefViewerWindow(x, y, x2, y2);
+	if(nullptr == window_width_ref || nullptr == window_height_ref) {
+		std::cerr << "Couldn't open datarefs for window width and height" << std::endl;
+		return;
 	}
+	int width = XPLMGetDatai(window_width_ref);
+	int height = XPLMGetDatai(window_height_ref);
+
+	constexpr int window_width = 500;
+	constexpr int window_height = 400;
+
+	int x = width/2 - window_width / 2, x2 = width/2 + window_width / 2;
+	int y = height/2 + window_height / 2, y2 = height/2 - window_height / 2;
+
+	DatarefViewerWindow * viewer_window = new DatarefViewerWindow(x, y, x2, y2);
+	viewer_windows.insert(viewer_window);
 }
