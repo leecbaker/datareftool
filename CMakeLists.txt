@@ -12,4 +12,4 @@ message(STATUS "Current build type is : ${CMAKE_BUILD_TYPE}")
 
 
 add_subdirectory(src)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
