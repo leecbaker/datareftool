@@ -104,7 +104,7 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
 					auto it = std::search(
 				    	haystack.begin(), haystack.end(),
 				    	search_term.begin(),   search_term.end(),
-				    	[](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+				    	[](char ch1, char ch2) { return ::toupper(ch1) == ::toupper(ch2); }
 				  	);
 					if (it == haystack.end() ) {
 						continue;
@@ -230,7 +230,7 @@ std::string printableFromByteArray(char * bytes) {
 	for(int i = 0; i < PREVIEW_DATAREF_BYTEARRAY_COUNT; i++) {
 		if(bytes[i] == 0) {
 			break;
-		} else if(std::isprint(bytes[i])) {
+		} else if(::isprint(bytes[i])) {
 			ret.push_back(bytes[i]);
 		} else {
 			break;
