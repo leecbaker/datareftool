@@ -94,7 +94,7 @@ void XPluginReceiveMessage__XPlaneMessage(XPLMPluginID inFromWho, intptr_t inMes
 
 		//SDK 2.1+
 		case XPLM_MSG_WILL_WRITE_PREFS:
-			//X-Plane is about to quit, probably a good time to write DRT prefs to disk.
+			//TODO: X-Plane is about to quit, probably a good time to write DRT prefs to disk.
 			break;
 			
 		case XPLM_MSG_LIVERY_LOADED:
@@ -122,7 +122,7 @@ void XPluginReceiveMessage__RegisterDataref(XPLMPluginID inFromWho, intptr_t inM
 	// Decode inParam as C-String.
 	
 	//do a length sanity check.
-	//this could be better - maybe a loop that searches for a null byte in the first 1024 bytes instead of relying on strlen() to do the right thing.
+	//TODO: This could be better - maybe a loop that searches for a null byte in the first 1024 bytes instead of relying on strlen() to do the right thing?
 	long param_string_len = strlen( (char*)inParam );
 	
 	if( param_string_len < 1024 ){
@@ -134,7 +134,7 @@ void XPluginReceiveMessage__RegisterDataref(XPLMPluginID inFromWho, intptr_t inM
 		XPLMDebugString( caDbg );
 		
 		
-		//This code needs unifying with the load-code in datarefs.cpp that also adds resources to "datarefs" vector.
+		//TODO: This code needs unifying with the load-code in datarefs.cpp that also adds resources to "datarefs" vector.
 		XPLMDataRef dr = XPLMFindDataRef(custom_dataref_name.c_str());
 		if(nullptr == dr) {
 			//couldn't find the custom dr as named.
@@ -178,10 +178,11 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, intptr_t inMessage
 				break;
 	
 			default:
-				sprintf( caDbg, "DRT: Unknown XPL message. (From:%i) (Type:%i)\n", 1,2 );
+				sprintf( caDbg, "DRT: Unknown XPL message. (From:%ld) (Type:%ld)\n", (long)inFromWho, inMessage );
 				XPLMDebugString( caDbg );
 	
 		} //switch( inMessage )
-	}
+		
+	} //test if from x-plane or XPL
 
 } //XPluginReceiveMessage(...)
