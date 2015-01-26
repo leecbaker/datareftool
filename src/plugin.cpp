@@ -122,6 +122,7 @@ void XPluginReceiveMessage__RegisterDataref(XPLMPluginID inFromWho, intptr_t inM
 	// Decode inParam as C-String.
 	
 	//do a length sanity check.
+	//this could be better - maybe a loop that searches for a null byte in the first 1024 bytes instead of relying on strlen() to do the right thing.
 	long param_string_len = strlen( (char*)inParam );
 	
 	if( param_string_len < 1024 ){
@@ -133,6 +134,7 @@ void XPluginReceiveMessage__RegisterDataref(XPLMPluginID inFromWho, intptr_t inM
 		XPLMDebugString( caDbg );
 		
 		
+		//This code needs unifying with the load-code in datarefs.cpp that also adds resources to "datarefs" vector.
 		XPLMDataRef dr = XPLMFindDataRef(custom_dataref_name.c_str());
 		if(nullptr == dr) {
 			//couldn't find the custom dr as named.
