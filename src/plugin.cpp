@@ -4,6 +4,7 @@
 #include "viewer_window.h"
 
 #include "datarefs.h"
+extern std::vector<DataRefRecord> datarefs;
 
 #include "XPWidgets.h"
 #include "XPLMMenus.h"
@@ -86,18 +87,21 @@ void XPluginReceiveMessage__XPlaneMessage(XPLMPluginID inFromWho, intptr_t inMes
 			//This message is sent whenever the user adjusts the number of X-Plane aircraft models. You must use XPLMCountPlanes to find out how many planes are now available. This message will only be sent in XP7 and higher because in XP6 the number of aircraft is not user-adjustable.
 			break;
 
-
 		//SDK 2.00+
 		case XPLM_MSG_PLANE_UNLOADED:
 			//This message is sent to your plugin whenever a plane is unloaded. The parameter is the number of the plane being unloaded; 0 indicates the user's plane.
 			break;
 
 		//SDK 2.1+
-		#if 0
 		case XPLM_MSG_WILL_WRITE_PREFS:
+			//X-Plane is about to quit, probably a good time to write DRT prefs to disk.
+			break;
+			
 		case XPLM_MSG_LIVERY_LOADED:
-		#endif
+			//A new livery has been loaded for the users currently selected aircraft.
+			break;
 		
+		//Unknown
 		default:
 			//Unkown message from X-Plane, do nothing.
 			break;
@@ -127,6 +131,18 @@ void XPluginReceiveMessage__RegisterDataref(XPLMPluginID inFromWho, intptr_t inM
 		
 		sprintf( caDbg, "DRT: Custom Dataref: (%s)\n", custom_dataref_name.c_str() );
 		XPLMDebugString( caDbg );
+		
+		
+		XPLMDataRef dr = XPLMFindDataRef(custom_dataref_name.c_str());
+		if(nullptr == dr) {
+			//couldn't find the custom dr as named.
+			sprintf( caDbg, "DRT: Custom Dataref Invalid: XPLMFindDataRef returns NULL.\n" );
+			XPLMDebugString( caDbg );
+			
+		}else{
+			//add it to our collection.
+			datarefs.emplace_back(custom_dataref_name, dr);
+		}
 		
 	
 	}else{
