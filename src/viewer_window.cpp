@@ -17,6 +17,7 @@ constexpr int bottom_row_height = 20;
 constexpr int right_col_width = 20;
 constexpr int toggle_button_width = 28;
 constexpr int title_bar_height = 20;
+int save_left, save_top, save_right, save_bottom, close_butn;
 
 class DatarefViewerWindow;
 
@@ -52,6 +53,8 @@ class DatarefViewerWindow {
 				obj->moveScroll(mouse_info->delta);
 				return 1;
 			case xpMessage_CloseButtonPushed:
+                XPGetWidgetGeometry(obj->window, &save_left, &save_top, &save_right, &save_bottom);
+                close_butn = 1;
 				closeViewerWindow(obj);
 				return 1;
 			case xpMsg_MouseDown:
@@ -131,7 +134,13 @@ class DatarefViewerWindow {
 public:
 	DatarefViewerWindow(int x, int y, int x2, int y2) {
 		XPLMGetFontDimensions(font, nullptr, &fontheight, nullptr);
-
+        if (close_butn == 1) {
+                             x = save_left;
+                             y = save_top;
+                             x2 = save_right;
+                             y2 = save_bottom;
+                             close_butn = 0;
+        }
 		window = XPCreateWidget(x, y, x2, y2,
 					1,										// Visible
 					"Data Ref Tool",	// desc
