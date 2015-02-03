@@ -51,7 +51,7 @@ at which point you can just use Visual Studio to build the project, or you can b
 Note that you'll need the Nov 2013 CTP compiler or Visual Studio 14 preview to be able to build the plugin, since it uses some C++11 features. Both are a free download from Microsoft. You'll see a ton of warnings (6890 warnings on my machine!), but I couldn't find any that really had much relevance.
 
 ### Adding custom datarefs
-You can use DRT to display your plugin's custom datarefs. Just send a message of type 0x01000000 with a pointer to the name of the dataref as the payload. There is an example of how to do this in [plugin_custom_dataref.cpp](plugin_custom_dataref.cpp). (This is exactly the same method that you use to add a custom dataref to Data Ref Editor.)
+You can use DRT to display your plugin's custom datarefs. Just send a message of type 0x01000000 with a pointer to the name of the dataref as the payload. There is an example of how to do this in [plugin_custom_dataref.cpp](src/plugin_custom_dataref.cpp). (This is exactly the same method that you use to add a custom dataref to Data Ref Editor.)
 
 ### Author
 DRT is written by Lee C. Baker. If you benefitted from this plugin, please consider purchasing the <a href="https://planecommand.com">PlaneCommand voice recognition plugin.
