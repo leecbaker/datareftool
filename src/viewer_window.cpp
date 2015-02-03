@@ -310,6 +310,12 @@ void closeViewerWindows() {
 	viewer_windows.clear();
 }
 
+void updateViewerResults() {
+	for(DatarefViewerWindow * window : viewer_windows) {
+		window->updateResults();
+	}
+}
+
 void showViewerWindow() {
 	XPLMDataRef window_width_ref = XPLMFindDataRef("sim/graphics/view/window_width");
 	XPLMDataRef window_height_ref = XPLMFindDataRef("sim/graphics/view/window_height");

@@ -9,7 +9,26 @@
 
 std::vector<DataRefRecord> datarefs;
 
-bool loadDatarefs() {
+void sortDatarefs() {
+	auto comparator = [](const DataRefRecord & a, const DataRefRecord & b)-> bool {
+		return a.getName() < b.getName();
+	};
+	std::sort(datarefs.begin(), datarefs.end(), comparator);
+}
+
+bool addUserDataref(const std::string & name) {
+
+	XPLMDataRef dr = XPLMFindDataRef(name.c_str());
+	if(nullptr == dr) {
+		return false;
+	}
+	datarefs.emplace_back(name, dr, dataref_src_t::USER_MSG);
+	sortDatarefs();
+
+	return true;
+}
+
+bool loadDatarefsFile() {
 	char system_path_c[1000];
 	XPLMGetSystemPath(system_path_c);
 
@@ -34,6 +53,13 @@ bool loadDatarefs() {
 		return false;
 	}
 
+	//remove existing datarefs from file:
+	auto is_from_file = [](const DataRefRecord & record) -> bool {
+		return record.getSource() == dataref_src_t::FILE;
+	};
+
+	datarefs.erase(std::remove_if(datarefs.begin(), datarefs.end(), is_from_file), datarefs.end());
+
 	std::string line;
 	std::getline(dr_file, line);	//discard header
 	while(std::getline(dr_file, line)) {
@@ -48,13 +74,10 @@ bool loadDatarefs() {
 		if(nullptr == dr) {
 			continue;
 		}
-		datarefs.emplace_back(line, dr);
+		datarefs.emplace_back(line, dr, dataref_src_t::FILE);
 	}
 
-	auto comparator = [](const DataRefRecord & a, const DataRefRecord & b)-> bool {
-		return a.getName() < b.getName();
-	};
-	std::sort(datarefs.begin(), datarefs.end(), comparator);
+	sortDatarefs();
 
 	std::string dr_count_message = "Finished loading " + std::to_string(datarefs.size()) + " datarefs" + "\n";
 	XPLMDebugString(dr_count_message.c_str());
