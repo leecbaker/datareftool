@@ -17,6 +17,9 @@ constexpr int bottom_row_height = 20;
 constexpr int right_col_width = 20;
 constexpr int toggle_button_width = 28;
 constexpr int title_bar_height = 20;
+int save_left, save_top, save_right, save_bottom, close_butn, close_butn2;
+bool case_insensitive_selected, regex_selected, changed_selected;
+bool last_case_insensitive_selected, last_regex_selected, last_changed_selected;
 
 class DatarefViewerWindow;
 
@@ -52,6 +55,12 @@ class DatarefViewerWindow {
 				obj->moveScroll(mouse_info->delta);
 				return 1;
 			case xpMessage_CloseButtonPushed:
+                XPGetWidgetGeometry(obj->window, &save_left, &save_top, &save_right, &save_bottom);
+                last_case_insensitive_selected = case_insensitive_selected;
+                last_regex_selected = regex_selected;
+                last_changed_selected = changed_selected;
+                close_butn = 1;
+                close_butn2 = 1;
 				closeViewerWindow(obj);
 				return 1;
 			case xpMsg_MouseDown:
@@ -131,6 +140,13 @@ class DatarefViewerWindow {
 public:
 	DatarefViewerWindow(int x, int y, int x2, int y2) {
 		XPLMGetFontDimensions(font, nullptr, &fontheight, nullptr);
+        if (close_butn == 1) {
+            x = save_left;
+            y = save_top;
+            x2 = save_right;
+            y2 = save_bottom;
+            close_butn = 0;
+        }
 
 		window = XPCreateWidget(x, y, x2, y2,
 					1,										// Visible
@@ -217,11 +233,30 @@ public:
 
 	void doSearch() {
 		intptr_t property = XPGetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, nullptr);
-		bool case_insensitive_selected = property != 0;
+        case_insensitive_selected = property != 0;
+        if (close_butn2 == 1) {
+            case_insensitive_selected = last_case_insensitive_selected;
+            if (case_insensitive_selected) {
+                XPSetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, 1);
+            }
+        }
 		property = XPGetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, nullptr);
-		bool regex_selected = property != 0;
+        regex_selected = property != 0;
+        if (close_butn2 == 1) {
+            regex_selected = last_regex_selected;
+            if (regex_selected) {
+                XPSetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, 1);
+            }
+        }
 		property = XPGetWidgetProperty(change_filter_button, xpProperty_ButtonState, nullptr);
-		bool changed_selected = property != 0;
+        changed_selected = property != 0;
+        if (close_butn2 == 1) {
+            changed_selected = last_changed_selected;
+            if (changed_selected) {
+                XPSetWidgetProperty(change_filter_button, xpProperty_ButtonState, 1);
+            }
+        close_butn2 = 0;
+        }
 
 		char searchfield_text[1024];
 		XPGetWidgetDescriptor(search_field, searchfield_text, 1024);
