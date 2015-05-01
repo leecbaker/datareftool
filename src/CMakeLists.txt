@@ -1,8 +1,17 @@
 
 SET(SRC about_window.cpp plugin.cpp viewer_window.cpp datarefs.cpp)
-SET(HDR about_window.h viewer_window.h datarefs.h)
+SET(HDR about_window.h viewer_window.h datarefs.h clipboard.h)
 
 SET(SRC_PLUGIN_EXAMPLE plugin_custom_dataref.cpp)
+
+
+if(APPLE)
+	list(APPEND SRC "clipboard_mac.mm")
+elseif(WIN32)
+	list(APPEND SRC "clipboard_win.cpp")
+else()
+	list(APPEND SRC "clipboard_linux.cpp")
+endif()
 
 SET(ALL_SRC ${SRC} ${HDR})
 LIST(SORT ALL_SRC)
@@ -78,7 +87,7 @@ SET_TARGET_PROPERTIES(plugin_custom_dataref PROPERTIES PREFIX "")
 SET_TARGET_PROPERTIES(plugin_custom_dataref PROPERTIES SUFFIX "")
 if(APPLE)
 	set(PLUGIN_OUTPUT_FILENAME "mac.xpl")
-	SET_TARGET_PROPERTIES(plugin PROPERTIES LINK_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}  -fPIC -fvisibility=hidden -bundle -framework OpenGL")
+	SET_TARGET_PROPERTIES(plugin PROPERTIES LINK_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}  -fPIC -fvisibility=hidden -bundle -framework OpenGL -framework Cocoa")
 	SET_TARGET_PROPERTIES(plugin_custom_dataref PROPERTIES LINK_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}  -fPIC -fvisibility=hidden -bundle")
 elseif(UNIX)
 	set(PLUGIN_OUTPUT_FILENAME "lin.xpl")

@@ -1,5 +1,6 @@
 #include "viewer_window.h"
 #include "datarefs.h"
+#include "clipboard.h"
 
 #include "XPLMDisplay.h"
 #include "XPCWidget.h"
@@ -96,13 +97,56 @@ class DatarefViewerWindow {
 				obj->doSearch();
 				return 1;
 			case xpMsg_KeyPress:
-				switch(keystruct->vkey) {
-					case (char)XPLM_VK_ENTER:
-					case XPLM_VK_RETURN:
-					case XPLM_VK_TAB:
-					case XPLM_VK_ESCAPE:
-						obj->deselectSearchField();
-						break;
+				if(keystruct->flags & 6 && keystruct->flags & xplm_DownFlag) {	//alt, command, control are down
+					switch(keystruct->vkey) {
+						case XPLM_VK_A:	//select all
+						{
+							size_t length = obj->getSearchText().size();
+							obj->setSelection(0, length);
+							return 1;
+						}
+						case XPLM_VK_X:	//cut
+						{
+							size_t start = obj->getSelectionStart();
+							size_t stop = obj->getSelectionStop();
+							std::string search_text = obj->getSearchText();
+							std::string cut_text = search_text.substr(start, stop - start);
+							search_text.erase(search_text.cbegin() + start, search_text.cbegin() + stop);
+							obj->setSearchText(search_text);
+							obj->setSelection(start, start);
+							setClipboard(cut_text);
+							return 1;
+						}
+						case XPLM_VK_C:	//copy 
+						{
+							size_t start = obj->getSelectionStart();
+							size_t stop = obj->getSelectionStop();
+							std::string search_text = obj->getSearchText();
+							std::string cut_text = search_text.substr(start, stop - start);
+							setClipboard(cut_text);
+							return 1;
+						}
+						case XPLM_VK_V:	//paste 
+						{
+							std::string pasted_text = getClipboard();
+							size_t start = obj->getSelectionStart();
+							size_t stop = obj->getSelectionStop();
+							std::string search_text = obj->getSearchText();
+							search_text.replace(search_text.cbegin() + start, search_text.cbegin() + stop, pasted_text.cbegin(), pasted_text.cend());
+							obj->setSearchText(search_text);
+							obj->setSelection(start + pasted_text.size(), start + pasted_text.size());
+							return 1;
+						}
+					}
+				} else {
+					switch(keystruct->vkey) {
+						case (char)XPLM_VK_ENTER:
+						case XPLM_VK_RETURN:
+						case XPLM_VK_TAB:
+						case XPLM_VK_ESCAPE:
+							obj->deselectSearchField();
+							break;
+					}
 				}
 		}
 		return 0;
@@ -213,6 +257,29 @@ public:
 		scroll_pos = std::min<intptr_t>(max_scroll_pos, std::max<intptr_t>(0, scroll_pos));
 
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarSliderPosition, scroll_pos);
+	}
+
+	std::string getSearchText() const {
+		char searchfield_text[1024];
+		XPGetWidgetDescriptor(search_field, searchfield_text, 1024);
+		return std::string(searchfield_text);
+	}
+
+	intptr_t getSelectionStart() const {
+		return XPGetWidgetProperty(search_field, xpProperty_EditFieldSelStart, NULL);
+	}
+
+	intptr_t getSelectionStop() const {
+		return  XPGetWidgetProperty(search_field, xpProperty_EditFieldSelEnd, NULL);
+	}
+
+	void setSelection(intptr_t start, intptr_t stop) {
+		XPSetWidgetProperty(search_field, xpProperty_EditFieldSelStart, start);
+		XPSetWidgetProperty(search_field, xpProperty_EditFieldSelEnd, stop);
+	}
+
+	void setSearchText(const std::string & s) {
+		XPSetWidgetDescriptor(search_field, s.c_str());
 	}
 
 	void doSearch() {

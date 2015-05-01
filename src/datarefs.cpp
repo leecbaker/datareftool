@@ -1,6 +1,7 @@
 #include "XPLMUtilities.h"
 
 #include "datarefs.h"
+#include <cstring>
 #include <vector>
 #include <fstream>
 #include <regex>
