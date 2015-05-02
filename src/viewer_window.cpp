@@ -168,7 +168,7 @@ class DatarefViewerWindow {
 							size_t stop = obj->getSearchSelectionStop();
 							std::string search_text = obj->getSearchText();
 							std::string cut_text = search_text.substr(start, stop - start);
-							search_text.erase(search_text.cbegin() + start, search_text.cbegin() + stop);
+							search_text.erase(search_text.begin() + start, search_text.begin() + stop);
 							obj->setSearchText(search_text);
 							obj->setSearchSelection(start, start);
 							setClipboard(cut_text);
@@ -189,7 +189,7 @@ class DatarefViewerWindow {
 							size_t start = obj->getSearchSelectionStart();
 							size_t stop = obj->getSearchSelectionStop();
 							std::string search_text = obj->getSearchText();
-							search_text.replace(search_text.cbegin() + start, search_text.cbegin() + stop, pasted_text.cbegin(), pasted_text.cend());
+							search_text.replace(search_text.begin() + start, search_text.begin() + stop, pasted_text.begin(), pasted_text.end());
 							obj->setSearchText(search_text);
 							obj->setSearchSelection(start + pasted_text.size(), start + pasted_text.size());
 							return 1;
