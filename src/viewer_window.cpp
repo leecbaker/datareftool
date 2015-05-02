@@ -9,8 +9,11 @@
 #include "XPLMGraphics.h"
 
 #include <algorithm>
+#include <cctype>
+#include <cstdint>
 #include <iostream>
 #include <set>
+#include <string>
 
 const XPLMFontID font = xplmFont_Basic;
 
@@ -45,6 +48,9 @@ class DatarefViewerWindow {
 	int displayed_lines = 0;
 	int list_start_index = 0;
 
+	DataRefRecord * select_edit_dataref = nullptr;
+	bool edit_modified = false;
+
 	std::vector<DataRefRecord *> datarefs;
 
 	static int viewerWindowCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2) {
@@ -75,7 +81,7 @@ class DatarefViewerWindow {
 					int click_list_index = click_y_offset_index + obj->list_start_index;
 
 					if(click_y_offset_index < displayed_list_elements && 0 <= click_list_index) {	//click is over a real list entry
-						const DataRefRecord * record = obj->datarefs[click_list_index];
+						DataRefRecord * record = obj->datarefs[click_list_index];
 						const std::string name = record->getName();
 						float dataref_name_width = XPLMMeasureString(font, name.c_str(), name.size() + 1);
 						float dataref_name_width_plus_eq = XPLMMeasureString(font, (name + "=").c_str(), name.size() + 2);
@@ -96,13 +102,18 @@ class DatarefViewerWindow {
 
 						if(mouse_info->x < obj->drag_start_window_left + dataref_name_width) {
 							XPSetWidgetGeometry(obj->edit_field, obj->drag_start_window_left, top, nameend_x + box_padding_x, bottom - box_padding_y);
-							XPSetWidgetDescriptor(obj->edit_field, record->getName().c_str());
+							XPSetWidgetDescriptor(obj->edit_field, name.c_str());
+							obj->setEditSelection(0, name.size());
 						} else {
+							const std::string value_str = record->getValueString();
+							obj->select_edit_dataref = record;
 							XPSetWidgetGeometry(obj->edit_field, valuestart_x, top, obj->drag_start_window_right - mouse_drag_margin - scroll_width + box_padding_x, bottom - box_padding_y);
-							XPSetWidgetDescriptor(obj->edit_field, record->getValueString().c_str());
+							XPSetWidgetDescriptor(obj->edit_field, value_str.c_str());
+							obj->setEditSelection(0, value_str.size());
 						}
 
 						XPShowWidget(obj->edit_field);
+						obj->edit_modified = false;
 						return 1;
 					}
 				}
@@ -181,8 +192,9 @@ class DatarefViewerWindow {
 						}
 					}
 				} else {
-					switch(keystruct->vkey) {
-						case (char)XPLM_VK_ENTER:
+					switch((uint8_t) keystruct->vkey) {
+						case XPLM_VK_NUMPAD_ENT:
+						case XPLM_VK_ENTER:
 						case XPLM_VK_RETURN:
 						case XPLM_VK_TAB:
 						case XPLM_VK_ESCAPE:
@@ -200,7 +212,7 @@ class DatarefViewerWindow {
 		XPKeyState_t * keystruct = (XPKeyState_t *) inParam1;
 		switch(inMessage) {
 			case xpMsg_DescriptorChanged:
-				obj->doSearch();
+				//obj->doSearch();
 				return 1;
 			case xpMsg_KeyPress:
 				if(keystruct->flags & 6 && keystruct->flags & xplm_DownFlag) {	//alt, command, control are down
@@ -221,6 +233,28 @@ class DatarefViewerWindow {
 							setClipboard(cut_text);
 							return 1;
 						}
+					}
+				} else {
+					uint8_t vkey = keystruct->vkey;
+					uint8_t key = keystruct->key;
+					switch(vkey) {
+						default:
+							if(nullptr == obj->select_edit_dataref || false == obj->select_edit_dataref->writable()) {
+								return 1;
+							} else if(std::isalpha(key) || key == ',' || (obj->select_edit_dataref->isInt() && key == '.')) {
+								return 1;
+							} else {
+								obj->edit_modified = true;
+								return 0;
+							}
+
+						case XPLM_VK_NUMPAD_ENT:
+						case XPLM_VK_ENTER:
+						case XPLM_VK_RETURN:
+						case XPLM_VK_TAB:
+						case XPLM_VK_ESCAPE:
+							obj->deselectEditField();
+							return 1;
 					}
 				}
 		}
@@ -367,6 +401,29 @@ public:
 	}
 
 	void deselectEditField() {
+		if(edit_modified) {
+			const std::string edit_txt = getEditText();
+
+			if(select_edit_dataref->isDouble()) {
+				try {
+					double d = std::stold(edit_txt);
+					select_edit_dataref->setDouble(d);
+				} catch(std::exception &) { }
+			} else if(select_edit_dataref->isFloat()) {
+				try {
+					float f = std::stof(edit_txt);
+					select_edit_dataref->setFloat(f);
+				} catch(std::exception &) { }
+			} else if(select_edit_dataref->isInt()) {
+				try {
+					int i = std::stoi(edit_txt);
+					select_edit_dataref->setInt(i);
+				} catch(std::exception &) { }
+			}
+		}
+
+		edit_modified = false;
+		select_edit_dataref = nullptr;
 		XPLoseKeyboardFocus(edit_field);
 		XPHideWidget(edit_field);
 	}

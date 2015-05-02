@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 #include <chrono>
 #include <vector>
 #include <string>
@@ -40,6 +41,15 @@ public:
 	bool update(const std::chrono::system_clock::time_point current_time);
 	const std::string & getName() const { return name; }
 	const std::chrono::system_clock::time_point & getLastUpdated() const { return last_updated; }
+	bool writable() const;
+
+	bool isDouble() const { return 0 != (xplmType_Double & type); }
+	bool isFloat() const { return 0 != (xplmType_Float & type); }
+	bool isInt() const { return 0 != (xplmType_Int & type); }
+
+	void setDouble(double d) { assert(isDouble()); XPLMSetDatad(ref, d); }
+	void setFloat(float f) { assert(isFloat()); XPLMSetDataf(ref, f); }
+	void setInt(int i) { assert(isInt()); XPLMSetDatai(ref, i); }
 };
 
 

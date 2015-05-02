@@ -10,6 +10,18 @@
 
 std::vector<DataRefRecord> datarefs;
 
+bool DataRefRecord::writable() const {
+	if(xplmType_Int != type && xplmType_Float != type && xplmType_Double != type) {
+		return false;
+	}
+
+	if(0 == XPLMCanWriteDataRef(ref)) {
+		return false;
+	}
+
+	return true;
+}
+
 void sortDatarefs() {
 	auto comparator = [](const DataRefRecord & a, const DataRefRecord & b)-> bool {
 		return a.getName() < b.getName();
