@@ -7,7 +7,7 @@
 #include "XPLMDataAccess.h"
 
 int dummy_dr_variable = -1337;
-constexpr intptr_t MSG_ADD_DATAREF = 0x01000000;
+const intptr_t MSG_ADD_DATAREF = 0x01000000;
 float register_dr_callback(float elapsedMe, float elapsedSim, int counter, void * refcon)
 {
 	XPLMPluginID plugin_id = XPLMFindPluginBySignature("com.leecbaker.datareftool");
