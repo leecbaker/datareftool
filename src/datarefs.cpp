@@ -7,8 +7,10 @@
 #include <regex>
 #include <iostream>
 #include <locale>
+#include <unordered_set>
 
 std::vector<DataRefRecord> datarefs;
+std::unordered_set<std::string> datarefs_loaded;	//check for duplicates
 
 bool DataRefRecord::writable() const {
 	if(xplmType_Int != type && xplmType_Float != type && xplmType_Double != type) {
@@ -30,12 +32,17 @@ void sortDatarefs() {
 }
 
 bool addUserDataref(const std::string & name) {
+	//check for duplicates:
+	if(0 != datarefs_loaded.count(name)) {
+		return false;
+	}
 
 	XPLMDataRef dr = XPLMFindDataRef(name.c_str());
 	if(nullptr == dr) {
 		return false;
 	}
 	datarefs.emplace_back(name, dr, dataref_src_t::USER_MSG);
+	datarefs_loaded.insert(name);
 	sortDatarefs();
 
 	return true;
