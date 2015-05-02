@@ -65,7 +65,8 @@ PLUGIN_API int XPluginEnable(void) {
 	return 1;
 }
 
-constexpr intptr_t MSG_ADD_DATAREF = 0x01000000;
+const intptr_t MSG_ADD_DATAREF = 0x01000000;
+const intptr_t MSG_ADD_COMMANDREF = 0x01000099;
 
 PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, intptr_t inMessage, void * inParam) {
 	switch(inMessage) {

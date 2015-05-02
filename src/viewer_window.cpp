@@ -12,12 +12,12 @@
 #include <iostream>
 #include <set>
 
-constexpr const XPLMFontID font = xplmFont_Basic;
+const XPLMFontID font = xplmFont_Basic;
 
-constexpr int bottom_row_height = 20;
-constexpr int right_col_width = 20;
-constexpr int toggle_button_width = 28;
-constexpr int title_bar_height = 20;
+const int bottom_row_height = 20;
+const int right_col_width = 20;
+const int toggle_button_width = 28;
+const int title_bar_height = 20;
 
 class DatarefViewerWindow;
 
@@ -40,7 +40,7 @@ class DatarefViewerWindow {
 	bool in_resize_right = false;
 	bool in_resize_bottom = false;
 
-	static constexpr int mouse_drag_margin = 5;
+	static const int mouse_drag_margin = 5;
 	int fontheight;
 	int displayed_lines = 0;
 	int list_start_index = 0;
@@ -503,8 +503,8 @@ void showViewerWindow() {
 	int width = XPLMGetDatai(window_width_ref);
 	int height = XPLMGetDatai(window_height_ref);
 
-	constexpr int window_width = 500;
-	constexpr int window_height = 400;
+	const int window_width = 500;
+	const int window_height = 400;
 
 	int x = width/2 - window_width / 2, x2 = width/2 + window_width / 2;
 	int y = height/2 + window_height / 2, y2 = height/2 - window_height / 2;
