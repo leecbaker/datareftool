@@ -22,6 +22,10 @@ const int right_col_width = 20;
 const int toggle_button_width = 28;
 const int title_bar_height = 20;
 
+int last_top = -1, last_bottom = -1, last_left = -1, last_right = -1;
+std::string last_search_term;
+bool last_case_sensitive = false, last_regex = false, last_changed = false;
+
 class DatarefViewerWindow;
 
 void closeViewerWindow(DatarefViewerWindow * window);
@@ -338,6 +342,17 @@ public:
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMin, 0);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, 0);
 
+		if(last_left != -1) {
+			XPSetWidgetGeometry(window, last_left, last_top, last_right, last_bottom);
+			XPSetWidgetDescriptor(search_field, last_search_term.c_str());
+			XPSetWidgetProperty(change_filter_button, xpProperty_ButtonState, last_changed ? 1 : 0);
+			XPSetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, last_case_sensitive ? 1 : 0);
+			XPSetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, last_regex ? 1 : 0);
+			last_left = last_top = last_right = last_bottom = -1;
+			last_search_term.clear();
+			last_case_sensitive = last_regex = last_changed = false;
+		}
+
 		resize();
 
 		doSearch();
@@ -347,6 +362,13 @@ public:
 	}
 
 	~DatarefViewerWindow() {
+		XPGetWidgetGeometry(window, &last_left, &last_top, &last_right, &last_bottom);
+		last_search_term = getSearchText();
+
+		last_case_sensitive = 0 != XPGetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, nullptr);
+		last_regex = 0 != XPGetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, nullptr);
+		last_changed = 0 != XPGetWidgetProperty(change_filter_button, xpProperty_ButtonState, nullptr);
+
 		XPHideWidget(window);
 		XPLMDestroyWindow(window);
 	}

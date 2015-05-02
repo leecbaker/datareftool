@@ -17,6 +17,7 @@ DRT is available under the MIT license. See the LICENSE file for more details.
 
 ### Feature list
 
+* Read, write, and search for datarefs
 * Case insensitive search
 * Regex search
 * Windows, Mac, Linux are all supported
@@ -26,11 +27,6 @@ DRT is available under the MIT license. See the LICENSE file for more details.
 * Make it easy to deselect the search field (unlike DRE). Use enter, return, escape, or tab, or click elsewhere in the DRT window.
 * Cut/copy/paste/select all in search field and for datarefs (uses standard keyboard shortcuts)
 * Multiple DRT windows viewable at once
-
-Stuff that I'm not planning (but welcome pull requests for):
-
-* Ability to modify datarefs
-* Remember window positions and search details when X-Plane is closed
 
 ### How to build
 Building requires cmake and a c++11 compiler. Here's how I do it:
