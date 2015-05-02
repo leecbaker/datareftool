@@ -24,6 +24,7 @@ DRT is available under the MIT license. See the LICENSE file for more details.
 * Displays all data types
 * Display multiple elements of an array at once
 * Make it easy to deselect the search field (unlike DRE). Use enter, return, escape, or tab, or click elsewhere in the DRT window.
+* Cut/copy/paste/select all in search field and for datarefs (uses standard keyboard shortcuts)
 * Multiple DRT windows viewable at once
 
 Stuff that I'm not planning (but welcome pull requests for):
@@ -46,9 +47,9 @@ On Windows, you can use the Visual Studio project generator to do something like
 
 at which point you can just use Visual Studio to build the project, or you can build on the command line:
 
-    msbuild src/plugin.vcxproj /p:Configuration=Release /p:PlatformToolset=CTP_Nov2013 /flp:logfile=plugin_build.log;verbosity=normal
+    msbuild src/plugin.vcxproj /p:Configuration=Release /flp:logfile=plugin_build.log;verbosity=normal
 
-Note that you'll need the Nov 2013 CTP compiler or Visual Studio 14 preview to be able to build the plugin, since it uses some C++11 features. Both are a free download from Microsoft. You'll see a ton of warnings (6890 warnings on my machine!), but I couldn't find any that really had much relevance.
+Note: You no longer need the VC++ CTP compiler to build DRT.
 
 ### Adding custom datarefs
 You can use DRT to display your plugin's custom datarefs. Just send a message of type 0x01000000 with a pointer to the name of the dataref as the payload. There is an example of how to do this in [plugin_custom_dataref.cpp](src/plugin_custom_dataref.cpp). (This is exactly the same method that you use to add a custom dataref to Data Ref Editor.)
