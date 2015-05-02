@@ -40,8 +40,8 @@ void showAboutWindow() {
 		int width = XPLMGetDatai(window_width_ref);
 		int height = XPLMGetDatai(window_height_ref);
 
-		constexpr int window_width = 250;
-		constexpr int window_height = 150;
+		const int window_width = 250;
+		const int window_height = 150;
 
 		int x = width/2 - window_width / 2, x2 = width/2 + window_width / 2;
 		int y = height/2 + window_height / 2, y2 = height/2 - window_height / 2;
@@ -57,8 +57,8 @@ void showAboutWindow() {
 		XPSetWidgetProperty(about_window, xpProperty_MainWindowType, xpMainWindowStyle_Translucent);
 		XPAddWidgetCallback(about_window, aboutWindowCallback);
 
-		constexpr int margin = 20;
-		constexpr int row_sep = 20;
+		const int margin = 20;
+		const int row_sep = 20;
 
 		int row_top = y - 20;	//minus 20 for the header bar
 		int left_bound = x + margin;

@@ -29,6 +29,7 @@ class DatarefViewerWindow {
 	XPWidgetID case_sensitive_button = nullptr;
 	XPWidgetID change_filter_button = nullptr;
 	XPWidgetID search_field = nullptr;
+	XPWidgetID edit_field = nullptr;
 	XPWidgetID scroll_bar = nullptr;
 	XPWidgetID custom_list = nullptr;
 
@@ -42,6 +43,7 @@ class DatarefViewerWindow {
 	static constexpr int mouse_drag_margin = 5;
 	int fontheight;
 	int displayed_lines = 0;
+	int list_start_index = 0;
 
 	std::vector<DataRefRecord *> datarefs;
 
@@ -61,11 +63,51 @@ class DatarefViewerWindow {
 				if(mouse_info->x > obj->drag_start_window_right - mouse_drag_margin) { obj->in_resize_right = true; }
 				if(mouse_info->y < obj->drag_start_window_bottom + mouse_drag_margin) { obj->in_resize_bottom = true; }
 
-				if(!obj->in_resize_left && !obj->in_resize_right && !obj->in_resize_bottom) { break; }
+				if(obj->in_resize_left || obj->in_resize_right || obj->in_resize_bottom) {
+					obj->drag_start_mouse_x = mouse_info->x;
+					obj->drag_start_mouse_y = mouse_info->y;
+					return 1;
+				} else {
+					int click_y_offset_from_list_top = obj->drag_start_window_top - mouse_info->y - title_bar_height;
+					int click_y_offset_index = click_y_offset_from_list_top / obj->fontheight;
+					int displayed_list_elements = std::min<int>(obj->displayed_lines, obj->datarefs.size());
 
-				obj->drag_start_mouse_x = mouse_info->x;
-				obj->drag_start_mouse_y = mouse_info->y;
-				return 1;
+					int click_list_index = click_y_offset_index + obj->list_start_index;
+
+					if(click_y_offset_index < displayed_list_elements && 0 <= click_list_index) {	//click is over a real list entry
+						const DataRefRecord * record = obj->datarefs[click_list_index];
+						const std::string name = record->getName();
+						float dataref_name_width = XPLMMeasureString(font, name.c_str(), name.size() + 1);
+						float dataref_name_width_plus_eq = XPLMMeasureString(font, (name + "=").c_str(), name.size() + 2);
+						const int fontheight = obj->fontheight;
+
+						int scroll_left, scroll_right; 
+						XPGetWidgetGeometry(obj->scroll_bar, &scroll_left, nullptr, &scroll_right, nullptr);
+						const int scroll_width = scroll_right - scroll_left;
+
+						//click is over name?
+						int top = obj->drag_start_window_top - title_bar_height - click_y_offset_index * fontheight;
+						int bottom = obj->drag_start_window_top - title_bar_height - (1 + click_y_offset_index) * fontheight;
+
+						int nameend_x = obj->drag_start_window_left + dataref_name_width;
+						int valuestart_x = obj->drag_start_window_left + dataref_name_width_plus_eq;
+						const int box_padding_x = 6;
+						const int box_padding_y = 6;
+
+						if(mouse_info->x < obj->drag_start_window_left + dataref_name_width) {
+							XPSetWidgetGeometry(obj->edit_field, obj->drag_start_window_left, top, nameend_x + box_padding_x, bottom - box_padding_y);
+							XPSetWidgetDescriptor(obj->edit_field, record->getName().c_str());
+						} else {
+							XPSetWidgetGeometry(obj->edit_field, valuestart_x, top, obj->drag_start_window_right - mouse_drag_margin - scroll_width + box_padding_x, bottom - box_padding_y);
+							XPSetWidgetDescriptor(obj->edit_field, record->getValueString().c_str());
+						}
+
+						XPShowWidget(obj->edit_field);
+						return 1;
+					}
+				}
+
+				return 0;
 			case xpMsg_MouseUp:
 				if(!obj->in_resize_left && !obj->in_resize_right && !obj->in_resize_bottom) { break; }
 				obj->in_resize_left = false;
@@ -102,25 +144,25 @@ class DatarefViewerWindow {
 						case XPLM_VK_A:	//select all
 						{
 							size_t length = obj->getSearchText().size();
-							obj->setSelection(0, length);
+							obj->setSearchSelection(0, length);
 							return 1;
 						}
 						case XPLM_VK_X:	//cut
 						{
-							size_t start = obj->getSelectionStart();
-							size_t stop = obj->getSelectionStop();
+							size_t start = obj->getSearchSelectionStart();
+							size_t stop = obj->getSearchSelectionStop();
 							std::string search_text = obj->getSearchText();
 							std::string cut_text = search_text.substr(start, stop - start);
 							search_text.erase(search_text.cbegin() + start, search_text.cbegin() + stop);
 							obj->setSearchText(search_text);
-							obj->setSelection(start, start);
+							obj->setSearchSelection(start, start);
 							setClipboard(cut_text);
 							return 1;
 						}
 						case XPLM_VK_C:	//copy 
 						{
-							size_t start = obj->getSelectionStart();
-							size_t stop = obj->getSelectionStop();
+							size_t start = obj->getSearchSelectionStart();
+							size_t stop = obj->getSearchSelectionStop();
 							std::string search_text = obj->getSearchText();
 							std::string cut_text = search_text.substr(start, stop - start);
 							setClipboard(cut_text);
@@ -129,12 +171,12 @@ class DatarefViewerWindow {
 						case XPLM_VK_V:	//paste 
 						{
 							std::string pasted_text = getClipboard();
-							size_t start = obj->getSelectionStart();
-							size_t stop = obj->getSelectionStop();
+							size_t start = obj->getSearchSelectionStart();
+							size_t stop = obj->getSearchSelectionStop();
 							std::string search_text = obj->getSearchText();
 							search_text.replace(search_text.cbegin() + start, search_text.cbegin() + stop, pasted_text.cbegin(), pasted_text.cend());
 							obj->setSearchText(search_text);
-							obj->setSelection(start + pasted_text.size(), start + pasted_text.size());
+							obj->setSearchSelection(start + pasted_text.size(), start + pasted_text.size());
 							return 1;
 						}
 					}
@@ -146,6 +188,39 @@ class DatarefViewerWindow {
 						case XPLM_VK_ESCAPE:
 							obj->deselectSearchField();
 							break;
+					}
+				}
+		}
+		return 0;
+	}
+
+
+	static int editFieldCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2) {
+		DatarefViewerWindow * obj = (DatarefViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
+		XPKeyState_t * keystruct = (XPKeyState_t *) inParam1;
+		switch(inMessage) {
+			case xpMsg_DescriptorChanged:
+				obj->doSearch();
+				return 1;
+			case xpMsg_KeyPress:
+				if(keystruct->flags & 6 && keystruct->flags & xplm_DownFlag) {	//alt, command, control are down
+					switch(keystruct->vkey) {
+						case XPLM_VK_A:	//select all
+						{
+							size_t length = obj->getEditText().size();
+							obj->setEditSelection(0, length);
+							return 1;
+						}
+						case XPLM_VK_X:	//cut
+						case XPLM_VK_C:	//copy 
+						{
+							size_t start = obj->getEditSelectionStart();
+							size_t stop = obj->getEditSelectionStop();
+							std::string search_text = obj->getEditText();
+							std::string cut_text = search_text.substr(start, stop - start);
+							setClipboard(cut_text);
+							return 1;
+						}
 					}
 				}
 		}
@@ -188,6 +263,10 @@ public:
 		XPAddWidgetCallback(window, viewerWindowCallback);
 		XPSetWidgetProperty(window, xpProperty_Object, (intptr_t)this);
 
+		custom_list = XPCreateCustomWidget(0, 0, 1, 1, 1,"", 0, window, drawListCallback);
+		//XPAddWidgetCallback(custom_list, drawListCallback);
+		XPSetWidgetProperty(custom_list, xpProperty_Object, (intptr_t)this);
+
 		regex_toggle_button = XPCreateWidget(0, 0, 1, 1, 1,".*", 0, window, xpWidgetClass_Button);
 		XPSetWidgetProperty(regex_toggle_button, xpProperty_ButtonType, xpPushButton);
 		XPSetWidgetProperty(regex_toggle_button, xpProperty_ButtonBehavior, xpButtonBehaviorCheckBox);
@@ -214,14 +293,16 @@ public:
 		XPAddWidgetCallback(search_field, searchFieldCallback);
 		XPSetWidgetProperty(search_field, xpProperty_Object, (intptr_t)this);
 
+		edit_field = XPCreateWidget(0, 0, 1, 1, 1,"", 0, window, xpWidgetClass_TextField);
+		//XPSetWidgetProperty(edit_field, xpProperty_TextFieldType, xpTextTranslucent);
+		XPAddWidgetCallback(edit_field, editFieldCallback);
+		XPSetWidgetProperty(edit_field, xpProperty_Object, (intptr_t)this);
+		XPHideWidget(edit_field);
+
 		scroll_bar = XPCreateWidget(0, 0, 1, 1, 1,"", 0, window, xpWidgetClass_ScrollBar);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarType, xpScrollBarTypeScrollBar);	//might need changing
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMin, 0);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, 0);
-
-		custom_list = XPCreateCustomWidget(0, 0, 1, 1, 1,"", 0, window, drawListCallback);
-		//XPAddWidgetCallback(custom_list, drawListCallback);
-		XPSetWidgetProperty(custom_list, xpProperty_Object, (intptr_t)this);
 
 		resize();
 
@@ -237,6 +318,8 @@ public:
 	}
 
 	void updateScroll() {
+		deselectEditField();
+
 		//update the scrollbar
 		int scroll_pos = (int)XPGetWidgetProperty(scroll_bar, xpProperty_ScrollBarSliderPosition, nullptr);
 		int max_scroll_pos = std::max<int>(0, datarefs.size() - displayed_lines);
@@ -257,6 +340,7 @@ public:
 		scroll_pos = std::min<intptr_t>(max_scroll_pos, std::max<intptr_t>(0, scroll_pos));
 
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarSliderPosition, scroll_pos);
+		deselectEditField();
 	}
 
 	std::string getSearchText() const {
@@ -265,15 +349,15 @@ public:
 		return std::string(searchfield_text);
 	}
 
-	intptr_t getSelectionStart() const {
+	intptr_t getSearchSelectionStart() const {
 		return XPGetWidgetProperty(search_field, xpProperty_EditFieldSelStart, NULL);
 	}
 
-	intptr_t getSelectionStop() const {
-		return  XPGetWidgetProperty(search_field, xpProperty_EditFieldSelEnd, NULL);
+	intptr_t getSearchSelectionStop() const {
+		return XPGetWidgetProperty(search_field, xpProperty_EditFieldSelEnd, NULL);
 	}
 
-	void setSelection(intptr_t start, intptr_t stop) {
+	void setSearchSelection(intptr_t start, intptr_t stop) {
 		XPSetWidgetProperty(search_field, xpProperty_EditFieldSelStart, start);
 		XPSetWidgetProperty(search_field, xpProperty_EditFieldSelEnd, stop);
 	}
@@ -282,7 +366,32 @@ public:
 		XPSetWidgetDescriptor(search_field, s.c_str());
 	}
 
+	void deselectEditField() {
+		XPLoseKeyboardFocus(edit_field);
+		XPHideWidget(edit_field);
+	}
+
+	std::string getEditText() const {
+		char editfield_text[1024];
+		XPGetWidgetDescriptor(edit_field, editfield_text, 1024);
+		return std::string(editfield_text);
+	}
+
+	intptr_t getEditSelectionStart() const {
+		return XPGetWidgetProperty(edit_field, xpProperty_EditFieldSelStart, NULL);
+	}
+
+	intptr_t getEditSelectionStop() const {
+		return XPGetWidgetProperty(edit_field, xpProperty_EditFieldSelEnd, NULL);
+	}
+
+	void setEditSelection(intptr_t start, intptr_t stop) {
+		XPSetWidgetProperty(edit_field, xpProperty_EditFieldSelStart, start);
+		XPSetWidgetProperty(edit_field, xpProperty_EditFieldSelEnd, stop);
+	}
+
 	void doSearch() {
+		deselectEditField();
 		intptr_t property = XPGetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, nullptr);
 		bool case_insensitive_selected = property != 0;
 		property = XPGetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, nullptr);
@@ -312,12 +421,12 @@ public:
 
 		//high scroll_pos is the top of the scroll bar, opposite how we expect
 		const int lines_to_render = std::min<int>(displayed_lines, datarefs.size());
-		const int top_offset = scroll_pos_max - scroll_pos;
+		list_start_index = scroll_pos_max - scroll_pos;
 
 		const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
 		for(int i = 0; i < lines_to_render; i++) {
-			const DataRefRecord * record = datarefs[i + top_offset];
+			const DataRefRecord * record = datarefs[i + list_start_index];
 
 			float timediff = 0.001f * std::chrono::duration_cast<std::chrono::milliseconds>(now - record->getLastUpdated()).count();
 			float timediff_fraction = std::min<float>(1.f, timediff / 10.);
