@@ -342,6 +342,14 @@ public:
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMin, 0);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, 0);
 
+        FILE * pFile;
+        pFile = fopen ("./Resources/plugins/DataRefTool/drtpref.txt","r+");
+        printf("pFile = %d\n",pFile);
+        if (pFile > 0) {
+           fscanf(pFile,"%d %d %d %d %d %d %d", &last_left, &last_top, &last_right, &last_bottom, &last_case_sensitive, &last_regex, &last_changed);
+           fclose (pFile);
+        }
+
 		if(last_left != -1) {
 			XPSetWidgetGeometry(window, last_left, last_top, last_right, last_bottom);
 			XPSetWidgetDescriptor(search_field, last_search_term.c_str());
@@ -368,6 +376,11 @@ public:
 		last_case_sensitive = 0 != XPGetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, nullptr);
 		last_regex = 0 != XPGetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, nullptr);
 		last_changed = 0 != XPGetWidgetProperty(change_filter_button, xpProperty_ButtonState, nullptr);
+
+        FILE * pFile;
+        pFile = fopen ("./Resources/plugins/DataRefTool/drtpref.txt","w+");
+        fprintf(pFile,"%d %d %d %d %d %d %d\n",last_left, last_top, last_right, last_bottom, last_case_sensitive, last_regex, last_changed);
+        fclose (pFile);
 
 		XPHideWidget(window);
 		XPLMDestroyWindow(window);
