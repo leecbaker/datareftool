@@ -344,9 +344,15 @@ public:
 
         FILE * pFile;
         pFile = fopen ("./Resources/plugins/DataRefTool/drtpref.txt","r+");
-        printf("pFile = %d\n",pFile);
+        int tmp_last_case_sensitive = last_case_sensitive;
+        int tmp_last_regex = last_regex;
+        int tmp_last_changed = last_changed;
+
         if (pFile > 0) {
-           fscanf(pFile,"%d %d %d %d %d %d %d", &last_left, &last_top, &last_right, &last_bottom, &last_case_sensitive, &last_regex, &last_changed);
+           fscanf(pFile,"%d %d %d %d %d %d %d", &last_left, &last_top, &last_right, &last_bottom, &tmp_last_case_sensitive, &tmp_last_regex, &tmp_last_changed);
+           last_case_sensitive = tmp_last_case_sensitive;
+           last_regex = tmp_last_regex;
+           last_changed = tmp_last_changed;
            fclose (pFile);
         }
 
