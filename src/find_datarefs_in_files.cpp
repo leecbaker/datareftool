@@ -16,7 +16,7 @@ inline char isValidDatarefChar(char c) {
 	return std::isalnum(c) || '_' == c || '/' == c || '-' == c || '.' == c;
 }
 
-int min_dataref_length = 8;
+const size_t min_dataref_length = 8;
 
 std::vector<std::string> getDatarefsFromFile(const std::string & filename) {
     boost::iostreams::mapped_file_source file;

@@ -57,7 +57,7 @@ class DatarefViewerWindow {
 
 	std::vector<DataRefRecord *> datarefs;
 
-	static int viewerWindowCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2) {
+	static int viewerWindowCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t) {
 		XPMouseState_t * mouse_info = (XPMouseState_t *) inParam1;
 		DatarefViewerWindow * obj = (DatarefViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
 		switch(inMessage) {
@@ -146,7 +146,7 @@ class DatarefViewerWindow {
 		return 0;
 	}
 
-	static int searchFieldCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2) {
+	static int searchFieldCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t) {
 		DatarefViewerWindow * obj = (DatarefViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
 		XPKeyState_t * keystruct = (XPKeyState_t *) inParam1;
 		switch(inMessage) {
@@ -211,7 +211,7 @@ class DatarefViewerWindow {
 	}
 
 
-	static int editFieldCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2) {
+	static int editFieldCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t) {
 		DatarefViewerWindow * obj = (DatarefViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
 		XPKeyState_t * keystruct = (XPKeyState_t *) inParam1;
 		switch(inMessage) {
@@ -265,7 +265,7 @@ class DatarefViewerWindow {
 		return 0;
 	}
 
-	static int filterClickCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2) {
+	static int filterClickCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t, intptr_t) {
 		DatarefViewerWindow * obj = (DatarefViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
 		switch(inMessage) {
 			case xpMsg_ButtonStateChanged:
@@ -275,7 +275,7 @@ class DatarefViewerWindow {
 		return 0;
 	}
 
-	static int drawListCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2) {
+	static int drawListCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t, intptr_t) {
 		DatarefViewerWindow * obj = (DatarefViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
 		switch(inMessage) {
 			case xpMsg_Draw:

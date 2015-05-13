@@ -31,7 +31,7 @@ void loadAircraftDatarefs() {
 	XPLMDebugString(message.c_str());
 }
 
-float load_dr_callback(float elapsedMe, float elapsedSim, int counter, void * refcon) {
+float load_dr_callback(float, float, int, void *) {
 	if(false == loadDatarefsFile()) {
 		XPLMDebugString("Couldn't load datarefs from file.");
 		return 0;
@@ -75,7 +75,7 @@ float load_dr_callback(float elapsedMe, float elapsedSim, int counter, void * re
 	return 0; 
 }
 
-void plugin_menu_handler(void * inMenuRef, void * inItemRef)
+void plugin_menu_handler(void *, void * inItemRef)
 {
 	switch ( intptr_t(inItemRef) )
 	{
@@ -125,7 +125,7 @@ PLUGIN_API int XPluginEnable(void) {
 const intptr_t MSG_ADD_DATAREF = 0x01000000;
 const intptr_t MSG_ADD_COMMANDREF = 0x01000099;
 
-PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, intptr_t inMessage, void * inParam) {
+PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * inParam) {
 	switch(inMessage) {
 		// Add custom datarefs in the style of DRE:
 		// http://www.xsquawkbox.net/xpsdk/mediawiki/Register_Custom_DataRef_in_DRE
