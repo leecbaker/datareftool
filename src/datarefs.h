@@ -30,8 +30,9 @@ class DataRefRecord {
 	dataref_src_t source;
 
 public:
-	DataRefRecord(const std::string & name, XPLMDataRef ref, dataref_src_t source) : name(name), ref(ref), source(source) {
+	DataRefRecord(const std::string & name, XPLMDataRef ref, dataref_src_t source) : name(name), last_updated(std::chrono::system_clock::now()), ref(ref), source(source) {
 		type = 	XPLMGetDataRefTypes(ref);
+		memset(iv_val, 0, sizeof(PREVIEW_DATAREF_BYTEARRAY_COUNT));
 	}
 
 	/// @return true if updated, false if not

@@ -508,7 +508,7 @@ public:
 			const DataRefRecord * record = datarefs[i + list_start_index];
 
 			float timediff = 0.001f * std::chrono::duration_cast<std::chrono::milliseconds>(now - record->getLastUpdated()).count();
-			float timediff_fraction = std::min<float>(1.f, timediff / 10.);
+			float timediff_fraction = std::min<float>(1.f, timediff / 10.f);
 			float colors[3] = {0.2f + timediff_fraction * 0.8f, 1.f, 1.f};
 			int xstart = left;
 			int ystart = top - (i + 1) * fontheight;
