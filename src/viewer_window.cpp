@@ -487,6 +487,9 @@ public:
 		doDatarefSearch(searchfield_text, regex_selected, case_insensitive_selected, changed_selected, datarefs);
 
 		updateScroll();
+
+		std::string window_title = std::string("DataRef Tool (") + std::to_string(datarefs.size()) + ")"; 
+		XPSetWidgetDescriptor(window, window_title.c_str());
 	}
 
 	void draw() {
