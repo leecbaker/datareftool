@@ -79,6 +79,9 @@ class DatarefViewerWindow {
 					return 1;
 				} else {
 					int click_y_offset_from_list_top = obj->drag_start_window_top - mouse_info->y - title_bar_height;
+					if(click_y_offset_from_list_top < 0) {	//click in title bar
+						return 0;
+					}
 					int click_y_offset_index = click_y_offset_from_list_top / obj->fontheight;
 					int displayed_list_elements = std::min<int>(obj->displayed_lines, obj->datarefs.size());
 
