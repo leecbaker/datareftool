@@ -47,7 +47,7 @@ class DatarefViewerWindow {
 	bool in_resize_right = false;
 	bool in_resize_bottom = false;
 
-	static const int mouse_drag_margin = 5;
+	static const int mouse_drag_margin = 7;
 	int fontheight;
 	int displayed_lines = 0;
 	int list_start_index = 0;
