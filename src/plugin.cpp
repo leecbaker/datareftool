@@ -85,13 +85,36 @@ float load_dr_callback(float, float, int, void *) {
 	return 0; 
 }
 
+void reloadAircraft() {
+	char acf_path[2048], acf_filename[1024];
+	XPLMGetNthAircraftModel(0, acf_filename, acf_path);
+	XPLMSetUsersAircraft(acf_path);
+}
+
 void plugin_menu_handler(void *, void * inItemRef)
 {
 	switch ( intptr_t(inItemRef) )
 	{
 		case 0: showViewerWindow(); break;	
 		//case 1: showCommandWindow(); break;	
-		case 2: showAboutWindow(); break;
+
+		case 2: 
+			XPLMDebugString("DataRefTool: reloaded aircraft\n");
+			reloadAircraft();
+			break;
+		case 3: 
+			XPLMDebugString("DataRefTool: reloaded plugins\n");
+			XPLMReloadPlugins(); 
+			break;
+		case 4: 
+			XPLMDebugString("DataRefTool: reloaded scenery\n");
+			XPLMReloadScenery(); 
+			break;
+		case 5: 
+			showAboutWindow(); 
+			break;
+		default:
+			break;
 	}
 }	
 
@@ -108,11 +131,21 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 
 	XPLMAppendMenuItem(plugin_menu, "View Datarefs", (void *)0, 1);
 	XPLMAppendMenuItem(plugin_menu, "View Commands", (void *)1, 1);
-	XPLMAppendMenuItem(plugin_menu, "About DataRefTool", (void *)2, 1);
+	XPLMAppendMenuSeparator(plugin_menu);
+	XPLMAppendMenuItem(plugin_menu, "Reload aircraft", (void *)2, 1);
+	XPLMAppendMenuItem(plugin_menu, "Reload plugins", (void *)3, 1);
+	XPLMAppendMenuItem(plugin_menu, "Reload scenery", (void *)4, 1);
+	XPLMAppendMenuSeparator(plugin_menu);
+	XPLMAppendMenuItem(plugin_menu, "About DataRefTool", (void *)5, 1);
 
 	XPLMEnableMenuItem(plugin_menu, 0, 1);
 	XPLMEnableMenuItem(plugin_menu, 1, 0);
-	XPLMEnableMenuItem(plugin_menu, 2, 1);
+	XPLMEnableMenuItem(plugin_menu, 2, 1);	//sep
+	XPLMEnableMenuItem(plugin_menu, 3, 1);
+	XPLMEnableMenuItem(plugin_menu, 4, 1);
+	XPLMEnableMenuItem(plugin_menu, 5, 1);
+	XPLMEnableMenuItem(plugin_menu, 6, 1);	//sep
+	XPLMEnableMenuItem(plugin_menu, 7, 1);
 
 	return 1;
 }
