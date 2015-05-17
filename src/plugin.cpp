@@ -31,6 +31,16 @@ void loadAircraftDatarefs() {
 	XPLMDebugString(message.c_str());
 }
 
+
+//callback so we can load new aircraft datarefs when the aircraft is reloaded
+float load_acf_dr_callback(float, float, int, void *) {
+	loadAircraftDatarefs();
+
+	updateViewerResults();
+
+	return 0; 
+}
+
 float load_dr_callback(float, float, int, void *) {
 	if(false == loadDatarefsFile()) {
 		XPLMDebugString("Couldn't load datarefs from file.");
@@ -113,6 +123,7 @@ PLUGIN_API void	XPluginStop(void) {
 	closeViewerWindows();
 	cleanupDatarefs();
 	XPLMUnregisterFlightLoopCallback(load_dr_callback, nullptr);
+	XPLMUnregisterFlightLoopCallback(load_acf_dr_callback, nullptr);
 }
 
 PLUGIN_API void XPluginDisable(void) {
@@ -157,7 +168,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 			const std::string message = std::string("DRT: Plane loaded #: ") + std::to_string(plane_num) + std::string("\n");
 			XPLMDebugString(message.c_str());
 			if(0 == plane_num) {	//user's plane
-				loadAircraftDatarefs();
+				XPLMRegisterFlightLoopCallback(load_acf_dr_callback, -1, nullptr);
 			}
 			break;
 		}
