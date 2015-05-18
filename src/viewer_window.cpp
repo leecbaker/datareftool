@@ -47,7 +47,7 @@ class DatarefViewerWindow {
 	bool in_resize_right = false;
 	bool in_resize_bottom = false;
 
-	static const int mouse_drag_margin = 5;
+	static const int mouse_drag_margin = 7;
 	int fontheight;
 	int displayed_lines = 0;
 	int list_start_index = 0;
@@ -57,7 +57,7 @@ class DatarefViewerWindow {
 
 	std::vector<DataRefRecord *> datarefs;
 
-	static int viewerWindowCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2) {
+	static int viewerWindowCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t) {
 		XPMouseState_t * mouse_info = (XPMouseState_t *) inParam1;
 		DatarefViewerWindow * obj = (DatarefViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
 		switch(inMessage) {
@@ -79,6 +79,9 @@ class DatarefViewerWindow {
 					return 1;
 				} else {
 					int click_y_offset_from_list_top = obj->drag_start_window_top - mouse_info->y - title_bar_height;
+					if(click_y_offset_from_list_top < 0) {	//click in title bar
+						return 0;
+					}
 					int click_y_offset_index = click_y_offset_from_list_top / obj->fontheight;
 					int displayed_list_elements = std::min<int>(obj->displayed_lines, obj->datarefs.size());
 
@@ -146,7 +149,7 @@ class DatarefViewerWindow {
 		return 0;
 	}
 
-	static int searchFieldCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2) {
+	static int searchFieldCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t) {
 		DatarefViewerWindow * obj = (DatarefViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
 		XPKeyState_t * keystruct = (XPKeyState_t *) inParam1;
 		switch(inMessage) {
@@ -211,7 +214,7 @@ class DatarefViewerWindow {
 	}
 
 
-	static int editFieldCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2) {
+	static int editFieldCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t) {
 		DatarefViewerWindow * obj = (DatarefViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
 		XPKeyState_t * keystruct = (XPKeyState_t *) inParam1;
 		switch(inMessage) {
@@ -265,7 +268,7 @@ class DatarefViewerWindow {
 		return 0;
 	}
 
-	static int filterClickCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2) {
+	static int filterClickCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t, intptr_t) {
 		DatarefViewerWindow * obj = (DatarefViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
 		switch(inMessage) {
 			case xpMsg_ButtonStateChanged:
@@ -275,7 +278,7 @@ class DatarefViewerWindow {
 		return 0;
 	}
 
-	static int drawListCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2) {
+	static int drawListCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t, intptr_t) {
 		DatarefViewerWindow * obj = (DatarefViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
 		switch(inMessage) {
 			case xpMsg_Draw:
@@ -505,6 +508,9 @@ public:
 		doDatarefSearch(searchfield_text, regex_selected, case_insensitive_selected, changed_selected, datarefs);
 
 		updateScroll();
+
+		std::string window_title = std::string("DataRef Tool (") + std::to_string(datarefs.size()) + ")"; 
+		XPSetWidgetDescriptor(window, window_title.c_str());
 	}
 
 	void draw() {
@@ -529,7 +535,7 @@ public:
 			const DataRefRecord * record = datarefs[i + list_start_index];
 
 			float timediff = 0.001f * std::chrono::duration_cast<std::chrono::milliseconds>(now - record->getLastUpdated()).count();
-			float timediff_fraction = std::min<float>(1.f, timediff / 10.);
+			float timediff_fraction = std::min<float>(1.f, timediff / 10.f);
 			float colors[3] = {0.2f + timediff_fraction * 0.8f, 1.f, 1.f};
 			int xstart = left;
 			int ystart = top - (i + 1) * fontheight;

@@ -36,6 +36,8 @@ Building requires cmake and a c++11 compiler. Here's how I do it:
     make
 
 #### Building on Windows
+Boost is now required, which complicates the build a bit. If you don't have the required paths set up I'd recommend looking at my [personal build script](build_win.bat).
+
 On Windows, you can use the Visual Studio project generator to do something like this:
 
     mkdir build

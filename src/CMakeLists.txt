@@ -1,6 +1,6 @@
 
-SET(SRC about_window.cpp plugin.cpp viewer_window.cpp datarefs.cpp)
-SET(HDR about_window.h viewer_window.h datarefs.h clipboard.h)
+SET(SRC about_window.cpp plugin.cpp viewer_window.cpp datarefs.cpp find_datarefs_in_files.cpp)
+SET(HDR about_window.h viewer_window.h datarefs.h clipboard.h find_datarefs_in_files.h)
 
 SET(SRC_PLUGIN_EXAMPLE plugin_custom_dataref.cpp)
 
@@ -25,20 +25,30 @@ elseif(UNIX)
 elseif(WIN32)
 	add_library(plugin MODULE ${ALL_SRC})
 	add_library(plugin_custom_dataref MODULE ${SRC_PLUGIN_EXAMPLE})
-	SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-	SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+	SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+	SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELEASE} /MD")
+	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
 endif()
 
 #compiler flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall --std=c++11")
 if(WIN32)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHECK_RESULT_USED=_Check_return_")
 else()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra --std=c++11")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHECK_RESULT_USED=\"__attribute__ ((warn_unused_result))\"")
 endif()
 
 #libraries
+if(WIN32)
+	set(Boost_USE_STATIC_LIBS ON)
+	set(Boost_USE_MULTITHREADED ON)
+	set(Boost_USE_STATIC_RUNTIME OFF)
+	add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
+endif()
+find_package(Boost 1.55.0 REQUIRED COMPONENTS filesystem system iostreams)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+target_link_libraries(plugin ${Boost_LIBRARIES})
+
 if(UNIX)
 	target_include_directories(plugin PUBLIC "../lib/xplane_sdk/CHeaders/XPLM/" "../lib/xplane_sdk/CHeaders/Widgets/" "../lib/xplane_sdk/CHeaders/Wrappers/")
 	target_include_directories(plugin_custom_dataref PUBLIC "../lib/xplane_sdk/CHeaders/XPLM/" "../lib/xplane_sdk/CHeaders/Widgets/" "../lib/xplane_sdk/CHeaders/Wrappers/")

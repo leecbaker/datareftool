@@ -15,9 +15,9 @@ void closeAboutWindow() {
 	about_window = nullptr;
 }
 
-int	aboutWindowCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t  inParam2)
+int	aboutWindowCallback(XPWidgetMessage message, XPWidgetID, intptr_t, intptr_t)
 {
-	if (inMessage == xpMessage_CloseButtonPushed) {
+	if (message == xpMessage_CloseButtonPushed) {
 		closeAboutWindow();
 		return 1;
 	}

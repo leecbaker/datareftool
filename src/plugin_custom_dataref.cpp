@@ -8,7 +8,7 @@
 
 int dummy_dr_variable = -1337;
 const intptr_t MSG_ADD_DATAREF = 0x01000000;
-float register_dr_callback(float elapsedMe, float elapsedSim, int counter, void * refcon)
+float register_dr_callback(float, float, int, void *)
 {
 	XPLMPluginID plugin_id = XPLMFindPluginBySignature("com.leecbaker.datareftool");
 	if(XPLM_NO_PLUGIN_ID != plugin_id) {
@@ -20,7 +20,7 @@ float register_dr_callback(float elapsedMe, float elapsedSim, int counter, void 
 	return 0; 
 }
 
-int dummy_dr_callback(void* inRefcon) {
+int dummy_dr_callback(void*) {
 	return 1337;
 }
 
@@ -30,10 +30,13 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	strcpy(outDesc, "Test for DataRefTool");
 	XPLMRegisterFlightLoopCallback(register_dr_callback, 1, nullptr);
 	XPLMDataRef dr = XPLMRegisterDataAccessor("datareftool/good_int", xplmType_Int, 0, dummy_dr_callback, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
+	if(nullptr == dr) {
+		return 0;
+	}
 	return 1;
 }
 
 PLUGIN_API void	XPluginStop(void) { }
 PLUGIN_API void XPluginDisable(void) { }
 PLUGIN_API int XPluginEnable(void) { return 1; }
-PLUGIN_API void XPluginReceiveMessage(XPLMPluginID inFromWho, long inMessage, void * inParam) { }
+PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t, void *) { }
