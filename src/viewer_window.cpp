@@ -345,19 +345,19 @@ public:
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMin, 0);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, 0);
 
-                FILE * pFile;
-                pFile = fopen ("./Resources/plugins/DataRefTool/drtpref.txt","r+");
-                int tmp_last_case_sensitive = last_case_sensitive;
-                int tmp_last_regex = last_regex;
-                int tmp_last_changed = last_changed;
+        FILE * pFile;
+        pFile = fopen ("./Resources/plugins/DataRefTool/drtpref.txt","r+");
+        int tmp_last_case_sensitive = last_case_sensitive;
+        int tmp_last_regex = last_regex;
+        int tmp_last_changed = last_changed;
 
-                if (pFile) {
-                    fscanf(pFile,"%d %d %d %d %d %d %d", &last_left, &last_top, &last_right, &last_bottom, &tmp_last_case_sensitive, &tmp_last_regex, &tmp_last_changed);
-                    last_case_sensitive = tmp_last_case_sensitive;
-                    last_regex = tmp_last_regex;
-                    last_changed = tmp_last_changed;
-                    fclose (pFile);
-                }
+        if (pFile) {
+           fscanf(pFile,"%d %d %d %d %d %d %d", &last_left, &last_top, &last_right, &last_bottom, &tmp_last_case_sensitive, &tmp_last_regex, &tmp_last_changed);
+           last_case_sensitive = tmp_last_case_sensitive;
+           last_regex = tmp_last_regex;
+           last_changed = tmp_last_changed;
+           fclose (pFile);
+        }
 
 		if(last_left != -1) {
 			XPSetWidgetGeometry(window, last_left, last_top, last_right, last_bottom);
@@ -386,12 +386,12 @@ public:
 		last_regex = 0 != XPGetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, nullptr);
 		last_changed = 0 != XPGetWidgetProperty(change_filter_button, xpProperty_ButtonState, nullptr);
 
-                FILE * pFile;
-                pFile = fopen ("./Resources/plugins/DataRefTool/drtpref.txt","w+");
-                fprintf(pFile,"%d %d %d %d %d %d %d\n",last_left, last_top, last_right, last_bottom, last_case_sensitive, last_regex, last_changed);
-                if (pFile != NULL) {
-                    fclose (pFile);
-                }
+        FILE * pFile;
+        pFile = fopen ("./Resources/plugins/DataRefTool/drtpref.txt","w+");
+        if (pFile != NULL) {
+            fprintf(pFile,"%d %d %d %d %d %d %d\n",last_left, last_top, last_right, last_bottom, last_case_sensitive, last_regex, last_changed);
+            fclose (pFile);
+        }
 
 		XPHideWidget(window);
 		XPLMDestroyWindow(window);
