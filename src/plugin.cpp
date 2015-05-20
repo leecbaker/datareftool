@@ -118,6 +118,26 @@ void plugin_menu_handler(void *, void * inItemRef)
 	}
 }	
 
+XPLMCommandRef reload_aircraft_command = nullptr;
+XPLMCommandRef reload_plugins_command = nullptr;
+XPLMCommandRef reload_scenery_command = nullptr;
+XPLMCommandRef show_datarefs_command = nullptr;
+
+int command_handler(XPLMCommandRef command, XPLMCommandPhase phase, void * ) {
+	if(xplm_CommandBegin == phase) {
+		if(command == reload_aircraft_command) {
+				reloadAircraft();
+		} else if(command == reload_plugins_command) {
+				XPLMReloadPlugins(); 
+		} else if(command == reload_scenery_command) {
+				XPLMReloadScenery(); 
+		} else if(command == show_datarefs_command) {
+				showViewerWindow();
+		}
+	}
+	return 1;
+}
+
 PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	strcpy(outName, "DataRef Tool");
 	strcpy(outSig, "com.leecbaker.datareftool");
@@ -146,6 +166,17 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	XPLMEnableMenuItem(plugin_menu, 5, 1);
 	XPLMEnableMenuItem(plugin_menu, 6, 1);	//sep
 	XPLMEnableMenuItem(plugin_menu, 7, 1);
+
+	//commands
+	reload_aircraft_command = XPLMCreateCommand("datareftool/reload_aircraft", "Reload the current aircraft");
+	reload_plugins_command = XPLMCreateCommand("datareftool/reload_plugins", "Reload all plugins");
+	reload_scenery_command = XPLMCreateCommand("datareftool/reload_scenery", "Reload the scenery");
+	show_datarefs_command = XPLMCreateCommand("datareftool/show_datarefs", "Show the dataref search window");
+
+	XPLMRegisterCommandHandler(reload_aircraft_command, command_handler, 0, nullptr);
+	XPLMRegisterCommandHandler(reload_plugins_command, command_handler, 0, nullptr);
+	XPLMRegisterCommandHandler(reload_scenery_command, command_handler, 0, nullptr);
+	XPLMRegisterCommandHandler(show_datarefs_command, command_handler, 0, nullptr);
 
 	return 1;
 }
