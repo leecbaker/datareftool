@@ -1,11 +1,76 @@
 #include "clipboard.h"
+#include "XPLMUtilities.h"
 
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+
+//implementation from @jason-watkins
 std::string getClipboard() {
-	//TODO
-	return "";
+	std::string result;
+
+	Display* display = XOpenDisplay(nullptr);
+	if(display == nullptr) {
+		return result;
+	}
+	// Need a window to pass into the conversion request.
+	int black = BlackPixel (display, DefaultScreen (display));
+	Window root = XDefaultRootWindow (display);
+	Window window = XCreateSimpleWindow (display, root, 0, 0, 1, 1, 0, black, black);
+	// Get/create the CLIPBOARD atom.
+	// TODO(jason-watkins): Should we really ever create this atom? My limited knowledge of Linux is failing me here.
+	Atom clipboard = XInternAtom (display, "CLIPBOARD", False);
+	// Get/create an atom to represent datareftool
+	Atom prop = XInternAtom(display, "DRT_DATA", False);
+
+	// Request that the clipboard value be converted to a string
+	XConvertSelection(display, clipboard, XA_STRING, prop, window, CurrentTime);
+	XSync (display, False);
+
+	// Spin several times waiting for the conversion to trigger a SelectionNotify
+	// event.
+	Bool keep_waiting = True;
+	for(int i = 0; keep_waiting && i < 200; ++i)
+	{
+		XEvent event;
+		XNextEvent(display, &event);
+		switch (event.type) {
+			case SelectionNotify:
+				if (event.xselection.selection != clipboard) {
+					break;
+				}
+				if (event.xselection.property == None) {
+					keep_waiting = False;
+				}
+				else {
+					int format;
+					Atom target;
+					unsigned char * value;
+					unsigned long length;
+					unsigned long bytesafter;
+					XGetWindowProperty (event.xselection.display,
+						event.xselection.requestor,
+						event.xselection.property, 0L, 1000000,
+						False, (Atom)AnyPropertyType, &target,
+						&format, &length, &bytesafter, &value);
+					result = (char *)value;
+					XFree(value);
+					keep_waiting = False;
+					XDeleteProperty (event.xselection.display,
+						event.xselection.requestor,
+						event.xselection.property);
+				}
+				break;
+			default:
+				break;
+		}
+	}
+	XCloseDisplay(display);
+	return result;
 }
 
+// implementation from @sparker256
 void setClipboard(const std::string & s) {
+<<<<<<< HEAD
     // Use xclip
     // TODO(sparker256): Need to check if xclip is on system
     // If not give method to install it
@@ -15,4 +80,10 @@ void setClipboard(const std::string & s) {
     std::string s3 = s1+ s +s2;
     system(s3.c_str());
 
+=======
+	std::string command = "echo " + s + " | xclip -sel c";
+	if(0 != system(command.c_str())) {
+		XPLMDebugString("Copy command failed. Do you have xclip on your system?");
+	}
+>>>>>>> 3e3284069bdb64c53ff6a4e3a069e3974050e3f6
 }

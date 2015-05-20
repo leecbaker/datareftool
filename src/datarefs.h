@@ -1,6 +1,7 @@
 #pragma once
 #include <cassert>
 #include <chrono>
+#include <cstring>
 #include <vector>
 #include <string>
 #include "XPLMDataAccess.h"
