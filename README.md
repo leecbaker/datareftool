@@ -49,6 +49,11 @@ at which point you can just use Visual Studio to build the project, or you can b
 
 Note: You no longer need the VC++ CTP compiler to build DRT.
 
+#### Building on Linux
+On Linux, you'll need a couple of packages that you might not have. This worked for me:
+
+	sudo apt-get install libx11-dev libboost-all-dev
+
 ### Adding custom datarefs
 You can use DRT to display your plugin's custom datarefs. Just send a message of type 0x01000000 with a pointer to the name of the dataref as the payload. There is an example of how to do this in [plugin_custom_dataref.cpp](src/plugin_custom_dataref.cpp). (This is exactly the same method that you use to add a custom dataref to Data Ref Editor.)
 
