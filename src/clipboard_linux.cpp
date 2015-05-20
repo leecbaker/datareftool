@@ -1,4 +1,5 @@
 #include "clipboard.h"
+#include "XPLMUtilities.h"
 
 std::string getClipboard() {
 	//TODO
@@ -6,5 +7,8 @@ std::string getClipboard() {
 }
 
 void setClipboard(const std::string & s) {
-	//TODO
+	std::string command = "echo " + s + " | xclip -sel c";
+	if(0 != system(command.c_str())) {
+		XPLMDebugString("Copy command failed. Do you have xclip on your system?");
+	}
 }
