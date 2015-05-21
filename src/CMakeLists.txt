@@ -45,7 +45,7 @@ if(WIN32)
 	set(Boost_USE_STATIC_RUNTIME OFF)
 	add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
 endif()
-find_package(Boost 1.55.0 REQUIRED COMPONENTS filesystem system iostreams)
+find_package(Boost 1.54.0 REQUIRED COMPONENTS filesystem system iostreams)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 target_link_libraries(plugin ${Boost_LIBRARIES})
 
