@@ -70,20 +70,8 @@ std::string getClipboard() {
 
 // implementation from @sparker256
 void setClipboard(const std::string & s) {
-<<<<<<< HEAD
-    // Use xclip
-    // TODO(sparker256): Need to check if xclip is on system
-    // If not give method to install it
-    // sudo apt-get install xclip
-    std::string s1 = "echo ";
-    std::string s2 = " | xclip -sel c";
-    std::string s3 = s1+ s +s2;
-    system(s3.c_str());
-
-=======
 	std::string command = "echo " + s + " | xclip -sel c";
 	if(0 != system(command.c_str())) {
 		XPLMDebugString("Copy command failed. Do you have xclip on your system?");
 	}
->>>>>>> 3e3284069bdb64c53ff6a4e3a069e3974050e3f6
 }

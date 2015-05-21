@@ -7,6 +7,7 @@
 #include "XPStandardWidgets.h"
 #include "XPLMDataAccess.h"
 #include "XPLMGraphics.h"
+#include "XPLMUtilities.h"
 
 #include <algorithm>
 #include <cctype>
@@ -352,11 +353,15 @@ public:
         int tmp_last_changed = last_changed;
 
         if (pFile) {
-           fscanf(pFile,"%d %d %d %d %d %d %d", &last_left, &last_top, &last_right, &last_bottom, &tmp_last_case_sensitive, &tmp_last_regex, &tmp_last_changed);
-           last_case_sensitive = tmp_last_case_sensitive;
-           last_regex = tmp_last_regex;
-           last_changed = tmp_last_changed;
-           fclose (pFile);
+           if (fscanf(pFile,"%d %d %d %d %d %d %d", &last_left, &last_top, &last_right, &last_bottom, &tmp_last_case_sensitive, &tmp_last_regex, &tmp_last_changed) == 1) {
+               last_case_sensitive = tmp_last_case_sensitive;
+               last_regex = tmp_last_regex;
+               last_changed = tmp_last_changed;
+               fclose (pFile);
+
+           } else {
+               fclose (pFile);
+           }
         }
 
 		if(last_left != -1) {
@@ -389,9 +394,13 @@ public:
         FILE * pFile;
         pFile = fopen ("./Resources/plugins/DataRefTool/drtpref.txt","w+");
         if (pFile != NULL) {
-            fprintf(pFile,"%d %d %d %d %d %d %d\n",last_left, last_top, last_right, last_bottom, last_case_sensitive, last_regex, last_changed);
-            fclose (pFile);
-        }
+            int ret = fprintf(pFile,"%d %d %d %d %d %d %d\n",last_left, last_top, last_right, last_bottom, last_case_sensitive, last_regex, last_changed);
+            if (ret > 0) {
+                fclose (pFile);
+            } else {
+                XPLMDebugString("DRT: Error writing drtpref.txt.\n");
+            }
+         }
 
 		XPHideWidget(window);
 		XPLMDestroyWindow(window);
