@@ -91,8 +91,8 @@ class DatarefViewerWindow {
 					if(click_y_offset_index < displayed_list_elements && 0 <= click_list_index) {	//click is over a real list entry
 						DataRefRecord * record = obj->datarefs[click_list_index];
 						const std::string name = record->getName();
-						float dataref_name_width = XPLMMeasureString(font, name.c_str(), name.size() + 1);
-						float dataref_name_width_plus_eq = XPLMMeasureString(font, (name + "=").c_str(), name.size() + 2);
+						float dataref_name_width = XPLMMeasureString(font, name.c_str(), int(name.size()) + 1);
+						float dataref_name_width_plus_eq = XPLMMeasureString(font, (name + "=").c_str(), int(name.size()) + 2);
 						const int fontheight = obj->fontheight;
 
 						int scroll_left, scroll_right; 
@@ -103,8 +103,8 @@ class DatarefViewerWindow {
 						int top = obj->drag_start_window_top - title_bar_height - click_y_offset_index * fontheight;
 						int bottom = obj->drag_start_window_top - title_bar_height - (1 + click_y_offset_index) * fontheight;
 
-						int nameend_x = obj->drag_start_window_left + dataref_name_width;
-						int valuestart_x = obj->drag_start_window_left + dataref_name_width_plus_eq;
+						int nameend_x = obj->drag_start_window_left + int(dataref_name_width);
+						int valuestart_x = obj->drag_start_window_left + int(dataref_name_width_plus_eq);
 						const int box_padding_x = 6;
 						const int box_padding_y = 6;
 
@@ -411,7 +411,7 @@ public:
 
 		//update the scrollbar
 		int scroll_pos = (int)XPGetWidgetProperty(scroll_bar, xpProperty_ScrollBarSliderPosition, nullptr);
-		int max_scroll_pos = std::max<int>(0, datarefs.size() - displayed_lines);
+		int max_scroll_pos = std::max<int>(0, int(datarefs.size()) - displayed_lines);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMin, 0);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, max_scroll_pos);
 		if(scroll_pos > max_scroll_pos) {
@@ -425,7 +425,7 @@ public:
 
 	void moveScroll(int amount) {
 		intptr_t scroll_pos = XPGetWidgetProperty(scroll_bar, xpProperty_ScrollBarSliderPosition, nullptr) + amount;
-		int max_scroll_pos = std::max<int>(0, datarefs.size() - displayed_lines);
+		int max_scroll_pos = std::max<int>(0, int(datarefs.size()) - displayed_lines);
 		scroll_pos = std::min<intptr_t>(max_scroll_pos, std::max<intptr_t>(0, scroll_pos));
 
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarSliderPosition, scroll_pos);
@@ -535,7 +535,7 @@ public:
 		const int scroll_pos_max = (int)XPGetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, nullptr);
 
 		//high scroll_pos is the top of the scroll bar, opposite how we expect
-		const int lines_to_render = std::min<int>(displayed_lines, datarefs.size());
+		const int lines_to_render = std::min<int>(displayed_lines, int(datarefs.size()));
 		list_start_index = scroll_pos_max - scroll_pos;
 
 		const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();

@@ -21,12 +21,7 @@ void loadAircraftDatarefs() {
 	XPLMGetNthAircraftModel(0, filename, path);
 	std::vector<std::string> aircraft_datarefs = getDatarefsFromAircraft(path);
 
-	int loaded_ok = 0;
-	for(const std::string & dataref : aircraft_datarefs) {
-		if(addUserDataref(dataref) ) {
-			loaded_ok++;
-		}
-	}
+	int loaded_ok = addUserDatarefs(aircraft_datarefs);
 	const std::string message = std::string("DRT: Found ") + std::to_string(aircraft_datarefs.size()) + std::string(" possible datarefs from aircraft files; " + std::to_string(loaded_ok) + " loaded OK.\n");
 	XPLMDebugString(message.c_str());
 }
@@ -71,12 +66,7 @@ float load_dr_callback(float, float, int, void *) {
 
 	removeVectorUniques(all_plugin_datarefs);
 
-	int loaded_ok = 0;
-	for(const std::string & dataref : all_plugin_datarefs) {
-		if(addUserDataref(dataref) ) {
-			loaded_ok++;
-		}
-	}
+	int loaded_ok = addUserDatarefs(all_plugin_datarefs);
 	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + " loaded OK.\n");
 	XPLMDebugString(message.c_str());
 
@@ -97,20 +87,22 @@ void plugin_menu_handler(void *, void * inItemRef)
 	{
 		case 0: showViewerWindow(); break;	
 		//case 1: showCommandWindow(); break;	
-
-		case 2: 
+		case 2:
+			XPLMSetFlightLoopCallbackInterval(load_dr_callback, -1, 1, nullptr);
+			break;
+		case 3: 
 			XPLMDebugString("DataRefTool: reloaded aircraft\n");
 			reloadAircraft();
 			break;
-		case 3: 
+		case 4: 
 			XPLMDebugString("DataRefTool: reloaded plugins\n");
 			XPLMReloadPlugins(); 
 			break;
-		case 4: 
+		case 5: 
 			XPLMDebugString("DataRefTool: reloaded scenery\n");
 			XPLMReloadScenery(); 
 			break;
-		case 5: 
+		case 6: 
 			showAboutWindow(); 
 			break;
 		default:
@@ -152,20 +144,24 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	XPLMAppendMenuItem(plugin_menu, "View Datarefs", (void *)0, 1);
 	XPLMAppendMenuItem(plugin_menu, "View Commands", (void *)1, 1);
 	XPLMAppendMenuSeparator(plugin_menu);
-	XPLMAppendMenuItem(plugin_menu, "Reload aircraft", (void *)2, 1);
-	XPLMAppendMenuItem(plugin_menu, "Reload plugins", (void *)3, 1);
-	XPLMAppendMenuItem(plugin_menu, "Reload scenery", (void *)4, 1);
+	XPLMAppendMenuItem(plugin_menu, "Rescan for datarefs", (void *)2, 1);
 	XPLMAppendMenuSeparator(plugin_menu);
-	XPLMAppendMenuItem(plugin_menu, "About DataRefTool", (void *)5, 1);
+	XPLMAppendMenuItem(plugin_menu, "Reload aircraft", (void *)3, 1);
+	XPLMAppendMenuItem(plugin_menu, "Reload plugins", (void *)4, 1);
+	XPLMAppendMenuItem(plugin_menu, "Reload scenery", (void *)5, 1);
+	XPLMAppendMenuSeparator(plugin_menu);
+	XPLMAppendMenuItem(plugin_menu, "About DataRefTool", (void *)6, 1);
 
 	XPLMEnableMenuItem(plugin_menu, 0, 1);
 	XPLMEnableMenuItem(plugin_menu, 1, 0);
 	XPLMEnableMenuItem(plugin_menu, 2, 1);	//sep
 	XPLMEnableMenuItem(plugin_menu, 3, 1);
-	XPLMEnableMenuItem(plugin_menu, 4, 1);
+	XPLMEnableMenuItem(plugin_menu, 4, 1);	//sep
 	XPLMEnableMenuItem(plugin_menu, 5, 1);
-	XPLMEnableMenuItem(plugin_menu, 6, 1);	//sep
+	XPLMEnableMenuItem(plugin_menu, 6, 1);
 	XPLMEnableMenuItem(plugin_menu, 7, 1);
+	XPLMEnableMenuItem(plugin_menu, 8, 1);	//sep
+	XPLMEnableMenuItem(plugin_menu, 9, 1);
 
 	//commands
 	reload_aircraft_command = XPLMCreateCommand("datareftool/reload_aircraft", "Reload the current aircraft");

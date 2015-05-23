@@ -47,6 +47,28 @@ bool addUserDataref(const std::string & name) {
 	return true;
 }
 
+int addUserDatarefs(const std::vector<std::string> & names) {
+	int ok = 0;
+	for(const std::string & name : names) {
+		//check for duplicates:
+		if(0 != datarefs_loaded.count(name)) {
+			continue;
+		}
+
+		XPLMDataRef dr = XPLMFindDataRef(name.c_str());
+		if(nullptr == dr) {
+			continue;
+		}
+		datarefs.emplace_back(name, dr, dataref_src_t::USER_MSG);
+		datarefs_loaded.insert(name);
+		ok++;
+	}
+
+	sortDatarefs();
+
+	return ok;
+}
+
 bool loadDatarefsFile() {
 	char system_path_c[1000];
 	XPLMGetSystemPath(system_path_c);
@@ -126,7 +148,7 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
 	if(regex) {
 		try {
 			search_regex = std::regex(search_term, std::regex::ECMAScript | std::regex::optimize | (case_insensitive ? std::regex::icase : std::regex::flag_type(0)));
-		} catch (std::exception & e) {
+		} catch (std::exception &) {
 			std::cerr << "Search expression isn't a valid regex." << std::endl;
 			return;
 		}
@@ -160,8 +182,8 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
 		}
 
 		if(changed_recently) {
-			float timediff = std::chrono::duration_cast<std::chrono::seconds>(now - record.getLastUpdated()).count();
-			if(timediff > 10.) {
+			float timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record.getLastUpdated()).count());
+			if(timediff > 10.f) {
 				continue;
 			}
 		}

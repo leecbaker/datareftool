@@ -23,7 +23,7 @@ std::vector<std::string> getDatarefsFromFile(const std::string & filename) {
     
     try {
         file.open(filename);
-    } catch(std::exception & e) {
+    } catch(std::exception &) {
 		return {};
     }
 
@@ -107,8 +107,20 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 		}
 	}
 
-	//object files. Recurse over directory structure
+	//object files in aircraft directory
 	std::vector<boost::filesystem::path> paths;
+	boost::filesystem::directory_iterator dir_end_it;
+	for(boost::filesystem::directory_iterator dir_it(aircraft_dir); dir_it != dir_end_it; dir_it++) {
+		boost::filesystem::path file_path = dir_it->path();
+
+		if(boost::filesystem::is_regular_file(file_path)) {
+			if(".obj" == file_path.extension() || ".acf" == file_path.extension()) {
+				paths.push_back(file_path);
+			}
+		}
+	}
+
+	//object files. Recurse over directory structure
 	paths.push_back(aircraft_dir / "objects");
 
 	while(false == paths.empty()) {
