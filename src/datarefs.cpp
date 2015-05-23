@@ -148,7 +148,7 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
 	if(regex) {
 		try {
 			search_regex = std::regex(search_term, std::regex::ECMAScript | std::regex::optimize | (case_insensitive ? std::regex::icase : std::regex::flag_type(0)));
-		} catch (std::exception & e) {
+		} catch (std::exception &) {
 			std::cerr << "Search expression isn't a valid regex." << std::endl;
 			return;
 		}
@@ -182,8 +182,8 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
 		}
 
 		if(changed_recently) {
-			float timediff = std::chrono::duration_cast<std::chrono::seconds>(now - record.getLastUpdated()).count();
-			if(timediff > 10.) {
+			float timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record.getLastUpdated()).count());
+			if(timediff > 10.f) {
 				continue;
 			}
 		}

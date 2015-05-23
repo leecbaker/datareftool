@@ -23,7 +23,7 @@ std::vector<std::string> getDatarefsFromFile(const std::string & filename) {
     
     try {
         file.open(filename);
-    } catch(std::exception & e) {
+    } catch(std::exception &) {
 		return {};
     }
 
