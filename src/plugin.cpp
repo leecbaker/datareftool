@@ -21,12 +21,7 @@ void loadAircraftDatarefs() {
 	XPLMGetNthAircraftModel(0, filename, path);
 	std::vector<std::string> aircraft_datarefs = getDatarefsFromAircraft(path);
 
-	int loaded_ok = 0;
-	for(const std::string & dataref : aircraft_datarefs) {
-		if(addUserDataref(dataref) ) {
-			loaded_ok++;
-		}
-	}
+	int loaded_ok = addUserDatarefs(aircraft_datarefs);
 	const std::string message = std::string("DRT: Found ") + std::to_string(aircraft_datarefs.size()) + std::string(" possible datarefs from aircraft files; " + std::to_string(loaded_ok) + " loaded OK.\n");
 	XPLMDebugString(message.c_str());
 }
@@ -71,12 +66,7 @@ float load_dr_callback(float, float, int, void *) {
 
 	removeVectorUniques(all_plugin_datarefs);
 
-	int loaded_ok = 0;
-	for(const std::string & dataref : all_plugin_datarefs) {
-		if(addUserDataref(dataref) ) {
-			loaded_ok++;
-		}
-	}
+	int loaded_ok = addUserDatarefs(all_plugin_datarefs);
 	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + " loaded OK.\n");
 	XPLMDebugString(message.c_str());
 

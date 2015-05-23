@@ -56,6 +56,7 @@ public:
 
 
 bool addUserDataref(const std::string & name);
+int addUserDatarefs(const std::vector<std::string> & names);
 bool loadDatarefsFile();
 void cleanupDatarefs();
 void datarefUpdate();

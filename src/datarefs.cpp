@@ -47,6 +47,28 @@ bool addUserDataref(const std::string & name) {
 	return true;
 }
 
+int addUserDatarefs(const std::vector<std::string> & names) {
+	int ok = 0;
+	for(const std::string & name : names) {
+		//check for duplicates:
+		if(0 != datarefs_loaded.count(name)) {
+			continue;
+		}
+
+		XPLMDataRef dr = XPLMFindDataRef(name.c_str());
+		if(nullptr == dr) {
+			continue;
+		}
+		datarefs.emplace_back(name, dr, dataref_src_t::USER_MSG);
+		datarefs_loaded.insert(name);
+		ok++;
+	}
+
+	sortDatarefs();
+
+	return ok;
+}
+
 bool loadDatarefsFile() {
 	char system_path_c[1000];
 	XPLMGetSystemPath(system_path_c);
