@@ -353,7 +353,7 @@ public:
         int tmp_last_changed = last_changed;
 
         if (pFile) {
-           if (fscanf(pFile,"%d %d %d %d %d %d %d", &last_left, &last_top, &last_right, &last_bottom, &tmp_last_case_sensitive, &tmp_last_regex, &tmp_last_changed) == 1) {
+           if (fscanf(pFile,"%d %d %d %d %d %d %d", &last_left, &last_top, &last_right, &last_bottom, &tmp_last_case_sensitive, &tmp_last_regex, &tmp_last_changed) == 7) {
                last_case_sensitive = tmp_last_case_sensitive;
                last_regex = tmp_last_regex;
                last_changed = tmp_last_changed;
