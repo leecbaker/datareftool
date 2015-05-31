@@ -2,4 +2,5 @@
 
 void showViewerWindow();
 void updateViewerResults();
+void updateSearchResults();
 void closeViewerWindows();

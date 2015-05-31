@@ -32,6 +32,7 @@ float load_acf_dr_callback(float, float, int, void *) {
 	loadAircraftDatarefs();
 
 	updateViewerResults();
+	updateSearchResults();
 
 	return 0; 
 }
@@ -71,6 +72,7 @@ float load_dr_callback(float, float, int, void *) {
 	XPLMDebugString(message.c_str());
 
 	updateViewerResults();
+	updateSearchResults();
 
 	return 0; 
 }
