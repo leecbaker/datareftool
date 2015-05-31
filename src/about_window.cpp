@@ -58,7 +58,7 @@ void showAboutWindow() {
 		XPAddWidgetCallback(about_window, aboutWindowCallback);
 
 		const int margin = 20;
-		const int row_sep = 20;
+		const int row_sep = 16;
 
 		int row_top = y - 20;	//minus 20 for the header bar
 		int left_bound = x + margin;
@@ -67,7 +67,7 @@ void showAboutWindow() {
 		std::string top_line("Data Ref Tool");
 		std::string by_line("by Lee C. Baker");
 		std::string www_line("https://github.com/leecbaker/datareftool/");
-
+		std::string compile_date("Compiled " __DATE__ " at " __TIME__);
 		XPWidgetID widget = XPCreateWidget(left_bound, row_top, right_bound, row_top - 20, 1,top_line.c_str(), 0, about_window, xpWidgetClass_Caption);
 		XPSetWidgetProperty(widget, xpProperty_CaptionLit, 1);
 		row_top -= row_sep;
@@ -75,6 +75,9 @@ void showAboutWindow() {
 		XPSetWidgetProperty(widget, xpProperty_CaptionLit, 1);
 		row_top -= row_sep;
 		widget = XPCreateWidget(left_bound, row_top, right_bound, row_top - 20, 1,www_line.c_str(), 0, about_window, xpWidgetClass_Caption);
+		XPSetWidgetProperty(widget, xpProperty_CaptionLit, 1);
+		row_top -= row_sep;
+		widget = XPCreateWidget(left_bound, row_top, right_bound, row_top - 20, 1,compile_date.c_str(), 0, about_window, xpWidgetClass_Caption);
 		XPSetWidgetProperty(widget, xpProperty_CaptionLit, 1);
 		row_top -= row_sep;
 	}
