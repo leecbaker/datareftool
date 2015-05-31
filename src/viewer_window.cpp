@@ -601,6 +601,12 @@ void closeViewerWindows() {
 	viewer_windows.clear();
 }
 
+void updateSearchResults() {
+	for(DatarefViewerWindow * window : viewer_windows) {
+		window->doSearch();
+	}
+}
+
 void updateViewerResults() {
 	for(DatarefViewerWindow * window : viewer_windows) {
 		window->updateResults();
