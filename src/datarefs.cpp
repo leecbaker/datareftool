@@ -139,7 +139,7 @@ void datarefUpdate() {
 	}
 }
 
-void doDatarefSearch(const std::string & search_term, bool regex, bool case_insensitive, bool changed_recently, std::vector<DataRefRecord *> & data_out) {
+void doDatarefSearch(const std::string & search_term, bool regex, bool case_insensitive, bool changed_recently, bool only_big_changes, std::vector<DataRefRecord *> & data_out) {
 
 	std::cerr << "Doing search for " << search_term << std::endl;
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
@@ -182,7 +182,12 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
 		}
 
 		if(changed_recently) {
-			float timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record.getLastUpdated()).count());
+			float timediff;
+			if(only_big_changes) {
+				timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record.getLastBigUpdateTime()).count());
+			} else {
+				timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record.getLastUpdateTime()).count());
+			}
 			if(timediff > 10.f) {
 				continue;
 			}
@@ -196,6 +201,9 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 	if(type & xplmType_Double) {
 		double newval = XPLMGetDatad(ref);
 		if(newval != lf_val) {
+			if(0.01 < fabsl(newval - lf_val) / lf_val) {
+				last_updated_big = current_time;
+			}
 			last_updated = current_time;
 			lf_val = newval;
 			return true;
@@ -205,6 +213,9 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 	} else if (type & xplmType_Float) {
 		float newval = XPLMGetDataf(ref);
 		if(newval != f_val) {
+			if(0.01f < fabs(newval - f_val) / f_val) {
+				last_updated_big = current_time;
+			}
 			last_updated = current_time;
 			f_val = newval;
 			return true;

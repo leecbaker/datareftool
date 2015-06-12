@@ -25,7 +25,8 @@ const int title_bar_height = 20;
 
 int last_top = -1, last_bottom = -1, last_left = -1, last_right = -1;
 std::string last_search_term;
-bool last_case_sensitive = false, last_regex = false, last_changed = false;
+bool last_case_sensitive = false, last_regex = false;
+int last_change_filter_state = 0;
 
 class DatarefViewerWindow;
 
@@ -52,6 +53,8 @@ class DatarefViewerWindow {
 	int fontheight;
 	int displayed_lines = 0;
 	int list_start_index = 0;
+
+	int change_filter_state = 0;	//0, 1, 2 for off, changes, only big changes
 
 	DataRefRecord * select_edit_dataref = nullptr;
 	bool edit_modified = false;
@@ -273,6 +276,10 @@ class DatarefViewerWindow {
 		DatarefViewerWindow * obj = (DatarefViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
 		switch(inMessage) {
 			case xpMsg_ButtonStateChanged:
+				if(inWidget == obj->change_filter_button) {
+					obj->change_filter_state = (obj->change_filter_state + 1) % 3;
+					obj->updateChangeButton();
+				}
 				obj->doSearch();
 				return 1;
 		}
@@ -329,6 +336,7 @@ public:
 		XPSetWidgetProperty(change_filter_button, xpProperty_ButtonState, 0);
 		XPAddWidgetCallback(change_filter_button, filterClickCallback);
 		XPSetWidgetProperty(change_filter_button, xpProperty_Object, (intptr_t)this);
+		updateChangeButton();
 
 		search_field = XPCreateWidget(0, 0, 1, 1, 1,"", 0, window, xpWidgetClass_TextField);
 		XPSetWidgetProperty(search_field, xpProperty_TextFieldType, xpTextTranslucent);
@@ -367,12 +375,13 @@ public:
 		if(last_left != -1) {
 			XPSetWidgetGeometry(window, last_left, last_top, last_right, last_bottom);
 			XPSetWidgetDescriptor(search_field, last_search_term.c_str());
-			XPSetWidgetProperty(change_filter_button, xpProperty_ButtonState, last_changed ? 1 : 0);
 			XPSetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, last_case_sensitive ? 1 : 0);
 			XPSetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, last_regex ? 1 : 0);
 			last_left = last_top = last_right = last_bottom = -1;
 			last_search_term.clear();
-			last_case_sensitive = last_regex = last_changed = false;
+			last_case_sensitive = last_regex = false;
+			change_filter_state = last_change_filter_state;
+			updateChangeButton();
 		}
 
 		resize();
@@ -389,7 +398,7 @@ public:
 
 		last_case_sensitive = 0 != XPGetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, nullptr);
 		last_regex = 0 != XPGetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, nullptr);
-		last_changed = 0 != XPGetWidgetProperty(change_filter_button, xpProperty_ButtonState, nullptr);
+		last_change_filter_state = change_filter_state;
 
         FILE * pFile;
         pFile = fopen ("./Resources/plugins/DataRefTool/drtpref.txt","w+");
@@ -502,6 +511,23 @@ public:
 		XPSetWidgetProperty(edit_field, xpProperty_EditFieldSelEnd, stop);
 	}
 
+	void updateChangeButton() {
+		switch(change_filter_state) {
+			case 0:
+				XPSetWidgetDescriptor(change_filter_button, "Ch");
+				XPSetWidgetProperty(change_filter_button, xpProperty_ButtonState, 0);
+				break;
+			case 1:
+				XPSetWidgetDescriptor(change_filter_button, "ch");
+				XPSetWidgetProperty(change_filter_button, xpProperty_ButtonState, 1);
+				break;
+			case 2:
+				XPSetWidgetDescriptor(change_filter_button, "CH");
+				XPSetWidgetProperty(change_filter_button, xpProperty_ButtonState, 1);
+				break;
+		}
+	}
+
 	void doSearch() {
 		deselectEditField();
 		intptr_t property = XPGetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, nullptr);
@@ -509,12 +535,13 @@ public:
 		property = XPGetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, nullptr);
 		bool regex_selected = property != 0;
 		property = XPGetWidgetProperty(change_filter_button, xpProperty_ButtonState, nullptr);
-		bool changed_selected = property != 0;
+		bool changed_selected = 0 != change_filter_state;
+		bool only_big_changes = 2 == change_filter_state;
 
 		char searchfield_text[1024];
 		XPGetWidgetDescriptor(search_field, searchfield_text, 1024);
 
-		doDatarefSearch(searchfield_text, regex_selected, case_insensitive_selected, changed_selected, datarefs);
+		doDatarefSearch(searchfield_text, regex_selected, case_insensitive_selected, changed_selected, only_big_changes, datarefs);
 
 		updateScroll();
 
@@ -543,7 +570,7 @@ public:
 		for(int i = 0; i < lines_to_render; i++) {
 			const DataRefRecord * record = datarefs[i + list_start_index];
 
-			float timediff = 0.001f * std::chrono::duration_cast<std::chrono::milliseconds>(now - record->getLastUpdated()).count();
+			float timediff = 0.001f * std::chrono::duration_cast<std::chrono::milliseconds>(now - record->getLastUpdateTime()).count();
 			float timediff_fraction = std::min<float>(1.f, timediff / 10.f);
 			float colors[3] = {0.2f + timediff_fraction * 0.8f, 1.f, 1.f};
 			int xstart = left;

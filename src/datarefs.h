@@ -17,6 +17,7 @@ enum class dataref_src_t {
 class DataRefRecord {
 	std::string name;
 	std::chrono::system_clock::time_point last_updated;
+	std::chrono::system_clock::time_point last_updated_big;
 	union {
 		float f_val;
 		double lf_val;
@@ -42,7 +43,8 @@ public:
 	dataref_src_t getSource() const { return source; }
 	bool update(const std::chrono::system_clock::time_point current_time);
 	const std::string & getName() const { return name; }
-	const std::chrono::system_clock::time_point & getLastUpdated() const { return last_updated; }
+	const std::chrono::system_clock::time_point & getLastUpdateTime() const { return last_updated; }
+	const std::chrono::system_clock::time_point & getLastBigUpdateTime() const { return last_updated_big; }
 	bool writable() const;
 
 	bool isDouble() const { return 0 != (xplmType_Double & type); }
@@ -60,4 +62,4 @@ int addUserDatarefs(const std::vector<std::string> & names);
 bool loadDatarefsFile();
 void cleanupDatarefs();
 void datarefUpdate();
-void doDatarefSearch(const std::string & search_term, bool regex, bool case_insensitive, bool changed_recently, std::vector<DataRefRecord *> & data_out);
+void doDatarefSearch(const std::string & search_term, bool regex, bool case_insensitive, bool changed_recently, bool only_big_changes, std::vector<DataRefRecord *> & data_out);
