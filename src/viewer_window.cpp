@@ -355,7 +355,7 @@ public:
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, 0);
 
         FILE * pFile;
-        pFile = fopen ("./Resources/plugins/DataRefTool/drtpref.txt","r+");
+        pFile = fopen ("./Resources/plugins/datareftool/drtpref.txt","r+");
         int tmp_last_case_sensitive = last_case_sensitive;
         int tmp_last_regex = last_regex;
         int tmp_last_change_filter_state = last_change_filter_state;
@@ -401,7 +401,7 @@ public:
 		last_change_filter_state = change_filter_state;
 
         FILE * pFile;
-        pFile = fopen ("./Resources/plugins/DataRefTool/drtpref.txt","w+");
+        pFile = fopen ("./Resources/plugins/datareftool/drtpref.txt","w+");
         if (pFile != NULL) {
             int ret = fprintf(pFile,"%d %d %d %d %d %d %d\n",last_left, last_top, last_right, last_bottom, last_case_sensitive, last_regex, last_change_filter_state);
             if (ret > 0) {
