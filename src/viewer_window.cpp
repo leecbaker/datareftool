@@ -359,8 +359,7 @@ public:
         char drtPath[512]; memset( drtPath, 0, 512 );
         XPLMGetPluginInfo(XPLMGetMyID (), NULL, drtPath, NULL, NULL);
         std::string plugin_path(drtPath);
-        int plugin_path_len = plugin_path.size();
-        plugin_path.resize (plugin_path_len - 7);
+        plugin_path.resize (plugin_path.size() - 7);
         plugin_path = plugin_path + "drtpref.txt";
 
         FILE * pFile;
@@ -413,12 +412,10 @@ public:
         char drtPath1[512]; memset( drtPath1, 0, 512 );
         XPLMGetPluginInfo(XPLMGetMyID (), NULL, drtPath1, NULL, NULL);
         std::string plugin_path1(drtPath1);
-        int plugin_path_len1 = plugin_path1.size();
-        plugin_path1.resize (plugin_path_len1 - 7);
+        plugin_path1.resize (plugin_path1.size() - 7);
         plugin_path1 = plugin_path1 + "drtpref.txt";
 
         FILE * pFile;
-        // pFile = fopen ("./Resources/plugins/datareftool/drtpref.txt","w+");
         pFile = fopen (plugin_path1.c_str(),"w+");
         if (pFile != NULL) {
             int ret = fprintf(pFile,"%d %d %d %d %d %d %d\n",last_left, last_top, last_right, last_bottom, last_case_sensitive, last_regex, last_change_filter_state);
