@@ -45,6 +45,12 @@ if(WIN32)
 	set(Boost_USE_STATIC_RUNTIME OFF)
 	add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
 endif()
+
+if(APPLE)
+	set(Boost_USE_STATIC_LIBS ON)
+	set(Boost_USE_MULTITHREADED ON)
+endif()
+
 find_package(Boost 1.54.0 REQUIRED COMPONENTS filesystem system iostreams)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 target_link_libraries(plugin ${Boost_LIBRARIES})
