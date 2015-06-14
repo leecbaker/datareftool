@@ -7,8 +7,6 @@
 #include "XPStandardWidgets.h"
 #include "XPLMDataAccess.h"
 #include "XPLMGraphics.h"
-#include "XPLMUtilities.h"
-#include "XPLMPlugin.h"
 
 #include <algorithm>
 #include <cctype>
@@ -355,31 +353,6 @@ public:
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMin, 0);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, 0);
 
-        //Get some more friendly details about who the plugin is.
-        char drtPath[512]; memset( drtPath, 0, 512 );
-        XPLMGetPluginInfo(XPLMGetMyID (), NULL, drtPath, NULL, NULL);
-        std::string plugin_path(drtPath);
-        plugin_path.resize (plugin_path.size() - 7);
-        plugin_path = plugin_path + "drtpref.txt";
-
-        FILE * pFile;
-        pFile = fopen (plugin_path.c_str(),"r+");
-        int tmp_last_case_sensitive = last_case_sensitive;
-        int tmp_last_regex = last_regex;
-        int tmp_last_change_filter_state = last_change_filter_state;
-
-        if (pFile) {
-           if (fscanf(pFile,"%d %d %d %d %d %d %d", &last_left, &last_top, &last_right, &last_bottom, &tmp_last_case_sensitive, &tmp_last_regex, &tmp_last_change_filter_state) == 7) {
-               last_case_sensitive = tmp_last_case_sensitive;
-               last_regex = tmp_last_regex;
-               last_change_filter_state = tmp_last_change_filter_state;
-               fclose (pFile);
-
-           } else {
-               fclose (pFile);
-           }
-        }
-
 		if(last_left != -1) {
 			XPSetWidgetGeometry(window, last_left, last_top, last_right, last_bottom);
 			XPSetWidgetDescriptor(search_field, last_search_term.c_str());
@@ -407,24 +380,6 @@ public:
 		last_case_sensitive = 0 != XPGetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, nullptr);
 		last_regex = 0 != XPGetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, nullptr);
 		last_change_filter_state = change_filter_state;
-
-        //Get some more friendly details about who the plugin is.
-        char drtPath1[512]; memset( drtPath1, 0, 512 );
-        XPLMGetPluginInfo(XPLMGetMyID (), NULL, drtPath1, NULL, NULL);
-        std::string plugin_path1(drtPath1);
-        plugin_path1.resize (plugin_path1.size() - 7);
-        plugin_path1 = plugin_path1 + "drtpref.txt";
-
-        FILE * pFile;
-        pFile = fopen (plugin_path1.c_str(),"w+");
-        if (pFile != NULL) {
-            int ret = fprintf(pFile,"%d %d %d %d %d %d %d\n",last_left, last_top, last_right, last_bottom, last_case_sensitive, last_regex, last_change_filter_state);
-            if (ret > 0) {
-                fclose (pFile);
-            } else {
-                XPLMDebugString("DRT: Error writing drtpref.txt.\n");
-            }
-         }
 
 		XPHideWidget(window);
 		XPLMDestroyWindow(window);

@@ -39,7 +39,7 @@ float load_acf_dr_callback(float, float, int, void *) {
 
 float load_dr_callback(float, float, int, void *) {
 	if(false == loadDatarefsFile()) {
-        XPLMDebugString("DRT: Couldn't load datarefs from file.");
+		XPLMDebugString("Couldn't load datarefs from file.");
 		return 0;
 	}
 
@@ -93,15 +93,15 @@ void plugin_menu_handler(void *, void * inItemRef)
 			XPLMSetFlightLoopCallbackInterval(load_dr_callback, -1, 1, nullptr);
 			break;
 		case 3: 
-            XPLMDebugString("DRT: reloaded aircraft\n");
+			XPLMDebugString("DataRefTool: reloaded aircraft\n");
 			reloadAircraft();
 			break;
 		case 4: 
-            XPLMDebugString("DRT: reloaded plugins\n");
+			XPLMDebugString("DataRefTool: reloaded plugins\n");
 			XPLMReloadPlugins(); 
 			break;
 		case 5: 
-            XPLMDebugString("DRT: reloaded scenery\n");
+			XPLMDebugString("DataRefTool: reloaded scenery\n");
 			XPLMReloadScenery(); 
 			break;
 		case 6: 
