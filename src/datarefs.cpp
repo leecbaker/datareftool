@@ -83,14 +83,14 @@ bool loadDatarefsFile() {
 	dr_path += dir_sep;
 	dr_path += "DataRefs.txt";
 
-	std::string dr_path_message = "Loading datarefs from path " + dr_path + "\n";
+	std::string dr_path_message = "DRT: Loading datarefs from path " + dr_path + "\n";
 	XPLMDebugString(dr_path_message.c_str());
 
 	std::ifstream dr_file;
 	dr_file.open(dr_path);
 
 	if(dr_file.bad()) {
-		XPLMDebugString("DataRefs.txt file could not be loaded\n");
+		XPLMDebugString("DRT: DataRefs.txt file could not be loaded\n");
 		return false;
 	}
 
@@ -120,7 +120,7 @@ bool loadDatarefsFile() {
 
 	sortDatarefs();
 
-	std::string dr_count_message = "Finished loading " + std::to_string(datarefs.size()) + " datarefs" + "\n";
+	std::string dr_count_message = "DRT: Finished loading " + std::to_string(datarefs.size()) + " datarefs" + "\n";
 	XPLMDebugString(dr_count_message.c_str());
 
 	datarefUpdate();
