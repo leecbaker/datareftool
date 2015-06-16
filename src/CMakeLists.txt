@@ -56,16 +56,14 @@ include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 target_link_libraries(plugin ${Boost_LIBRARIES})
 
 if(UNIX)
-	target_include_directories(plugin PUBLIC "../lib/xplane_sdk/CHeaders/XPLM/" "../lib/xplane_sdk/CHeaders/Widgets/" "../lib/xplane_sdk/CHeaders/Wrappers/")
-	target_include_directories(plugin_custom_dataref PUBLIC "../lib/xplane_sdk/CHeaders/XPLM/" "../lib/xplane_sdk/CHeaders/Widgets/" "../lib/xplane_sdk/CHeaders/Wrappers/")
+	include_directories(SYSTEM "../lib/xplane_sdk/CHeaders/XPLM/" "../lib/xplane_sdk/CHeaders/Widgets/" "../lib/xplane_sdk/CHeaders/Wrappers/")
 endif(UNIX)
 if(APPLE)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch x86_64")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch x86_64")
 endif(APPLE)
 if(WIN32)
-	target_include_directories(plugin PUBLIC "..\\lib\\xplane_sdk\\CHeaders\\XPLM" "..\\lib\\xplane_sdk\\CHeaders\\Widgets" "..\\lib\\xplane_sdk\\CHeaders\\Wrappers")
-	target_include_directories(plugin_custom_dataref PUBLIC "..\\lib\\xplane_sdk\\CHeaders\\XPLM" "..\\lib\\xplane_sdk\\CHeaders\\Widgets" "..\\lib\\xplane_sdk\\CHeaders\\Wrappers")
+	include_directories(SYSTEM "..\\lib\\xplane_sdk\\CHeaders\\XPLM" "..\\lib\\xplane_sdk\\CHeaders\\Widgets" "..\\lib\\xplane_sdk\\CHeaders\\Wrappers")
 endif(WIN32)
 
 # X-Plane stuff
