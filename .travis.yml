@@ -1,0 +1,15 @@
+language: cpp
+compiler:
+ - clang
+ - gcc
+before_install:
+ - sudo apt-get update -qq
+ - sudo apt-get install -qq 
+ - sudo apt-get install libboost-system-dev libboost-filesystem-dev libboost-iostreams-dev
+ - cmake --version
+ - c++ --version
+script:
+ - mkdir build
+ - cd build
+ - cmake -DCMAKE_BUILD_TYPE=Release ..
+ - make
