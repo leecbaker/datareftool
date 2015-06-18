@@ -72,6 +72,6 @@ std::string getClipboard() {
 void setClipboard(const std::string & s) {
 	std::string command = "echo -n " + s + " | xclip -sel c";
 	if(0 != system(command.c_str())) {
-		XPLMDebugString("Copy command failed. Do you have xclip on your system?");
+		XPLMDebugString("DRT: Copy command failed. Do you have xclip on your system?");
 	}
 }

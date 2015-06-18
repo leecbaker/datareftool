@@ -39,7 +39,7 @@ float load_acf_dr_callback(float, float, int, void *) {
 
 float load_dr_callback(float, float, int, void *) {
 	if(false == loadDatarefsFile()) {
-		XPLMDebugString("Couldn't load datarefs from file.");
+		XPLMDebugString("DRT: Couldn't load datarefs from file.");
 		return 0;
 	}
 
@@ -93,15 +93,15 @@ void plugin_menu_handler(void *, void * inItemRef)
 			XPLMSetFlightLoopCallbackInterval(load_dr_callback, -1, 1, nullptr);
 			break;
 		case 3: 
-			XPLMDebugString("DataRefTool: reloaded aircraft\n");
+			XPLMDebugString("DRT: reloaded aircraft\n");
 			reloadAircraft();
 			break;
 		case 4: 
-			XPLMDebugString("DataRefTool: reloaded plugins\n");
+			XPLMDebugString("DRT: reloaded plugins\n");
 			XPLMReloadPlugins(); 
 			break;
 		case 5: 
-			XPLMDebugString("DataRefTool: reloaded scenery\n");
+			XPLMDebugString("DRT: reloaded scenery\n");
 			XPLMReloadScenery(); 
 			break;
 		case 6: 
@@ -208,7 +208,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 			if(added_ok) {
 				updateViewerResults();
 			} else {
-				const std::string message = std::string("Couldn't load dataref from message: ") + dataref_name + std::string("\n");
+				const std::string message = std::string("DRT: Couldn't load dataref from message: ") + dataref_name + std::string("\n");
 				XPLMDebugString(message.c_str());
 			}
 			break;
@@ -219,7 +219,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 			if(added_ok) {
 				//updateCommandWindows();
 			} else {
-				const std::string message = std::string("Couldn't load commandref from message: ") + commandref_name + std::string("\n");
+				const std::string message = std::string("DRT: Couldn't load commandref from message: ") + commandref_name + std::string("\n");
 				XPLMDebugString(message.c_str());
 			}
 			break;
