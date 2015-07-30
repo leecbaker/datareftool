@@ -114,7 +114,7 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 		boost::filesystem::path file_path = dir_it->path();
 
 		if(boost::filesystem::is_regular_file(file_path)) {
-			if(".obj" == file_path.extension() || ".acf" == file_path.extension()) {
+			if(".obj" == file_path.extension() || ".acf" == file_path.extension() || ".lua" == file_path.extension()) {
 				paths.push_back(file_path);
 			}
 		}
@@ -136,7 +136,30 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 		}
 
 		if(boost::filesystem::is_regular_file(path)) {
-			if(".obj" == path.extension() || ".acf" == path.extension()) {
+			if(".obj" == path.extension() || ".acf" == path.extension() || ".lua" == path.extension()) {
+				std::vector<std::string> refs = getDatarefsFromFile(path.string());
+				all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
+			}
+		}
+	}
+
+	//lua files. Recurse over Custom Avionics directory structure
+	paths.push_back(aircraft_dir / "Custom Avionics");
+
+	while(false == paths.empty()) {
+		boost::filesystem::path path = paths.back();
+		paths.pop_back();
+
+		if(boost::filesystem::is_directory(path)) {
+			//iterate over directory, pushing back
+			boost::filesystem::directory_iterator dir_end_it;
+			for(boost::filesystem::directory_iterator dir_it(path); dir_it != dir_end_it; dir_it++) {
+				paths.push_back(dir_it->path());
+			}
+		}
+
+		if(boost::filesystem::is_regular_file(path)) {
+			if(".lua" == path.extension()) {
 				std::vector<std::string> refs = getDatarefsFromFile(path.string());
 				all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 			}
