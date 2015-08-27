@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <unordered_set>
 
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/device/mapped_file.hpp>
@@ -119,10 +120,11 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 			}
 		}
 	}
+    
+    paths.push_back(aircraft_dir / "Custom Avionics");  // apparently SASL / LUA code is often in this directory
+    paths.push_back(aircraft_dir / "objects");
 
-	//object files. Recurse over directory structure
-	paths.push_back(aircraft_dir / "objects");
-
+    std::unordered_set<std::string> extensions_to_scan = {".obj", ".acf", ".lua"};
 	while(false == paths.empty()) {
 		boost::filesystem::path path = paths.back();
 		paths.pop_back();
@@ -136,7 +138,7 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 		}
 
 		if(boost::filesystem::is_regular_file(path)) {
-			if(".obj" == path.extension() || ".acf" == path.extension()) {
+			if(extensions_to_scan.cend() != extensions_to_scan.find(path.extension().native())) {
 				std::vector<std::string> refs = getDatarefsFromFile(path.string());
 				all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 			}
