@@ -1,10 +1,14 @@
 #include <cstring>
 
+#include <boost/filesystem.hpp>
+
 #include "about_window.h"
 #include "viewer_window.h"
 #include "find_datarefs_in_files.h"
 
 #include "datarefs.h"
+
+#include "prefs.h"
 
 #include "XPWidgets.h"
 #include "XPLMMenus.h"
@@ -13,6 +17,8 @@
 #include "XPLMPlugin.h"
 #include "XPLMProcessing.h"
 #include "XPLMPlanes.h"
+
+boost::filesystem::path prefs_path;
 
 void loadAircraftDatarefs() {
 	//get path
@@ -138,6 +144,15 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	strcpy(outDesc, "View and edit X-Plane Datarefs");
 	XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
 
+	char prefs_dir_c[512];
+	XPLMGetPrefsPath(prefs_dir_c);
+	prefs_path = boost::filesystem::path(prefs_dir_c).parent_path() / "datareftool.json";
+    if(loadPrefs(prefs_path)) {
+        std::stringstream ss;
+        ss << "DRT prefs loaded from " << prefs_path.native();
+        XPLMDebugString(ss.str().c_str());
+    }
+
 	XPLMRegisterFlightLoopCallback(load_dr_callback, -1, nullptr);
 	
 	int plugin_submenu = XPLMAppendMenuItem(XPLMFindPluginsMenu(), "DataRefTool", nullptr, 1);
@@ -180,6 +195,11 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 }
 
 PLUGIN_API void	XPluginStop(void) {
+    if(savePrefs(prefs_path)) {
+        std::stringstream ss;
+        ss << "DRT prefs saved to " << prefs_path.native();
+        XPLMDebugString(ss.str().c_str());
+    }
 	//closeCommandWindows();
 	closeAboutWindow();
 	closeViewerWindows();
@@ -232,6 +252,10 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 			if(0 == plane_num) {	//user's plane
 				XPLMRegisterFlightLoopCallback(load_acf_dr_callback, -1, nullptr);
 			}
+			break;
+		}
+
+		case XPLM_MSG_WILL_WRITE_PREFS: {
 			break;
 		}
 	}

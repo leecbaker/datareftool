@@ -27,10 +27,6 @@ std::string last_search_term;
 bool last_case_sensitive = false, last_regex = false;
 int last_change_filter_state = 0;
 
-class DatarefViewerWindow;
-
-void closeViewerWindow(DatarefViewerWindow * window);
-
 class DatarefViewerWindow {
 	XPLMWindowID window = nullptr;
 	XPWidgetID regex_toggle_button = nullptr;
@@ -296,10 +292,10 @@ class DatarefViewerWindow {
 	}
 
 public:
-	DatarefViewerWindow(int x, int y, int x2, int y2) {
+	DatarefViewerWindow(int l, int t, int r, int b) {
 		XPLMGetFontDimensions(font, nullptr, &fontheight, nullptr);
 
-		window = XPCreateWidget(x, y, x2, y2,
+		window = XPCreateWidget(l, t, r, b,
 					1,										// Visible
 					"Data Ref Tool",	// desc
 					1,										// root
@@ -415,7 +411,11 @@ public:
 		char searchfield_text[1024];
 		XPGetWidgetDescriptor(search_field, searchfield_text, 1024);
 		return std::string(searchfield_text);
-	}
+    }
+    
+    void setSearchText(const std::string & s) {
+        XPSetWidgetDescriptor(search_field, s.c_str());
+    }
 
 	intptr_t getSearchSelectionStart() const {
 		return XPGetWidgetProperty(search_field, xpProperty_EditFieldSelStart, NULL);
@@ -428,10 +428,6 @@ public:
 	void setSearchSelection(intptr_t start, intptr_t stop) {
 		XPSetWidgetProperty(search_field, xpProperty_EditFieldSelStart, start);
 		XPSetWidgetProperty(search_field, xpProperty_EditFieldSelEnd, stop);
-	}
-
-	void setSearchText(const std::string & s) {
-		XPSetWidgetDescriptor(search_field, s.c_str());
 	}
 
 	void deselectEditField() {
@@ -500,18 +496,11 @@ public:
 
 	void doSearch() {
 		deselectEditField();
-		intptr_t property = XPGetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, nullptr);
-		bool case_insensitive_selected = property != 0;
-		property = XPGetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, nullptr);
-		bool regex_selected = property != 0;
-		property = XPGetWidgetProperty(change_filter_button, xpProperty_ButtonState, nullptr);
-		bool changed_selected = 0 != change_filter_state;
-		bool only_big_changes = 2 == change_filter_state;
 
 		char searchfield_text[1024];
 		XPGetWidgetDescriptor(search_field, searchfield_text, 1024);
 
-		doDatarefSearch(searchfield_text, regex_selected, case_insensitive_selected, changed_selected, only_big_changes, datarefs);
+		doDatarefSearch(searchfield_text, isRegex(), false == isCaseSensitive(), isChanged(), isOnlyBigChanges(), datarefs);
 
 		updateScroll();
 
@@ -581,6 +570,65 @@ public:
 	void show() {
 		XPShowWidget(window);
 	}
+    
+    void setCaseSensitive(bool is_case_sensitive) {
+        int i = is_case_sensitive ? 1 : 0;
+        XPSetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, i);
+    }
+    
+    bool isCaseSensitive() const {
+        intptr_t property = XPGetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, nullptr);
+        return property != 0;
+    }
+    
+    void setIsRegex(bool is_regex) {
+        int i = is_regex ? 1 : 0;
+        XPSetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, i);
+    }
+    
+    bool isRegex() const {
+        intptr_t property = XPGetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, nullptr);
+        return property != 0;
+    }
+    
+    void setIsChanged(bool is_changed, bool only_big_changes) {
+        change_filter_state = only_big_changes ? 2 : (is_changed ? 1 : 0);
+        updateChangeButton();
+    }
+    
+    bool isChanged() const {
+        return 0 != change_filter_state;
+    }
+    
+    bool isOnlyBigChanges() const {
+        return 2 == change_filter_state;
+    }
+    
+    int getWidth() const {
+        int l,r;
+        XPGetWidgetGeometry(window, &l, nullptr, &r, nullptr);
+        return r - l;
+    }
+    
+    int getHeight() const {
+        int t, b;
+        XPGetWidgetGeometry(window, nullptr, &t, nullptr, &b);
+        return t - b;
+    }
+    
+    //left
+    int getX() const {
+        int x;
+        XPGetWidgetGeometry(window, &x, nullptr, nullptr, nullptr);
+        return x;
+    }
+    
+    //bottom, ogl coordinates
+    int getY() const {
+        int y;
+        XPGetWidgetGeometry(window, nullptr, nullptr, nullptr, &y);
+        return y;
+    }
 };
 /////////////////
 std::set<DatarefViewerWindow *> viewer_windows;
@@ -610,23 +658,72 @@ void updateViewerResults() {
 	}
 }
 
-void showViewerWindow() {
-	XPLMDataRef window_width_ref = XPLMFindDataRef("sim/graphics/view/window_width");
-	XPLMDataRef window_height_ref = XPLMFindDataRef("sim/graphics/view/window_height");
+boost::property_tree::ptree getViewerWindowsDetails() {
+    boost::property_tree::ptree windows;
+    
+    for(const DatarefViewerWindow * pwindow : viewer_windows) {
+        boost::property_tree::ptree window_details;
+        window_details.put("window_height", pwindow->getHeight());
+        window_details.put("window_width", pwindow->getWidth());
+        window_details.put("x", pwindow->getX());
+        window_details.put("y", pwindow->getY());
+        
+        window_details.put("case_sensitive", pwindow->isCaseSensitive());
+        window_details.put("regex", pwindow->isRegex());
+        window_details.put("changed", pwindow->isChanged());
+        window_details.put("big_changes_only", pwindow->isOnlyBigChanges());
+        
+        window_details.put("search_term", pwindow->getSearchText());
+        
+        windows.push_back(std::make_pair("", window_details));
+    }
+    
+    return windows;
+}
 
-	if(nullptr == window_width_ref || nullptr == window_height_ref) {
-		std::cerr << "Couldn't open datarefs for window width and height" << std::endl;
-		return;
-	}
-	int width = XPLMGetDatai(window_width_ref);
-	int height = XPLMGetDatai(window_height_ref);
+DatarefViewerWindow * showViewerWindow(const boost::property_tree::ptree & window_details) {
+    // now construct as if we didnt
+    XPLMDataRef window_width_ref = XPLMFindDataRef("sim/graphics/view/window_width");
+    XPLMDataRef window_height_ref = XPLMFindDataRef("sim/graphics/view/window_height");
+    
+    if(nullptr == window_width_ref || nullptr == window_height_ref) {
+        std::cerr << "Couldn't open datarefs for window width and height" << std::endl;
+        return nullptr;
+    }
+    int width = XPLMGetDatai(window_width_ref);
+    int height = XPLMGetDatai(window_height_ref);
+    
+    const int expected_window_width = 500;
+    const int expected_window_height = 400;
+    const int expected_l = width/2 - expected_window_width / 2;
+    const int expected_b = height/2 - expected_window_height / 2;
+    
+    //extract parameters, if present
+    const int window_width = window_details.get<int>("window_width", expected_window_width);
+    const int window_height = window_details.get<int>("window_height", expected_window_height);
+    const int l = window_details.get<int>("x", expected_l);
+    const int b = window_details.get<int>("y", expected_b);
+    
+    bool is_case_sensitive = window_details.get<bool>("case_sensitive", false);
+    bool is_regex = window_details.get<bool>("regex", false);
+    bool is_changed = window_details.get<bool>("changed", false);
+    bool is_big_changes = window_details.get<bool>("big_changes_only", false);
+    
+    std::string search_term = window_details.get<std::string>("search_term", "");
+    
+    //now make the window
+    DatarefViewerWindow * viewer_window = new DatarefViewerWindow(l, b + window_height, l + window_width, b);
+    
+    viewer_window->setCaseSensitive(is_case_sensitive);
+    viewer_window->setIsRegex(is_regex);
+    viewer_window->setIsChanged(is_changed, is_big_changes);
+    viewer_window->setSearchText(search_term);
+    
+    viewer_windows.insert(viewer_window);
+    
+    return viewer_window;
+}
 
-	const int window_width = 500;
-	const int window_height = 400;
-
-	int x = width/2 - window_width / 2, x2 = width/2 + window_width / 2;
-	int y = height/2 + window_height / 2, y2 = height/2 - window_height / 2;
-
-	DatarefViewerWindow * viewer_window = new DatarefViewerWindow(x, y, x2, y2);
-	viewer_windows.insert(viewer_window);
+DatarefViewerWindow * showViewerWindow() {
+    return showViewerWindow(boost::property_tree::ptree());
 }

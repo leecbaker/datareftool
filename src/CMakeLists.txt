@@ -1,6 +1,6 @@
 
-SET(SRC about_window.cpp plugin.cpp viewer_window.cpp datarefs.cpp find_datarefs_in_files.cpp)
-SET(HDR about_window.h viewer_window.h datarefs.h clipboard.h find_datarefs_in_files.h)
+SET(SRC about_window.cpp plugin.cpp viewer_window.cpp datarefs.cpp find_datarefs_in_files.cpp prefs.cpp)
+SET(HDR about_window.h viewer_window.h datarefs.h clipboard.h find_datarefs_in_files.h prefs.h)
 
 SET(SRC_PLUGIN_EXAMPLE plugin_custom_dataref.cpp)
 
@@ -15,6 +15,8 @@ endif()
 
 SET(ALL_SRC ${SRC} ${HDR})
 LIST(SORT ALL_SRC)
+
+SOURCE_GROUP(src FILES ${ALL_SRC})
 
 if(APPLE)
 	add_executable(plugin ${ALL_SRC})
