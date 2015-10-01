@@ -27,7 +27,7 @@ void loadAircraftDatarefs() {
 	XPLMGetNthAircraftModel(0, filename, path);
 	std::vector<std::string> aircraft_datarefs = getDatarefsFromAircraft(path);
 
-	int loaded_ok = addUserDatarefs(aircraft_datarefs);
+	int loaded_ok = addUserDatarefs(aircraft_datarefs, dataref_src_t::AIRCRAFT);
 	const std::string message = std::string("DRT: Found ") + std::to_string(aircraft_datarefs.size()) + std::string(" possible datarefs from aircraft files; " + std::to_string(loaded_ok) + " loaded OK.\n");
 	XPLMDebugString(message.c_str());
 }
@@ -73,7 +73,7 @@ float load_dr_callback(float, float, int, void *) {
 
 	removeVectorUniques(all_plugin_datarefs);
 
-	int loaded_ok = addUserDatarefs(all_plugin_datarefs);
+	int loaded_ok = addUserDatarefs(all_plugin_datarefs, dataref_src_t::PLUGIN);
 	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + " loaded OK.\n");
 	XPLMDebugString(message.c_str());
 
@@ -224,7 +224,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 		// http://www.xsquawkbox.net/xpsdk/mediawiki/Register_Custom_DataRef_in_DRE
 		case MSG_ADD_DATAREF: {
 			char * dataref_name = (char *) inParam;
-			bool added_ok = addUserDataref(dataref_name);
+			bool added_ok = addUserDataref(dataref_name, dataref_src_t::USER_MSG);
 			if(added_ok) {
 				updateViewerResults();
 			} else {

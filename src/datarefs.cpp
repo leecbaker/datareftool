@@ -8,6 +8,8 @@
 #include <locale>
 #include <unordered_set>
 
+#include <boost/algorithm/string/trim.hpp>
+
 std::vector<DataRefRecord> datarefs;
 std::unordered_set<std::string> datarefs_loaded;	//check for duplicates
 
@@ -30,7 +32,10 @@ void sortDatarefs() {
 	std::sort(datarefs.begin(), datarefs.end(), comparator);
 }
 
-bool addUserDataref(const std::string & name) {
+bool addUserDataref(const std::string & name_untrimmed, dataref_src_t source) {
+	std::string name = name_untrimmed;
+	boost::algorithm::trim(name);
+
 	//check for duplicates:
 	if(0 != datarefs_loaded.count(name)) {
 		return false;
@@ -40,16 +45,20 @@ bool addUserDataref(const std::string & name) {
 	if(nullptr == dr) {
 		return false;
 	}
-	datarefs.emplace_back(name, dr, dataref_src_t::USER_MSG);
+	datarefs.emplace_back(name, dr, source);
 	datarefs_loaded.insert(name);
 	sortDatarefs();
 
 	return true;
 }
 
-int addUserDatarefs(const std::vector<std::string> & names) {
+int addUserDatarefs(const std::vector<std::string> & names, dataref_src_t source) {
 	int ok = 0;
-	for(const std::string & name : names) {
+	std::string name;
+	for(const std::string & name_untrimmed : names) {
+		name = name_untrimmed;
+		boost::algorithm::trim(name);
+
 		//check for duplicates:
 		if(0 != datarefs_loaded.count(name)) {
 			continue;
@@ -59,7 +68,7 @@ int addUserDatarefs(const std::vector<std::string> & names) {
 		if(nullptr == dr) {
 			continue;
 		}
-		datarefs.emplace_back(name, dr, dataref_src_t::USER_MSG);
+		datarefs.emplace_back(name, dr, source);
 		datarefs_loaded.insert(name);
 		ok++;
 	}
@@ -111,11 +120,7 @@ bool loadDatarefsFile() {
 
 		line.erase(line.begin() + tab_offset, line.end());
 
-		XPLMDataRef dr = XPLMFindDataRef(line.c_str());
-		if(nullptr == dr) {
-			continue;
-		}
-		datarefs.emplace_back(line, dr, dataref_src_t::FILE);
+		addUserDataref(line, dataref_src_t::FILE);
 	}
 
 	sortDatarefs();

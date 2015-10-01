@@ -11,6 +11,8 @@
 
 enum class dataref_src_t {
 	FILE,
+	AIRCRAFT,
+	PLUGIN,
 	USER_MSG,
 };
 
@@ -57,8 +59,8 @@ public:
 };
 
 
-bool addUserDataref(const std::string & name);
-int addUserDatarefs(const std::vector<std::string> & names);
+bool addUserDataref(const std::string & name, dataref_src_t source);
+int addUserDatarefs(const std::vector<std::string> & names, dataref_src_t source);
 bool loadDatarefsFile();
 void cleanupDatarefs();
 void datarefUpdate();
