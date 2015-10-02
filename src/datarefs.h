@@ -32,12 +32,10 @@ class DataRefRecord {
 	XPLMDataTypeID type;
 	XPLMDataRef ref;
 	dataref_src_t source;
+	int array_length = 1;
 
 public:
-	DataRefRecord(const std::string & name, XPLMDataRef ref, dataref_src_t source) : name(name), last_updated(std::chrono::system_clock::now()), ref(ref), source(source) {
-		type = 	XPLMGetDataRefTypes(ref);
-		memset(iv_val, 0, sizeof(PREVIEW_DATAREF_BYTEARRAY_COUNT));
-	}
+	DataRefRecord(const std::string & name, XPLMDataRef ref, dataref_src_t source);
 
 	/// @return true if updated, false if not
 	std::string getValueString() const;
@@ -52,6 +50,9 @@ public:
 	bool isDouble() const { return 0 != (xplmType_Double & type); }
 	bool isFloat() const { return 0 != (xplmType_Float & type); }
 	bool isInt() const { return 0 != (xplmType_Int & type); }
+
+	bool isArray() const { return xplmType_FloatArray & type || xplmType_IntArray & type; }
+	void updateArrayLength();
 
 	void setDouble(double d) { assert(isDouble()); XPLMSetDatad(ref, d); }
 	void setFloat(float f) { assert(isFloat()); XPLMSetDataf(ref, f); }

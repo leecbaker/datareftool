@@ -1,17 +1,44 @@
 #include "XPLMUtilities.h"
 
 #include "datarefs.h"
-#include <vector>
+
+#include <functional>
 #include <fstream>
-#include <regex>
 #include <iostream>
 #include <locale>
+#include <regex>
+#include <sstream>
 #include <unordered_set>
+#include <vector>
 
 #include <boost/algorithm/string/trim.hpp>
 
 std::vector<DataRefRecord> datarefs;
 std::unordered_set<std::string> datarefs_loaded;	//check for duplicates
+
+DataRefRecord::DataRefRecord(const std::string & name, XPLMDataRef ref, dataref_src_t source) : name(name), last_updated(std::chrono::system_clock::now()), ref(ref), source(source) {
+	type = 	XPLMGetDataRefTypes(ref);
+	memset(iv_val, 0, sizeof(PREVIEW_DATAREF_BYTEARRAY_COUNT));
+
+	updateArrayLength();
+}
+
+void DataRefRecord::updateArrayLength() {
+	//determine array length by assuming memory past the end of the array won't be written
+	if(isArray()) {
+		constexpr size_t test_array_elements = 4095;
+		constexpr size_t test_array_bytes = test_array_elements * sizeof(int);
+		static int test_array[test_array_elements];
+		
+		if(xplmType_IntArray & type) {
+			array_length = XPLMGetDatavi(ref, test_array, 0, test_array_elements);
+		} else if(xplmType_FloatArray & type) {
+			array_length = XPLMGetDatavf(ref, (float *)test_array, 0, test_array_elements);
+		} else if(xplmType_Data & type) {
+			array_length = XPLMGetDatab(ref, (char *)test_array, 0, test_array_bytes);
+		}
+	}
+}
 
 bool DataRefRecord::writable() const {
 	if(xplmType_Int != type && xplmType_Float != type && xplmType_Double != type) {
@@ -198,6 +225,7 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
 			}
 		}
 
+		record.updateArrayLength();
 		data_out.push_back(&record);
 	}
 }
@@ -242,9 +270,7 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 		if(copied == PREVIEW_DATAREF_ARRAY_COUNT) {
 			if(0 != memcmp(data, fv_val, sizeof(*data) * PREVIEW_DATAREF_ARRAY_COUNT)) {
 				last_updated = current_time;
-				for(int i = 0; i < PREVIEW_DATAREF_ARRAY_COUNT; i++) {
-					fv_val[i] = data[i];
-				}
+				memcpy(fv_val, data, PREVIEW_DATAREF_ARRAY_COUNT * sizeof(float));
 				return true;
 			} else {
 				return false;
@@ -258,9 +284,7 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 		if(copied == PREVIEW_DATAREF_ARRAY_COUNT) {
 			if(0 != memcmp(data, iv_val, sizeof(*data) * PREVIEW_DATAREF_ARRAY_COUNT)) {
 				last_updated = current_time;
-				for(int i = 0; i < PREVIEW_DATAREF_ARRAY_COUNT; i++) {
-					iv_val[i] = data[i];
-				}
+				memcpy(iv_val, data, PREVIEW_DATAREF_ARRAY_COUNT * sizeof(int));
 				return true;
 			} else {
 				return false;
@@ -274,9 +298,7 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 		if(copied == PREVIEW_DATAREF_BYTEARRAY_COUNT) {
 			if(0 != memcmp(data, iv_val, sizeof(*data) * PREVIEW_DATAREF_BYTEARRAY_COUNT)) {
 				last_updated = current_time;
-				for(int i = 0; i < PREVIEW_DATAREF_BYTEARRAY_COUNT; i++) {
-					b_val[i] = data[i];
-				}
+				memcpy(b_val, data, PREVIEW_DATAREF_BYTEARRAY_COUNT);
 				return true;
 			} else {
 				return false;
@@ -291,7 +313,12 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 }
 
 std::string DataRefRecord::getDisplayString() const {
-	return getName() + "=" + getValueString();
+	std::string ret = getName();
+	if(isArray()) {
+		ret += "[" + std::to_string(array_length) + "]";
+	}
+	ret += "=" + getValueString();
+	return ret;
 }
 
 template <class T>
@@ -320,6 +347,27 @@ std::string printableFromByteArray(char * bytes) {
 	return ret;
 }
 
+template <class T>
+std::string makeArrayString(std::function<std::string(T)> stringify, const T * array, int count) {
+	std::stringstream s;
+	s << "[";
+
+	for(int i = 0; i < std::min<int>(4, count); i++) {
+		s << stringify(array[i]);
+
+		if(i != count-1) {
+			s << ",";
+		}
+	}
+
+	if(4 < count) {
+		s << "...";
+	}
+
+	s << "]";
+	return s.str();
+}
+
 std::string DataRefRecord::getValueString() const {
 	if(type & xplmType_Double) {
 		return compactFpString(lf_val);
@@ -328,9 +376,11 @@ std::string DataRefRecord::getValueString() const {
 	} else if (type & xplmType_Int) {
 		return std::to_string(i_val);
 	} else if (type & xplmType_FloatArray) {
-		return "[" + compactFpString(fv_val[0]) + "," + compactFpString(fv_val[1]) + "," + compactFpString(fv_val[2]) + "," + compactFpString(fv_val[3]) + "...]";
+		return makeArrayString<const float>(&compactFpString<const float>, fv_val, array_length);
 	} else if (type & xplmType_IntArray) {
-		return "[" + std::to_string(iv_val[0]) + "," + std::to_string(iv_val[1]) + "," + std::to_string(iv_val[2]) + "," + std::to_string(iv_val[3]) + "...]";
+		typedef std::string (*s_type)(int);
+		s_type stringify_func = std::to_string;
+		return makeArrayString<int>(stringify_func, iv_val, array_length);	
 	} else if (type & xplmType_Data) {
 		return "\"" + printableFromByteArray((char *)b_val) + "\"";
 	} else {
