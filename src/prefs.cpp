@@ -10,10 +10,10 @@
 
 bool loadPrefs(const boost::filesystem::path & path) {
 	//open file, and deserialize
-	std::ifstream f(path.native());
+	std::ifstream f(path.string());
 
 	if(f.fail()) {
-		std::cerr << "Couldn't open properties file: " << path.native() << std::endl;
+		std::cerr << "Couldn't open properties file: " << path.string() << std::endl;
 		return false;
 	}
 
@@ -42,7 +42,7 @@ bool savePrefs(const boost::filesystem::path & path) {
     prefs.add_child("windows", windows);
 
 	//serialize and save to file
-	std::ofstream f(path.native());
+	std::ofstream f(path.string());
     if(f.fail()) {
         return false;
     }

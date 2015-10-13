@@ -149,7 +149,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	prefs_path = boost::filesystem::path(prefs_dir_c).parent_path() / "datareftool.json";
     if(loadPrefs(prefs_path)) {
         std::stringstream ss;
-        ss << "DRT: prefs loaded from " << prefs_path.native() << "\n";
+        ss << "DRT: prefs loaded from " << prefs_path.string() << "\n";
         XPLMDebugString(ss.str().c_str());
     }
 
@@ -197,7 +197,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 PLUGIN_API void	XPluginStop(void) {
     if(savePrefs(prefs_path)) {
         std::stringstream ss;
-        ss << "DRT: prefs saved to " << prefs_path.native() << "\n";
+        ss << "DRT: prefs saved to " << prefs_path.string() << "\n";
         XPLMDebugString(ss.str().c_str());
     }
 	//closeCommandWindows();

@@ -76,7 +76,7 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 	//cdataref.txt
 	boost::filesystem::path cdataref_path = aircraft_dir / "cdataref.txt";
 	if(boost::filesystem::exists(cdataref_path) && boost::filesystem::is_regular_file(cdataref_path)) {
-		std::ifstream inFile(cdataref_path.native());
+		std::ifstream inFile(cdataref_path.string());
         std::stringstream sstr;
         sstr << inFile.rdbuf();
 
@@ -138,7 +138,7 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 		}
 
 		if(boost::filesystem::is_regular_file(path)) {
-			if(extensions_to_scan.cend() != extensions_to_scan.find(path.extension().native())) {
+			if(extensions_to_scan.cend() != extensions_to_scan.find(path.extension().string())) {
 				std::vector<std::string> refs = getDatarefsFromFile(path.string());
 				all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 			}
