@@ -82,7 +82,7 @@ class DatarefViewerWindow {
 						return 0;
 					}
 					int click_y_offset_index = click_y_offset_from_list_top / obj->fontheight;
-					int displayed_list_elements = std::min<int>(obj->displayed_lines, obj->datarefs.size());
+					int displayed_list_elements = std::min<int>(obj->displayed_lines, int(obj->datarefs.size()));
 
 					int click_list_index = click_y_offset_index + obj->list_start_index;
 
@@ -364,7 +364,7 @@ public:
 		resize();
 
 		doSearch();
-		int max_scroll = std::max<int>(0, datarefs.size() - displayed_lines);
+		int max_scroll = std::max<int>(0, int(datarefs.size() - displayed_lines));
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, max_scroll);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarSliderPosition, max_scroll);
 	}
