@@ -2,6 +2,7 @@
 
 #include "datarefs.h"
 
+#include <cstdint>
 #include <functional>
 #include <fstream>
 #include <iostream>
@@ -266,14 +267,15 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 			return false;
 		}
 	} else if (type & xplmType_FloatArray) {
-		float data[array_length];
-		int copied = XPLMGetDatavf(ref, data, 0, array_length);
+		static std::vector<float> scratch_buffer;
+		scratch_buffer.resize(array_length);
+		int copied = XPLMGetDatavf(ref, scratch_buffer.data(), 0, array_length);
 		if(copied == array_length) {
-			size_t new_hash = boost::hash_range(data, data + copied);
+			size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
 			if(new_hash != array_hash) {
 				array_hash = new_hash;
 				last_updated = current_time;
-				memcpy(fv_val, data, std::min(PREVIEW_DATAREF_ARRAY_COUNT, array_length) * sizeof(float));
+				memcpy(fv_val, scratch_buffer.data(), std::min(PREVIEW_DATAREF_ARRAY_COUNT, array_length) * sizeof(float));
 				return true;
 			} else {
 				return false;
@@ -282,14 +284,15 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 			return false;
 		}
 	} else if (type & xplmType_IntArray) {
-		int data[array_length];
-		int copied = XPLMGetDatavi(ref, data, 0, array_length);
+		static std::vector<int> scratch_buffer;
+		scratch_buffer.resize(array_length);
+		int copied = XPLMGetDatavi(ref, scratch_buffer.data(), 0, array_length);
 		if(copied == array_length) {
-			size_t new_hash = boost::hash_range(data, data + copied);
+			size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
 			if(new_hash != array_hash) {
 				array_hash = new_hash;
 				last_updated = current_time;
-				memcpy(iv_val, data, std::min(PREVIEW_DATAREF_ARRAY_COUNT, array_length) * sizeof(int));
+				memcpy(iv_val, scratch_buffer.data(), std::min(PREVIEW_DATAREF_ARRAY_COUNT, array_length) * sizeof(int));
 				return true;
 			} else {
 				return false;
@@ -298,14 +301,15 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 			return false;
 		}
 	} else if (type & xplmType_Data) {
-		char data[array_length];
-		int copied = XPLMGetDatab(ref, data, 0, array_length);
+		static std::vector<uint8_t> scratch_buffer;
+		scratch_buffer.resize(array_length * sizeof(uint8_t));
+		int copied = XPLMGetDatab(ref, scratch_buffer.data(), 0, array_length);
 		if(copied == array_length) {
-			size_t new_hash = boost::hash_range(data, data + copied);
+			size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
 			if(new_hash != array_hash) {
 				array_hash = new_hash;
 				last_updated = current_time;
-				memcpy(b_val, data, std::min(PREVIEW_DATAREF_ARRAY_COUNT, array_length));
+				memcpy(b_val, scratch_buffer.data(), std::min(PREVIEW_DATAREF_ARRAY_COUNT, array_length));
 				return true;
 			} else {
 				return false;
