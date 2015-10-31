@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/functional/hash.hpp>
 
 std::vector<DataRefRecord> datarefs;
 std::unordered_set<std::string> datarefs_loaded;	//check for duplicates
@@ -265,12 +266,14 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 			return false;
 		}
 	} else if (type & xplmType_FloatArray) {
-		float data[PREVIEW_DATAREF_ARRAY_COUNT];	
-		int copied = XPLMGetDatavf(ref, data, 0, PREVIEW_DATAREF_ARRAY_COUNT);
-		if(copied == PREVIEW_DATAREF_ARRAY_COUNT) {
-			if(0 != memcmp(data, fv_val, sizeof(*data) * PREVIEW_DATAREF_ARRAY_COUNT)) {
+		float data[array_length];
+		int copied = XPLMGetDatavf(ref, data, 0, array_length);
+		if(copied == array_length) {
+			size_t new_hash = boost::hash_range(data, data + copied);
+			if(new_hash != array_hash) {
+				array_hash = new_hash;
 				last_updated = current_time;
-				memcpy(fv_val, data, PREVIEW_DATAREF_ARRAY_COUNT * sizeof(float));
+				memcpy(fv_val, data, std::min(PREVIEW_DATAREF_ARRAY_COUNT, array_length) * sizeof(float));
 				return true;
 			} else {
 				return false;
@@ -279,12 +282,14 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 			return false;
 		}
 	} else if (type & xplmType_IntArray) {
-		int data[PREVIEW_DATAREF_ARRAY_COUNT];	
-		int copied = XPLMGetDatavi(ref, data, 0, PREVIEW_DATAREF_ARRAY_COUNT);
-		if(copied == PREVIEW_DATAREF_ARRAY_COUNT) {
-			if(0 != memcmp(data, iv_val, sizeof(*data) * PREVIEW_DATAREF_ARRAY_COUNT)) {
+		int data[array_length];
+		int copied = XPLMGetDatavi(ref, data, 0, array_length);
+		if(copied == array_length) {
+			size_t new_hash = boost::hash_range(data, data + copied);
+			if(new_hash != array_hash) {
+				array_hash = new_hash;
 				last_updated = current_time;
-				memcpy(iv_val, data, PREVIEW_DATAREF_ARRAY_COUNT * sizeof(int));
+				memcpy(iv_val, data, std::min(PREVIEW_DATAREF_ARRAY_COUNT, array_length) * sizeof(int));
 				return true;
 			} else {
 				return false;
@@ -293,12 +298,14 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 			return false;
 		}
 	} else if (type & xplmType_Data) {
-		char data[PREVIEW_DATAREF_BYTEARRAY_COUNT];	
-		int copied = XPLMGetDatab(ref, data, 0, PREVIEW_DATAREF_BYTEARRAY_COUNT);
-		if(copied == PREVIEW_DATAREF_BYTEARRAY_COUNT) {
-			if(0 != memcmp(data, iv_val, sizeof(*data) * PREVIEW_DATAREF_BYTEARRAY_COUNT)) {
+		char data[array_length];
+		int copied = XPLMGetDatab(ref, data, 0, array_length);
+		if(copied == array_length) {
+			size_t new_hash = boost::hash_range(data, data + copied);
+			if(new_hash != array_hash) {
+				array_hash = new_hash;
 				last_updated = current_time;
-				memcpy(b_val, data, PREVIEW_DATAREF_BYTEARRAY_COUNT);
+				memcpy(b_val, data, std::min(PREVIEW_DATAREF_ARRAY_COUNT, array_length));
 				return true;
 			} else {
 				return false;
@@ -380,7 +387,7 @@ std::string DataRefRecord::getValueString() const {
 	} else if (type & xplmType_IntArray) {
 		typedef std::string (*s_type)(int);
 		s_type stringify_func = std::to_string;
-		return makeArrayString<int>(stringify_func, iv_val, array_length);	
+		return makeArrayString<int>(stringify_func, iv_val, array_length);
 	} else if (type & xplmType_Data) {
 		return "\"" + printableFromByteArray((char *)b_val) + "\"";
 	} else {
