@@ -2,6 +2,7 @@
 
 #include "datarefs.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <fstream>
