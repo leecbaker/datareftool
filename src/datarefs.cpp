@@ -29,8 +29,8 @@ DataRefRecord::DataRefRecord(const std::string & name, XPLMDataRef ref, dataref_
 void DataRefRecord::updateArrayLength() {
 	//determine array length by assuming memory past the end of the array won't be written
 	if(isArray()) {
-		constexpr size_t test_array_elements = 4095;
-		constexpr size_t test_array_bytes = test_array_elements * sizeof(int);
+		const size_t test_array_elements = 4095;
+		const size_t test_array_bytes = test_array_elements * sizeof(int);
 		static int test_array[test_array_elements];
 		
 		if(xplmType_IntArray & type) {
@@ -399,4 +399,3 @@ std::string DataRefRecord::getValueString() const {
 		return "--";
 	}
 }
-
