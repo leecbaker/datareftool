@@ -14,7 +14,7 @@
 #include "XPLMUtilities.h"
 
 inline char isValidDatarefChar(char c) {
-	return std::isalnum(c) || '_' == c || '/' == c || '-' == c || '.' == c;
+	return std::isalnum((unsigned char)(c)) || '_' == c || '/' == c || '-' == c || '.' == c;
 }
 
 const size_t min_dataref_length = 8;
