@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <cassert>
 #include <chrono>
 #include <cstring>
@@ -24,9 +25,9 @@ class DataRefRecord {
 		float f_val;
 		double lf_val;
 		int i_val;
-		float fv_val[PREVIEW_DATAREF_ARRAY_COUNT];
-		int iv_val[PREVIEW_DATAREF_ARRAY_COUNT];
-		char b_val[PREVIEW_DATAREF_BYTEARRAY_COUNT];
+		std::array<float,PREVIEW_DATAREF_ARRAY_COUNT> fv_val;
+		std::array<int,PREVIEW_DATAREF_ARRAY_COUNT> iv_val;
+		std::array<uint8_t,PREVIEW_DATAREF_ARRAY_COUNT> b_val;
 	};
 
 	XPLMDataTypeID type;

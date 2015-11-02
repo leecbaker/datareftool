@@ -21,7 +21,7 @@ std::unordered_set<std::string> datarefs_loaded;	//check for duplicates
 
 DataRefRecord::DataRefRecord(const std::string & name, XPLMDataRef ref, dataref_src_t source) : name(name), last_updated(std::chrono::system_clock::now()), ref(ref), source(source) {
 	type = 	XPLMGetDataRefTypes(ref);
-	memset(iv_val, 0, sizeof(PREVIEW_DATAREF_BYTEARRAY_COUNT));
+	iv_val.fill(0);
 
 	updateArrayLength();
 }
@@ -276,7 +276,8 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 			if(new_hash != array_hash) {
 				array_hash = new_hash;
 				last_updated = current_time;
-				memcpy(fv_val, scratch_buffer.data(), std::min(PREVIEW_DATAREF_ARRAY_COUNT, array_length) * sizeof(float));
+				size_t copy_length =  std::min(PREVIEW_DATAREF_ARRAY_COUNT, copied);
+				std::copy(scratch_buffer.cbegin(), scratch_buffer.cbegin() + copy_length, fv_val.begin());
 				return true;
 			} else {
 				return false;
@@ -293,7 +294,8 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 			if(new_hash != array_hash) {
 				array_hash = new_hash;
 				last_updated = current_time;
-				memcpy(iv_val, scratch_buffer.data(), std::min(PREVIEW_DATAREF_ARRAY_COUNT, array_length) * sizeof(int));
+				size_t copy_length =  std::min(PREVIEW_DATAREF_ARRAY_COUNT, copied);
+				std::copy(scratch_buffer.cbegin(), scratch_buffer.cbegin() + copy_length, iv_val.begin());
 				return true;
 			} else {
 				return false;
@@ -303,14 +305,15 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 		}
 	} else if (type & xplmType_Data) {
 		static std::vector<uint8_t> scratch_buffer;
-		scratch_buffer.resize(array_length * sizeof(uint8_t));
+		scratch_buffer.resize(array_length);
 		int copied = XPLMGetDatab(ref, scratch_buffer.data(), 0, array_length);
 		if(copied == array_length) {
 			size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
 			if(new_hash != array_hash) {
 				array_hash = new_hash;
 				last_updated = current_time;
-				memcpy(b_val, scratch_buffer.data(), std::min(PREVIEW_DATAREF_ARRAY_COUNT, array_length));
+				size_t copy_length =  std::min(PREVIEW_DATAREF_ARRAY_COUNT, copied);
+				std::copy(scratch_buffer.cbegin(), scratch_buffer.cbegin() + copy_length, b_val.begin());
 				return true;
 			} else {
 				return false;
@@ -344,13 +347,13 @@ std::string compactFpString(T f) {
 	return ret;
 }
 
-std::string printableFromByteArray(char * bytes) {
+std::string printableFromByteArray(const std::array<uint8_t, PREVIEW_DATAREF_ARRAY_COUNT> & bytes) {
 	std::string ret;
-	for(int i = 0; i < PREVIEW_DATAREF_BYTEARRAY_COUNT; i++) {
-		if(bytes[i] == 0) {
+	for(const uint8_t byte : bytes) {
+		if(0 == byte) {
 			break;
-		} else if(::isprint(bytes[i])) {
-			ret.push_back(bytes[i]);
+		} else if(::isprint(byte)) {
+			ret.push_back(byte);
 		} else {
 			break;
 		}
@@ -360,11 +363,11 @@ std::string printableFromByteArray(char * bytes) {
 }
 
 template <class T>
-std::string makeArrayString(std::function<std::string(T)> stringify, const T * array, int count) {
+std::string makeArrayString(std::function<std::string(T)> stringify, const std::array<T, PREVIEW_DATAREF_ARRAY_COUNT> & array, int count) {
 	std::stringstream s;
 	s << "[";
 
-	for(int i = 0; i < std::min<int>(4, count); i++) {
+	for(int i = 0; i < std::min<int>(array.size(), count); i++) {
 		s << stringify(array[i]);
 
 		if(i != count-1) {
@@ -388,13 +391,13 @@ std::string DataRefRecord::getValueString() const {
 	} else if (type & xplmType_Int) {
 		return std::to_string(i_val);
 	} else if (type & xplmType_FloatArray) {
-		return makeArrayString<const float>(&compactFpString<const float>, fv_val, array_length);
+		return makeArrayString<float>(&compactFpString<float>, fv_val, array_length);
 	} else if (type & xplmType_IntArray) {
 		typedef std::string (*s_type)(int);
 		s_type stringify_func = std::to_string;
 		return makeArrayString<int>(stringify_func, iv_val, array_length);
 	} else if (type & xplmType_Data) {
-		return "\"" + printableFromByteArray((char *)b_val) + "\"";
+		return "\"" + printableFromByteArray(b_val) + "\"";
 	} else {
 		return "--";
 	}
