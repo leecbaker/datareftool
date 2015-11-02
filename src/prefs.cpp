@@ -2,6 +2,8 @@
 
 #include "prefs.h"
 
+#include "XPLMUtilities.h"
+
 #include "viewer_window.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -32,11 +34,6 @@ bool savePrefs(const boost::filesystem::path & path) {
 	boost::property_tree::ptree prefs;
 	boost::property_tree::ptree windows = getViewerWindowsDetails();
     
-    {
-    std::ofstream f("/tmp/windows.txt");
-    write_json(f, windows);
-    }
-    
     prefs.put("author", "Lee C. Baker");
     prefs.put("compile_date", __DATE__ " " __TIME__);
     prefs.add_child("windows", windows);
@@ -46,7 +43,13 @@ bool savePrefs(const boost::filesystem::path & path) {
     if(f.fail()) {
         return false;
     }
-	write_json(f, prefs);
+    try {
+		write_json(f, prefs);
+    } catch(boost::property_tree::json_parser_error & e) {
+    	const std::string message = std::string("DRT: Error writing preferences file at ") + path.string() + std::string("\n");
+		XPLMDebugString(message.c_str());
+    	return false;
+    }
 
 	return false == f.fail();
 }
