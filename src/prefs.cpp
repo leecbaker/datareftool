@@ -48,6 +48,8 @@ bool savePrefs(const boost::filesystem::path & path) {
     } catch(boost::property_tree::json_parser_error & e) {
     	const std::string message = std::string("DRT: Error writing preferences file at ") + path.string() + std::string("\n");
 		XPLMDebugString(message.c_str());
+		XPLMDebugString(("DRT: " + e.filename() + ":" + std::to_string(e.line())).c_str());
+		XPLMDebugString(("DRT: " + e.message()).c_str());
     	return false;
     }
 
