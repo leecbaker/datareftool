@@ -34,7 +34,7 @@ class DataRefRecord {
 	XPLMDataRef ref;
 	dataref_src_t source;
 	int array_length = 1;
-	size_t array_hash = -1;
+	size_t array_hash = 0;
 
 public:
 	DataRefRecord(const std::string & name, XPLMDataRef ref, dataref_src_t source);

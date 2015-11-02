@@ -77,12 +77,13 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 	boost::filesystem::path cdataref_path = aircraft_dir / "cdataref.txt";
 	if(boost::filesystem::exists(cdataref_path) && boost::filesystem::is_regular_file(cdataref_path)) {
 		std::ifstream inFile(cdataref_path.string());
-        std::stringstream sstr;
-        sstr << inFile.rdbuf();
+
+        std::stringstream file_contents_ss;
+        file_contents_ss << inFile.rdbuf();
+		std::string file_contents = file_contents_ss.str();
 
 		std::vector<std::string> cdataref_entries;
-		std::string s = sstr.str();
-		boost::split(cdataref_entries, s, boost::is_any_of("\n\r\t, "));
+		boost::split(cdataref_entries, file_contents, boost::is_any_of("\n\r\t, "));
 		for(std::string & s : cdataref_entries) {
 			boost::algorithm::trim(s);
 		}
@@ -131,7 +132,6 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 
 		if(boost::filesystem::is_directory(path)) {
 			//iterate over directory, pushing back
-			boost::filesystem::directory_iterator dir_end_it;
 			for(boost::filesystem::directory_iterator dir_it(path); dir_it != dir_end_it; dir_it++) {
 				paths.push_back(dir_it->path());
 			}
