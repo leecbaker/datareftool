@@ -4,10 +4,14 @@ addons:
   apt:
     sources:
     - boost-latest
+    - ubuntu-toolchain-r-test
     packages:
     - cmake
     - libboost1.55-all-dev
     - libx11-dev
+    - gcc-4.9
+    - g++-4.9
+    - libstdc++-4.9-dev
 os:
   - linux
   - osx
@@ -18,6 +22,7 @@ before_install:
  - cmake --version
  - $CC --version
  - $CXX --version
+ - if [ "$CXX" = "g++" ] && [ "$TRAVIS_OS_NAME" = "linux" ] ; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 script:
  - mkdir build
  - cd build
