@@ -6,7 +6,7 @@ addons:
     - boost-latest
     packages:
     - cmake
-    - libboost1.54-all-dev
+    - libboost-all-dev
     - libx11-dev
 os:
   - linux
