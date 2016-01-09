@@ -111,7 +111,7 @@ class DatarefViewerWindow {
 							XPSetWidgetDescriptor(obj->edit_field, name.c_str());
 							obj->setEditSelection(0, name.size());
 						} else {
-							const std::string value_str = record->getValueString();
+							const std::string value_str = record->getEditString();
 							obj->select_edit_dataref = record;
 							XPSetWidgetGeometry(obj->edit_field, valuestart_x, top, obj->drag_start_window_right - mouse_drag_margin - scroll_width + box_padding_x, bottom - box_padding_y);
 							XPSetWidgetDescriptor(obj->edit_field, value_str.c_str());
@@ -247,8 +247,10 @@ class DatarefViewerWindow {
 						default:
 							if(nullptr == obj->select_edit_dataref || false == obj->select_edit_dataref->writable()) {
 								return 1;
-							} else if(std::isalpha(key) || key == ',' || (obj->select_edit_dataref->isInt() && key == '.')) {
+							} else if(std::isalpha(key) || (obj->select_edit_dataref->isInt() && key == '.')) {
 								return 1;
+							} else if(key == ',') {
+								return obj->select_edit_dataref->isArray() ? 0 : 1;
 							} else {
 								obj->edit_modified = true;
 								return 0;
@@ -258,6 +260,10 @@ class DatarefViewerWindow {
 						case XPLM_VK_ENTER:
 						case XPLM_VK_RETURN:
 						case XPLM_VK_TAB:
+							if(obj->saveEditField()) {
+								obj->deselectEditField();
+							}
+							return 1;
 						case XPLM_VK_ESCAPE:
 							obj->deselectEditField();
 							return 1;
@@ -430,7 +436,7 @@ public:
 		XPSetWidgetProperty(search_field, xpProperty_EditFieldSelEnd, stop);
 	}
 
-	void deselectEditField() {
+	bool saveEditField() {
 		if(edit_modified) {
 			const std::string edit_txt = getEditText();
 
@@ -438,19 +444,43 @@ public:
 				try {
 					double d = std::stold(edit_txt);
 					select_edit_dataref->setDouble(d);
-				} catch(std::exception &) { }
+				} catch(std::exception &) {
+					return false;
+				}
 			} else if(select_edit_dataref->isFloat()) {
 				try {
 					float f = std::stof(edit_txt);
 					select_edit_dataref->setFloat(f);
-				} catch(std::exception &) { }
+				} catch(std::exception &) {
+					return false;
+				}
 			} else if(select_edit_dataref->isInt()) {
 				try {
 					int i = std::stoi(edit_txt);
 					select_edit_dataref->setInt(i);
-				} catch(std::exception &) { }
+				} catch(std::exception &) {
+					return false;
+				}
+			} else if(select_edit_dataref->isIntArray()) {
+				std::vector<int> array;
+				if(false == parseArray<int>(edit_txt, array, select_edit_dataref->getArrayLength())) {
+					return false;
+				}
+				select_edit_dataref->setIntArray(array);
+			} else if(select_edit_dataref->isFloatArray()) {
+				std::vector<float> array;
+				if(false == parseArray<float>(edit_txt, array, select_edit_dataref->getArrayLength())) {
+					return false;
+				}
+				select_edit_dataref->setFloatArray(array);
 			}
 		}
+
+		edit_modified = false;
+		return true;
+	}
+
+	void deselectEditField() {
 
 		edit_modified = false;
 		select_edit_dataref = nullptr;

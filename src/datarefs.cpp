@@ -14,6 +14,7 @@
 #include <vector>
 
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -44,16 +45,30 @@ void DataRefRecord::updateArrayLength() {
 	}
 }
 
+std::vector<int> DataRefRecord::getIntArray() const {
+	std::vector<int> d;
+	d.resize(array_length);
+	XPLMGetDatavi(ref, d.data(), 0, array_length);
+	return d;
+}
+
+std::vector<float> DataRefRecord::getFloatArray() const {
+	std::vector<float> d;
+	d.resize(array_length);
+	XPLMGetDatavf(ref, d.data(), 0, array_length);
+	return d;
+}
+
 bool DataRefRecord::writable() const {
-	if(xplmType_Int != type && xplmType_Float != type && xplmType_Double != type) {
-		return false;
+	if(isInt() || isDouble() || isFloat() || isFloatArray() || isIntArray()) {
+		if(0 == XPLMCanWriteDataRef(ref)) {
+			return false;
+		}
+
+		return true;
 	}
 
-	if(0 == XPLMCanWriteDataRef(ref)) {
-		return false;
-	}
-
-	return true;
+	return false;
 }
 
 void sortDatarefs() {
@@ -353,15 +368,6 @@ bool DataRefRecord::update(const std::chrono::system_clock::time_point current_t
 	}
 }
 
-std::string DataRefRecord::getDisplayString() const {
-	std::string ret = getName();
-	if(isArray()) {
-		ret += "[" + std::to_string(array_length) + "]";
-	}
-	ret += "=" + getValueString();
-	return ret;
-}
-
 template <class T>
 std::string compactFpString(T f) {
 	std::string ret = std::to_string(f);
@@ -389,6 +395,21 @@ std::string printableFromByteArray(const std::array<uint8_t, PREVIEW_DATAREF_ARR
 }
 
 template <class T>
+std::string makeVectorString(std::function<std::string(T)> stringify, const std::vector<T> & array) {
+	std::stringstream s;
+	s << "[";
+	for(size_t i = 0; i < array.size(); i++) {
+		s << stringify(array[i]);
+
+		if(i != array.size() - 1) {
+			s << ",";
+		}
+	}
+	s << "]";
+	return s.str();
+}
+
+template <class T>
 std::string makeArrayString(std::function<std::string(T)> stringify, const std::array<T, PREVIEW_DATAREF_ARRAY_COUNT> & array, int count) {
 	std::stringstream s;
 	s << "[";
@@ -407,6 +428,15 @@ std::string makeArrayString(std::function<std::string(T)> stringify, const std::
 
 	s << "]";
 	return s.str();
+}
+
+std::string DataRefRecord::getDisplayString() const {
+	std::string ret = getName();
+	if(isArray()) {
+		ret += "[" + std::to_string(array_length) + "]";
+	}
+	ret += "=" + getValueString();
+	return ret;
 }
 
 std::string DataRefRecord::getValueString() const {
@@ -428,3 +458,76 @@ std::string DataRefRecord::getValueString() const {
 		return "--";
 	}
 }
+
+std::string DataRefRecord::getEditString() const {
+	if(type & xplmType_Double) {
+		return compactFpString(lf_val);
+	} else if (type & xplmType_Float) {
+		return compactFpString(f_val);
+	} else if (type & xplmType_Int) {
+		return std::to_string(i_val);
+	} else if (type & xplmType_FloatArray) {
+		return makeVectorString<float>(&compactFpString<float>, getFloatArray());
+	} else if (type & xplmType_IntArray) {
+		typedef std::string (*s_type)(int);
+		s_type stringify_func = std::to_string;
+		return makeVectorString<int>(stringify_func, getIntArray());
+	} else if (type & xplmType_Data) {
+		return "\"" + printableFromByteArray(b_val) + "\"";
+	} else {
+		return "--";
+	}
+}
+
+template <typename T>
+inline T parseElement(const std::string &s);
+
+template <>
+inline float parseElement<float>(const std::string &s) {
+	return std::stof(s);
+}
+template <>
+inline int parseElement<int>(const std::string &s) {
+	return std::stoi(s);
+}
+
+template <class T>
+bool parseArray(const std::string & txt, std::vector<T> & data_out, int length) {
+	std::vector<std::string> txt_fields;
+
+	std::string trimmed_txt = txt;
+	if(trimmed_txt.front() == '[') {
+		trimmed_txt.erase(trimmed_txt.cbegin());
+	}
+
+	if(trimmed_txt.back() == '[') {
+		trimmed_txt.pop_back();
+	}
+
+	boost::split(txt_fields, trimmed_txt, boost::is_any_of(","));
+
+	if(length != int(txt_fields.size())) {
+		XPLMDebugString("Save cancelled, as supplied data array doesn't match DR array length");
+		return false;
+	}
+
+	data_out.clear();
+	data_out.reserve(length);
+
+	for(const std::string & txt_field : txt_fields) {
+		try {
+			data_out.push_back(parseElement<T>(txt_field));
+		} catch (std::exception &) {
+			XPLMDebugString("Save cancelled, failed to parse field");
+			return false;
+		}
+	}
+
+	return true;
+}
+
+template
+bool parseArray<float>(const std::string & txt, std::vector<float> & data_out, int length);
+
+template
+bool parseArray<int>(const std::string & txt, std::vector<int> & data_out, int length);

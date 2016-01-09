@@ -42,6 +42,7 @@ public:
 	/// @return true if updated, false if not
 	std::string getValueString() const;
 	std::string getDisplayString() const;
+	std::string getEditString() const;
 	dataref_src_t getSource() const { return source; }
 	bool update(const std::chrono::system_clock::time_point current_time);
 	const std::string & getName() const { return name; }
@@ -52,13 +53,22 @@ public:
 	bool isDouble() const { return 0 != (xplmType_Double & type); }
 	bool isFloat() const { return 0 != (xplmType_Float & type); }
 	bool isInt() const { return 0 != (xplmType_Int & type); }
+	bool isFloatArray() const { return 0 != (xplmType_FloatArray & type); }
+	bool isIntArray() const { return 0 != (xplmType_IntArray & type); }
 
-	bool isArray() const { return xplmType_FloatArray & type || xplmType_IntArray & type; }
+	bool isArray() const { return isFloatArray() || isIntArray(); }
 	void updateArrayLength();
+	int getArrayLength() const { assert(isArray()); return array_length; }
 
 	void setDouble(double d) { assert(isDouble()); XPLMSetDatad(ref, d); }
 	void setFloat(float f) { assert(isFloat()); XPLMSetDataf(ref, f); }
 	void setInt(int i) { assert(isInt()); XPLMSetDatai(ref, i); }
+
+	std::vector<int> getIntArray() const;
+	std::vector<float> getFloatArray() const;
+
+	void setIntArray(const std::vector<int> & i) { assert(isIntArray()); XPLMSetDatavi(ref, (int *) i.data(), 0, i.size()); }
+	void setFloatArray(const std::vector<float> & f) { assert(isFloatArray()); XPLMSetDatavf(ref, (float *) f.data(), 0, f.size()); }
 };
 
 
@@ -68,3 +78,7 @@ bool loadDatarefsFile();
 void cleanupDatarefs();
 void datarefUpdate();
 void doDatarefSearch(const std::string & search_term, bool regex, bool case_insensitive, bool changed_recently, bool only_big_changes, std::vector<DataRefRecord *> & data_out);
+
+template <class T>
+bool parseArray(const std::string & txt, std::vector<T> & data_out, int length);
+
