@@ -1,4 +1,6 @@
 # Data Ref Tool for X-Plane plugin development
+[![Appveyor Build status](https://ci.appveyor.com/api/projects/status/ivs0yirbv24rb5ng?svg=true)](https://ci.appveyor.com/project/leecbaker/datareftool)
+[![Travis Build Status](https://travis-ci.org/leecbaker/datareftool.svg)](https://travis-ci.org/leecbaker/datareftool)
 
 DRT is an X-plane plugin intended to replacement for Sandy Barbour's Data Ref Editor (DRE). While the core functionality is much the same, many features are improved to make the experience nicer:
 
