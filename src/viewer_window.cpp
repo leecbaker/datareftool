@@ -735,7 +735,7 @@ DatarefViewerWindow * showViewerWindow(const boost::property_tree::ptree & windo
     const int b = window_details.get<int>("y", expected_b);
     
     bool is_case_sensitive = window_details.get<bool>("case_sensitive", false);
-    bool is_regex = window_details.get<bool>("regex", false);
+    bool is_regex = window_details.get<bool>("regex", true);
     bool is_changed = window_details.get<bool>("changed", false);
     bool is_big_changes = window_details.get<bool>("big_changes_only", false);
     
