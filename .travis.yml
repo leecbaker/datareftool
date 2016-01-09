@@ -4,10 +4,7 @@ addons:
   apt:
     packages:
     - cmake
-    - libboost1.54-dev 
-    - libboost-filesystem1.54-dev 
-    - libboost-iostreams1.54-dev 
-    - libboost-system1.54-dev
+    - boost-latest
     - libx11-dev
 os:
   - linux
