@@ -1,6 +1,15 @@
 language: cpp
 sudo: required
 dist: trusty
+addons:
+  apt:
+    packages:
+    - cmake
+ 	- libboost1.54-dev 
+ 	- libboost-filesystem1.54-dev 
+ 	- libboost-iostreams1.54-dev 
+ 	- libboost-system1.54-dev
+ 	- libx11-dev
 os:
   - linux
   - osx
@@ -8,7 +17,6 @@ compiler:
  - clang
  - gcc
 before_install:
- - ./.travis.before.install.$TRAVIS_OS_NAME.sh
  - cmake --version
  - $CC --version
  - $CXX --version
