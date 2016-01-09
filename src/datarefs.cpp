@@ -15,6 +15,7 @@
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/algorithm/string.hpp>
 
 std::vector<DataRefRecord> datarefs;
 std::unordered_set<std::string> datarefs_loaded;	//check for duplicates
@@ -178,40 +179,65 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
 
 	std::cerr << "Doing search for " << search_term << std::endl;
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
-	std::regex search_regex;
+	std::vector<std::regex> search_regexes;
+
+	std::vector<std::string> search_terms;
+    boost::split(search_terms, search_term, boost::is_any_of(" "));
+
+    //erase empty search terms
+    auto end_it = std::remove_if(search_terms.begin(), search_terms.end(), [](const std::string & s)-> bool { return s.empty(); });
+    search_terms.erase(end_it, search_terms.end());
+
 	data_out.clear();
 	if(regex) {
-		try {
-			search_regex = std::regex(search_term, std::regex::ECMAScript | std::regex::optimize | (case_insensitive ? std::regex::icase : std::regex::flag_type(0)));
-		} catch (std::exception &) {
-			std::cerr << "Search expression isn't a valid regex." << std::endl;
-			return;
+		search_regexes.reserve(search_terms.size());
+		for(const std::string & st : search_terms) {
+			try {
+				search_regexes.emplace_back(st, std::regex::ECMAScript | std::regex::optimize | (case_insensitive ? std::regex::icase : std::regex::flag_type(0)));
+			} catch (std::exception &) {
+				std::cerr << "Search expression \"" << st << "\" isn't a valid regex." << std::endl;
+				return;
+			}
 		}
 	}
 
+	// Feels a bit messy using all these lambdas, and also I'm a bit skeptical if it all getting optimized well
+	const auto case_insensitive_comparator = [](char ch1, char ch2) { return ::toupper(ch1) == ::toupper(ch2); };
+	const auto case_sensitive_comparator = [](char ch1, char ch2) { return ch1 == ch2; };
+	const auto str_comparator = case_insensitive ? case_insensitive_comparator : case_sensitive_comparator;
+
+	const auto string_search = [str_comparator](const std::string & haystack, const std::vector<std::string> & needles) -> bool {
+		for(const std::string & needle : needles) {
+			const auto it = std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end(), str_comparator);
+			if(it == haystack.cend()) {
+				return false;
+			}
+		}
+		return true;
+	};
+
+	const auto regex_search = [](const std::string & haystack, const std::vector<std::regex> & regexes) -> bool {
+		for(const std::regex & needle_regex : regexes) {
+			if(false == std::regex_search(haystack.begin(), haystack.end(), needle_regex)) {
+				return false;
+			}
+		}
+		return true;
+	};
+
+	//actually perform the search
 	for(DataRefRecord & record : datarefs) {
 		const std::string & haystack = record.getName();
 
 		//first deal with search term
-		if(false == search_term.empty()) {
-			if(regex) {	//regex search
-				if(false == std::regex_search(haystack.begin(), haystack.end(), search_regex))
+		if(false == search_terms.empty()) {
+			if(regex) {
+				if(false == regex_search(haystack, search_regexes)) {
 					continue;
-
-			} else {	//string search
-				if(case_insensitive) {
-					auto it = std::search(
-				    	haystack.begin(), haystack.end(),
-				    	search_term.begin(),   search_term.end(),
-				    	[](char ch1, char ch2) { return ::toupper(ch1) == ::toupper(ch2); }
-				  	);
-					if (it == haystack.end() ) {
-						continue;
-					}
-				} else {
-					if(haystack.find(search_term) == std::string::npos) {
-						continue;
-					}
+				}
+			} else {
+				if(false == string_search(haystack, search_terms)) {
+					continue;
 				}
 			}
 		}
