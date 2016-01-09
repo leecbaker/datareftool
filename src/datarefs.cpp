@@ -497,7 +497,7 @@ bool parseArray(const std::string & txt, std::vector<T> & data_out, int length) 
 
 	std::string trimmed_txt = txt;
 	if(trimmed_txt.front() == '[') {
-		trimmed_txt.erase(trimmed_txt.cbegin());
+		trimmed_txt.erase(trimmed_txt.begin());
 	}
 
 	if(trimmed_txt.back() == '[') {
