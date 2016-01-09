@@ -1,4 +1,5 @@
 language: cpp
+sudo: required
 os:
   - linux
   - osx
@@ -6,7 +7,7 @@ compiler:
  - clang
  - gcc
 before_install:
- - ./.travis.before_install.$TRAVIS_OS_NAME.sh
+ - ./.travis.before.install.$TRAVIS_OS_NAME.sh
  - cmake --version
  - $CC --version
  - $CXX --version
