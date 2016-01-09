@@ -217,8 +217,8 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
 	}
 
 	// Feels a bit messy using all these lambdas, and also I'm a bit skeptical if it all getting optimized well
-	const auto case_insensitive_comparator = [](char ch1, char ch2) { return ::toupper(ch1) == ::toupper(ch2); };
-	const auto case_sensitive_comparator = [](char ch1, char ch2) { return ch1 == ch2; };
+	const auto case_insensitive_comparator = [](char ch1, char ch2) -> bool { return ::toupper(ch1) == ::toupper(ch2); };
+	const auto case_sensitive_comparator = [](char ch1, char ch2) -> bool { return ch1 == ch2; };
 
 	const auto string_search = [case_insensitive, &case_sensitive_comparator, &case_insensitive_comparator](const std::string & haystack, const std::vector<std::string> & needles) -> bool {
 		for(const std::string & needle : needles) {
