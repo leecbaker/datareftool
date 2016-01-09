@@ -18,9 +18,6 @@ addons:
     sources:
     - boost-latest
     - ubuntu-toolchain-r-test
-    - llvm-toolchain-precise-3.5
-    - llvm-toolchain-precise-3.6
-    - llvm-toolchain-precise-3.7
     packages:
     - cmake
     - libboost1.55-all-dev
