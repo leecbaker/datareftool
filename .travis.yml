@@ -37,7 +37,7 @@ before_install:
 script:
 - mkdir build
 - cd build
-- BOOST_ROOT=~/boost
+- export BOOST_ROOT=~/boost
 - cmake -DCMAKE_BUILD_TYPE=Release ..
 - make
 - export SSHPASS=$DEPLOY_PASS
