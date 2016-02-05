@@ -37,7 +37,7 @@ script:
 - make
 - export SSHPASS=$DEPLOY_PASS
 - sshpass -e ssh -oStrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST mkdir -p /home/$DEPLOY_USER/drt/${TRAVIS_COMMIT}
-- sshpass -e scp -oStrictHostKeyChecking=no bin/*.xpl  $DEPLOY_USER@$DEPLOY_HOST:/home/$DEPLOY_USER/drt/${TRAVIS_COMMIT}
+- sshpass -e scp -oStrictHostKeyChecking=no ../bin/*.xpl  $DEPLOY_USER@$DEPLOY_HOST:/home/$DEPLOY_USER/drt/${TRAVIS_COMMIT}
 env:
   global:
   - secure: lieFXMe/EzHlDEA0ukepL28uQsgZWArC39w9Tk7jsTp8nBOeIYtlgO/oFOn5XIIoX8nPlLTx7u6eG0/cpU0Ny4yXpdg+JONAdKoDlHZI9o7vSpH4WEJw2wllmQJCxaYNVil014/a/5qba5K574MoG7wiRETXd+QOTioMKSD+ZyfjREEtw07YuMR1r/LnxowMbeDaLEeGOrRH+kaglIHtUu2/A2PCeYeS2EZPWlTpy383UnDmOBxa1Bw1Af5zwKTelCjpv+3nJd8+lREwYER8BqAemN6avJxJuCMJcYv6MMs0vQwDKvbFTaTrgUs33uzgrGDJIc3M88227UT+MTsXiJJ6o5915k6EB27hw18dTcnJTIo44ljHGOzLi7TWHqDm21vgfwozUle79vuIINsiuulbNICqPgs+t5lU5O50VfNm/9hOP9Tr8xALRjDvei+ANeVz5dNSWrqZYE6t1OA5R+tuRUmjM5d0ROsTfw13Kko/rTY6dftGnSxsEj0Wzke+/Hoo3tlX96RneDDZ+g6k/prfYbrnq7f87NwpXAfojOvTtdkAB2xrPTWx5XsCGvl3hankfVaeIx//s60mu4wSlDf8EsYQHPLu0v1dEUD8ibOHEYC6A741CmorJ26T3mKp2snPNpiiUawSl6EbzsXPpT/3+ZzFJEu8NFc7tNJp9M4=
