@@ -23,6 +23,7 @@ addons:
     - gcc-4.9
     - g++-4.9
     - libstdc++-4.9-dev
+    - sshpass
 before_install:
 - cmake --version
 - $CC --version
