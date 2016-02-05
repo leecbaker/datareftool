@@ -43,7 +43,7 @@ script:
 - sshpass -e ssh -oStrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST mkdir -p /home/$DEPLOY_USER/drt/${TRAVIS_COMMIT}
 - sshpass -e scp -oStrictHostKeyChecking=no ../bin/datareftool/*.xpl  $DEPLOY_USER@$DEPLOY_HOST:/home/$DEPLOY_USER/drt/${TRAVIS_COMMIT}
 - sshpass -e ssh -oStrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST cp /home/$DEPLOY_USER/drt/${TRAVIS_COMMIT}/*.xpl /home/$DEPLOY_USER/drt/latest/
-
+after_success:
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then otool -L ../bin/datareftool/*.xpl ; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; ldd ../bin/datareftool/*.xpl ; fi
 env:

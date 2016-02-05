@@ -45,6 +45,7 @@ endif()
 #libraries
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
+set(Boost_DEBUG ON)
 if(WIN32)
 	set(Boost_USE_STATIC_RUNTIME OFF)
 	add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
