@@ -20,7 +20,6 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - cmake
-    - libboost1.55-all-dev
     - libx11-dev
     - gcc-4.9
     - g++-4.9
@@ -34,9 +33,11 @@ before_install:
   CC="gcc-4.9"; fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install http://git.io/sshpass.rb ; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then bash build_latest_boost.sh ; fi
 script:
 - mkdir build
 - cd build
+- BOOST_ROOT=~/boost
 - cmake -DCMAKE_BUILD_TYPE=Release ..
 - make
 - export SSHPASS=$DEPLOY_PASS
