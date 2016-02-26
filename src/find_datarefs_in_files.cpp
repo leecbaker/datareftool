@@ -138,7 +138,10 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 		}
 
 		if(boost::filesystem::is_regular_file(path)) {
-			if(extensions_to_scan.cend() != extensions_to_scan.find(path.extension().string())) {
+            std::string extension = path.extension().string();
+            boost::algorithm::to_lower(extension);
+            
+			if(extensions_to_scan.cend() != extensions_to_scan.find(extension)) {
 				std::vector<std::string> refs = getDatarefsFromFile(path.string());
 				all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 			}
