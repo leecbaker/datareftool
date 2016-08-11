@@ -33,7 +33,7 @@ before_install:
 - if [ "$CXX" = "g++" ] && [ "$TRAVIS_OS_NAME" = "linux" ] ; then export CXX="g++-4.9"
   CC="gcc-4.9"; fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install brew install hudochenkov/sshpass/sshpass ; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install hudochenkov/sshpass/sshpass ; fi
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install wget ; fi
 - bash build_latest_boost.sh
 script:
