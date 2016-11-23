@@ -109,9 +109,10 @@ float plugin_changed_check_callback(float, float, int, void *) {
 		if(xplane_plugin_path == plugin_path) {
 			continue;
 		}
-		boost::filesystem::path plugin_path_canonical = boost::filesystem::canonical(plugin_path);
 		std::time_t modification_date;
+		boost::filesystem::path plugin_path_canonical;
 		try {
+			plugin_path_canonical = boost::filesystem::canonical(plugin_path);
 			modification_date = boost::filesystem::last_write_time(plugin_path_canonical);
 		} catch (boost::filesystem::filesystem_error & ec) {
 			std::string message = "Error reading modification date. Msg: " + std::string(ec.what()) + " file:" + plugin_path_canonical.string() + "\n";
