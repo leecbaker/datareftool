@@ -1,5 +1,5 @@
 language: cpp
-dist: trusty
+dist: precise
 sudo: false
 os:
 - linux
