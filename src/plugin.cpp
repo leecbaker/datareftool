@@ -1,6 +1,8 @@
 #include <cstring>
+#include <unordered_map>
 
 #include <boost/filesystem.hpp>
+#include <boost/functional/hash.hpp> 
 
 #include "about_window.h"
 #include "viewer_window.h"
@@ -19,6 +21,8 @@
 #include "XPLMPlanes.h"
 
 boost::filesystem::path prefs_path;
+
+XPLMMenuID plugin_menu = nullptr;
 
 void loadAircraftDatarefs() {
 	//get path
@@ -45,7 +49,7 @@ float load_acf_dr_callback(float, float, int, void *) {
 
 float load_dr_callback(float, float, int, void *) {
 	if(false == loadDatarefsFile()) {
-		XPLMDebugString("DRT: Couldn't load datarefs from file.");
+		XPLMDebugString("DRT: Couldn't load datarefs from file.\n");
 		return 0;
 	}
 
@@ -83,6 +87,56 @@ float load_dr_callback(float, float, int, void *) {
 	return 0; 
 }
 
+namespace std {
+    template<> struct hash<boost::filesystem::path> {
+        size_t operator()(const boost::filesystem::path& p) const { 
+            return boost::filesystem::hash_value(p); 
+        }
+    };
+}
+
+typedef std::unordered_map<boost::filesystem::path, std::time_t> plugin_last_modified_t;
+plugin_last_modified_t plugin_last_modified;
+const std::string xplane_plugin_path("laminar.xplane.xplane");
+float plugin_changed_check_callback(float, float, int, void *) {
+	int num_plugins = XPLMCountPlugins();
+	char plugin_path_array[256 + 1];
+	for(int plugin_ix = 0; plugin_ix < num_plugins; plugin_ix++) {
+		XPLMPluginID plugin = XPLMGetNthPlugin(plugin_ix);
+		XPLMGetPluginInfo(plugin, nullptr, plugin_path_array, nullptr, nullptr);
+
+		std::string plugin_path(plugin_path_array);
+		if(xplane_plugin_path == plugin_path) {
+			continue;
+		}
+		boost::filesystem::path plugin_path_canonical = boost::filesystem::canonical(plugin_path);
+		std::time_t modification_date;
+		try {
+			modification_date = boost::filesystem::last_write_time(plugin_path_canonical);
+		} catch (boost::filesystem::filesystem_error & ec) {
+			std::string message = "Error reading modification date. Msg: " + std::string(ec.what()) + " file:" + plugin_path_canonical.string() + "\n";
+			XPLMDebugString(message.c_str());
+			continue;
+		}
+		plugin_last_modified_t::iterator plugin_entry_it = plugin_last_modified.find(plugin_path_canonical);
+		if(plugin_last_modified.end() == plugin_entry_it) {	// First sighting of this plugin; 
+			plugin_last_modified.insert(std::make_pair<boost::filesystem::path, std::time_t>(std::move(plugin_path_canonical), std::move(modification_date)));
+		} else {
+			if(plugin_entry_it->second != modification_date) {
+				plugin_entry_it->second = modification_date;
+				if(getAutoReloadPlugins()) {
+					std::stringstream message_ss;
+					message_ss << "DRT: Observed plugin with new modification (reloading):" << plugin_path_canonical << std::string("\n");
+					std::string message = message_ss.str();
+					XPLMDebugString(message.c_str());
+					XPLMReloadPlugins();
+				}
+			}
+		}
+	}
+	return 1.f;
+}
+
 void reloadAircraft() {
 	char acf_path[2048], acf_filename[1024];
 	XPLMGetNthAircraftModel(0, acf_filename, acf_path);
@@ -113,6 +167,13 @@ void plugin_menu_handler(void *, void * inItemRef)
 		case 6: 
 			showAboutWindow(); 
 			break;
+		case 7: {
+			bool auto_reload_plugins = getAutoReloadPlugins();
+			auto_reload_plugins = !auto_reload_plugins;
+			setAutoReloadPlugins(auto_reload_plugins);
+			XPLMCheckMenuItem(plugin_menu, 9, auto_reload_plugins ? xplm_Menu_Checked : xplm_Menu_Unchecked);
+			break;
+		}
 		default:
 			break;
 	}
@@ -154,9 +215,11 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
     }
 
 	XPLMRegisterFlightLoopCallback(load_dr_callback, -1, nullptr);
+
+	XPLMRegisterFlightLoopCallback(plugin_changed_check_callback, 1., nullptr);
 	
 	int plugin_submenu = XPLMAppendMenuItem(XPLMFindPluginsMenu(), "DataRefTool", nullptr, 1);
-	XPLMMenuID plugin_menu = XPLMCreateMenu("DataRefTool", XPLMFindPluginsMenu(), plugin_submenu, plugin_menu_handler, nullptr);
+	plugin_menu = XPLMCreateMenu("DataRefTool", XPLMFindPluginsMenu(), plugin_submenu, plugin_menu_handler, nullptr);
 
 	XPLMAppendMenuItem(plugin_menu, "View Datarefs", (void *)0, 1);
 	XPLMAppendMenuItem(plugin_menu, "View Commands", (void *)1, 1);
@@ -166,6 +229,8 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	XPLMAppendMenuItem(plugin_menu, "Reload aircraft", (void *)3, 1);
 	XPLMAppendMenuItem(plugin_menu, "Reload plugins", (void *)4, 1);
 	XPLMAppendMenuItem(plugin_menu, "Reload scenery", (void *)5, 1);
+	XPLMAppendMenuSeparator(plugin_menu);
+	XPLMAppendMenuItem(plugin_menu, "Reload plugins on modification", (void *)7, 1);
 	XPLMAppendMenuSeparator(plugin_menu);
 	XPLMAppendMenuItem(plugin_menu, "About DataRefTool", (void *)6, 1);
 
@@ -179,6 +244,8 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	XPLMEnableMenuItem(plugin_menu, 7, 1);
 	XPLMEnableMenuItem(plugin_menu, 8, 1);	//sep
 	XPLMEnableMenuItem(plugin_menu, 9, 1);
+	XPLMEnableMenuItem(plugin_menu, 10, 1);	//sep
+	XPLMEnableMenuItem(plugin_menu, 11, 1);
 
 	//commands
 	reload_aircraft_command = XPLMCreateCommand("datareftool/reload_aircraft", "Reload the current aircraft");
@@ -212,6 +279,10 @@ PLUGIN_API void XPluginDisable(void) {
 }
 
 PLUGIN_API int XPluginEnable(void) {
+	{
+		bool auto_reload_plugins = getAutoReloadPlugins();
+		XPLMCheckMenuItem(plugin_menu, 9, auto_reload_plugins ? xplm_Menu_Checked : xplm_Menu_Unchecked);
+	}
 	return 1;
 }
 

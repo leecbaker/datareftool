@@ -10,6 +10,15 @@
 
 #include <boost/foreach.hpp>
 
+bool auto_reload_plugins;
+
+bool getAutoReloadPlugins() { return auto_reload_plugins; }
+void setAutoReloadPlugins(bool reload_automatically) {
+	auto_reload_plugins = reload_automatically;
+}
+
+const char * auto_reload_plugin_key = "auto_reload_plugins";
+
 bool loadPrefs(const boost::filesystem::path & path) {
 	//open file, and deserialize
 	std::ifstream f(path.string());
@@ -26,6 +35,8 @@ bool loadPrefs(const boost::filesystem::path & path) {
         showViewerWindow(window_detail_val.second);
     }
 
+	auto_reload_plugins = prefs.get<bool>(auto_reload_plugin_key, true);
+
 	return true;
 }
 
@@ -37,6 +48,7 @@ bool savePrefs(const boost::filesystem::path & path) {
     prefs.put("author", "Lee C. Baker");
     prefs.put("compile_date", __DATE__ " " __TIME__);
     prefs.add_child("windows", windows);
+	prefs.put(auto_reload_plugin_key, auto_reload_plugins);
 
 	//serialize and save to file
 	std::ofstream f(path.string());
