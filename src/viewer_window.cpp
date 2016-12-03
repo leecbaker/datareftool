@@ -45,7 +45,7 @@ class DatarefViewerWindow {
 	bool in_resize_bottom = false;
 
 	static const int mouse_drag_margin = 7;
-	int fontheight;
+	int fontheight, fontwidth;
 	int displayed_lines = 0;
 	int list_start_index = 0;
 
@@ -299,7 +299,7 @@ class DatarefViewerWindow {
 
 public:
 	DatarefViewerWindow(int l, int t, int r, int b) {
-		XPLMGetFontDimensions(font, nullptr, &fontheight, nullptr);
+		XPLMGetFontDimensions(font, &fontwidth, &fontheight, nullptr);
 
 		window = XPCreateWidget(l, t, r, b,
 					1,										// Visible
@@ -553,6 +553,11 @@ public:
 		//high scroll_pos is the top of the scroll bar, opposite how we expect
 		const int lines_to_render = std::min<int>(displayed_lines, int(datarefs.size()));
 		list_start_index = scroll_pos_max - scroll_pos;
+        
+        int list_left, list_right;
+        XPGetWidgetGeometry(custom_list, &list_left, nullptr, &list_right, nullptr);
+        int list_width = list_right - list_left;
+        int list_width_in_chars = list_width / fontwidth;
 
 		const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 
@@ -564,7 +569,10 @@ public:
 			float colors[3] = {0.2f + timediff_fraction * 0.8f, 1.f, 1.f};
 			int xstart = left;
 			int ystart = top - (i + 1) * fontheight;
-			std::string linetext = record->getDisplayString();
+            const std::string & label = record->getLabelString();
+            size_t max_value_chars = std::max<int>(0, list_width_in_chars - 1 - int(label.size()));
+            const std::string & value = record->getDisplayString(max_value_chars);
+			std::string linetext = label + '=' + value;
 			XPLMDrawString(colors, xstart, ystart, (char *)linetext.c_str(), nullptr, font);
 		}
 	}

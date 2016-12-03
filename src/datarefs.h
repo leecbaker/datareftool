@@ -2,13 +2,14 @@
 #include <array>
 #include <cassert>
 #include <chrono>
+#include <cstddef>
 #include <cstring>
 #include <vector>
 #include <string>
 #include "XPLMDataAccess.h"
 
-#define PREVIEW_DATAREF_ARRAY_COUNT 4
-#define PREVIEW_DATAREF_BYTEARRAY_COUNT 20
+#include <boost/variant/variant.hpp>
+#include <boost/variant/static_visitor.hpp>
 
 enum class dataref_src_t {
 	FILE,
@@ -21,27 +22,44 @@ class DataRefRecord {
 	std::string name;
 	std::chrono::system_clock::time_point last_updated;
 	std::chrono::system_clock::time_point last_updated_big;
-	union {
-		float f_val;
-		double lf_val;
-		int i_val;
-		std::array<float,PREVIEW_DATAREF_ARRAY_COUNT> fv_val;
-		std::array<int,PREVIEW_DATAREF_ARRAY_COUNT> iv_val;
-		std::array<uint8_t,PREVIEW_DATAREF_ARRAY_COUNT> b_val;
-	};
+    using value_type = boost::variant<float,double, int, std::vector<float>, std::vector<int>, std::vector<uint8_t>, std::nullptr_t>;
+	value_type value;
 
 	XPLMDataTypeID type;
 	XPLMDataRef ref;
 	dataref_src_t source;
-	int array_length = 1;
 	size_t array_hash = 0;
-
+    
+    class Updater : public boost::static_visitor<bool> {
+        DataRefRecord & dr;
+        const std::chrono::system_clock::time_point current_time;
+    public:
+        Updater(DataRefRecord & dr, const std::chrono::system_clock::time_point current_time)
+        : dr(dr), current_time(current_time) {}
+        bool operator()(float&) const;
+        bool operator()(double&) const;
+        bool operator()(int&) const;
+        bool operator()(std::vector<float>&) const;
+        bool operator()(std::vector<int>&) const;
+        bool operator()(std::vector<uint8_t>&) const;
+        bool operator()(std::nullptr_t&) const;
+    };
+    class GetArraySize : public boost::static_visitor<int> {
+    public:
+        int operator()(const float&) const { return -1; }
+        int operator()(const double&) const { return -1; }
+        int operator()(const int&) const { return -1; }
+        int operator()(const std::vector<float>& v) const { return int(v.size()); }
+        int operator()(const std::vector<int>& v) const { return int(v.size()); }
+        int operator()(const std::vector<uint8_t>& v) const { return int(v.size()); }
+        int operator()(const std::nullptr_t&) const { return -1; }
+    };
 public:
 	DataRefRecord(const std::string & name, XPLMDataRef ref, dataref_src_t source);
 
-	/// @return true if updated, false if not
-	std::string getValueString() const;
-	std::string getDisplayString() const;
+    /// @return true if updated, false if not
+    std::string getLabelString() const;
+	std::string getDisplayString(size_t display_length) const;
 	std::string getEditString() const;
 	dataref_src_t getSource() const { return source; }
 	bool update(const std::chrono::system_clock::time_point current_time);
@@ -57,15 +75,11 @@ public:
 	bool isIntArray() const { return 0 != (xplmType_IntArray & type); }
 
 	bool isArray() const { return isFloatArray() || isIntArray(); }
-	void updateArrayLength();
-	int getArrayLength() const { assert(isArray()); return array_length; }
+    int getArrayLength() const { assert(isArray()); return boost::apply_visitor(GetArraySize(),value); }
 
 	void setDouble(double d) { assert(isDouble()); XPLMSetDatad(ref, d); }
 	void setFloat(float f) { assert(isFloat()); XPLMSetDataf(ref, f); }
 	void setInt(int i) { assert(isInt()); XPLMSetDatai(ref, i); }
-
-	std::vector<int> getIntArray() const;
-	std::vector<float> getFloatArray() const;
 
 	void setIntArray(const std::vector<int> & i) { assert(isIntArray()); XPLMSetDatavi(ref, (int *) i.data(), 0, i.size()); }
 	void setFloatArray(const std::vector<float> & f) { assert(isFloatArray()); XPLMSetDatavf(ref, (float *) f.data(), 0, f.size()); }
