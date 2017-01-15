@@ -124,6 +124,10 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
     
     paths.push_back(aircraft_dir / "Custom Avionics");  // apparently SASL / LUA code is often in this directory
     paths.push_back(aircraft_dir / "objects");
+    boost::filesystem::path xlua_scripts_dir = aircraft_dir / "plugins/xlua/scripts"; // find xlua LUA scripts from X-Plane 11.00+
+    if(boost::filesystem::exists(xlua_scripts_dir)) {
+	    paths.push_back(xlua_scripts_dir);
+    }
 
     std::unordered_set<std::string> extensions_to_scan = {".obj", ".acf", ".lua"};
 	while(false == paths.empty()) {
@@ -185,3 +189,4 @@ std::vector<std::string> getDatarefsFromPluginFolder(const std::string & plugin_
 
 	return all_refs;
 }
+
