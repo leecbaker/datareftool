@@ -69,6 +69,10 @@ bool addUserDataref(const std::string & name_untrimmed, dataref_src_t source) {
 		return false;
 	}
 
+	if ("sim/aircraft/panel/acf_ins_size" == name) {
+		return false;
+	}
+
 	XPLMDataRef dr = XPLMFindDataRef(name.c_str());
 	if(nullptr == dr) {
 		return false;
@@ -90,6 +94,10 @@ int addUserDatarefs(const std::vector<std::string> & names, dataref_src_t source
 		//check for duplicates:
 		if(0 != datarefs_loaded.count(name)) {
 			continue;
+		}
+
+		if ("sim/aircraft/panel/acf_ins_size" == name) {
+			return continue;
 		}
 
 		XPLMDataRef dr = XPLMFindDataRef(name.c_str());
