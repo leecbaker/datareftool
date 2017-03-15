@@ -97,7 +97,7 @@ int addUserDatarefs(const std::vector<std::string> & names, dataref_src_t source
 		}
 
 		if ("sim/aircraft/panel/acf_ins_size" == name) {
-			return continue;
+			continue;
 		}
 
 		XPLMDataRef dr = XPLMFindDataRef(name.c_str());
