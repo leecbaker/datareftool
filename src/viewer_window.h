@@ -7,7 +7,6 @@ DatarefViewerWindow * showViewerWindow();
 DatarefViewerWindow * showViewerWindow(const boost::property_tree::ptree & window_details);
 boost::property_tree::ptree getViewerWindowsDetails();
 
-void updateViewerResults();
-void updateSearchResults();
+void updateWindowsAsDatarefsAdded();
 void closeViewerWindow(DatarefViewerWindow * window);
 void closeViewerWindows();

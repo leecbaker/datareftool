@@ -1,6 +1,8 @@
-#include "viewer_window.h"
-#include "datarefs.h"
 #include "clipboard.h"
+#include "datarefs.h"
+#include "plugin.h"
+#include "string_util.h"
+#include "viewer_window.h"
 
 #include "XPLMDisplay.h"
 #include "XPCWidget.h"
@@ -530,7 +532,7 @@ public:
 		char searchfield_text[1024];
 		XPGetWidgetDescriptor(search_field, searchfield_text, 1024);
 
-		doDatarefSearch(searchfield_text, isRegex(), false == isCaseSensitive(), isChanged(), isOnlyBigChanges(), datarefs);
+        this->datarefs = ::datarefs->search(searchfield_text, isRegex(), false == isCaseSensitive(), isChanged(), isOnlyBigChanges());
 
 		updateScroll();
 
@@ -539,8 +541,6 @@ public:
 	}
 
 	void draw() {
-		updateResults();
-
 		int left, top, right, bottom;
 		XPGetWidgetGeometry(window, &left, &top, &right, &bottom);
 
@@ -566,19 +566,18 @@ public:
 
 			float timediff = 0.001f * std::chrono::duration_cast<std::chrono::milliseconds>(now - record->getLastUpdateTime()).count();
 			float timediff_fraction = std::min<float>(1.f, timediff / 10.f);
-			float colors[3] = {0.2f + timediff_fraction * 0.8f, 1.f, 1.f};
+            std::array<float, 3> colors = {{0.2f + timediff_fraction * 0.8f, 1.f, 1.f}};
 			int xstart = left;
 			int ystart = top - (i + 1) * fontheight;
             const std::string & label = record->getLabelString();
             size_t max_value_chars = std::max<int>(0, list_width_in_chars - 1 - int(label.size()));
             const std::string & value = record->getDisplayString(max_value_chars);
 			std::string linetext = label + '=' + value;
-			XPLMDrawString(colors, xstart, ystart, (char *)linetext.c_str(), nullptr, font);
+            if(record->isBlacklisted()) {
+                colors = {{1.f, .3f, .3f}}; //red ish
+            }
+			XPLMDrawString(colors.data(), xstart, ystart, (char *)linetext.c_str(), nullptr, font);
 		}
-	}
-
-	void updateResults() {
-		datarefUpdate();
 	}
 
 	void resize() {
@@ -684,16 +683,10 @@ void closeViewerWindows() {
 	viewer_windows.clear();
 }
 
-void updateSearchResults() {
-	for(DatarefViewerWindow * window : viewer_windows) {
-		window->doSearch();
-	}
-}
-
-void updateViewerResults() {
-	for(DatarefViewerWindow * window : viewer_windows) {
-		window->updateResults();
-	}
+void updateWindowsAsDatarefsAdded() {
+    for(DatarefViewerWindow * window : viewer_windows) {
+        window->doSearch();
+    }
 }
 
 boost::property_tree::ptree getViewerWindowsDetails() {

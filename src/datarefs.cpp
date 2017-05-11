@@ -15,72 +15,36 @@
 
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <boost/functional/hash.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/optional.hpp>
 
-std::vector<DataRefRecord> datarefs;
-std::unordered_set<std::string> datarefs_loaded;	//check for duplicates
-
-DataRefRecord::DataRefRecord(const std::string & name, XPLMDataRef ref, dataref_src_t source) : name(name), last_updated(std::chrono::system_clock::now()), ref(ref), source(source) {
-	type = 	XPLMGetDataRefTypes(ref);
-    
-    if(type & xplmType_Double) {
-        value = 0.;
-    } else if (type & xplmType_Float) {
-        value = 0.f;
-    } else if (type & xplmType_Int) {
-        value = 0;
-    } else if (type & xplmType_FloatArray) {
-        value = std::vector<float>();
-    } else if (type & xplmType_IntArray) {
-        value = std::vector<int>();
-    } else if (type & xplmType_Data) {
-        value = std::vector<uint8_t>();
-    } else {
-        value = nullptr;
-    }
-}
-
-bool DataRefRecord::writable() const {
-	if(isInt() || isDouble() || isFloat() || isFloatArray() || isIntArray()) {
-		if(0 == XPLMCanWriteDataRef(ref)) {
-			return false;
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-void sortDatarefs() {
-	auto comparator = [](const DataRefRecord & a, const DataRefRecord & b)-> bool {
-		return a.getName() < b.getName();
-	};
-	std::sort(datarefs.begin(), datarefs.end(), comparator);
-}
-
-bool addUserDataref(const std::string & name_untrimmed, dataref_src_t source) {
+bool DataRefRecords::add(const std::string & name_untrimmed, dataref_src_t source) {
 	std::string name = name_untrimmed;
 	boost::algorithm::trim(name);
 
 	//check for duplicates:
-	if(0 != datarefs_loaded.count(name)) {
+    NameMapType::iterator existing_location = dataref_ordered.find(name);
+    if(dataref_ordered.cend() != existing_location) {
+        std::string fail_message = "Already have: " + name + "\n";
+        XPLMDebugString(fail_message.c_str());
 		return false;
 	}
 
 	XPLMDataRef dr = XPLMFindDataRef(name.c_str());
-	if(nullptr == dr) {
+    if(nullptr == dr) {
+        std::string fail_message = "Fail load: " + name + "\n";
+        XPLMDebugString(fail_message.c_str());
 		return false;
 	}
 	datarefs.emplace_back(name, dr, source);
-	datarefs_loaded.insert(name);
-	sortDatarefs();
+    dataref_ordered.insert(std::make_pair(name, datarefs.cend() - 1));
+    std::string success_message = "Success: " + name + "\n";
+    XPLMDebugString(success_message.c_str());
 
 	return true;
 }
 
-int addUserDatarefs(const std::vector<std::string> & names, dataref_src_t source) {
+int DataRefRecords::add(const std::vector<std::string> & names, dataref_src_t source) {
 	int ok = 0;
 	std::string name;
 	for(const std::string & name_untrimmed : names) {
@@ -88,95 +52,43 @@ int addUserDatarefs(const std::vector<std::string> & names, dataref_src_t source
 		boost::algorithm::trim(name);
 
 		//check for duplicates:
-		if(0 != datarefs_loaded.count(name)) {
+        NameMapType::iterator existing_location = dataref_ordered.find(name);
+        if(dataref_ordered.cend() != existing_location) {
+            std::string fail_message = "Already have: " + name + "\n";
+            XPLMDebugString(fail_message.c_str());
 			continue;
 		}
 
 		XPLMDataRef dr = XPLMFindDataRef(name.c_str());
-		if(nullptr == dr) {
+        if(nullptr == dr) {
+            std::string fail_message = "Fail load: " + name + "\n";
+            XPLMDebugString(fail_message.c_str());
 			continue;
 		}
-		datarefs.emplace_back(name, dr, source);
-		datarefs_loaded.insert(name);
-		ok++;
+        datarefs.emplace_back(name, dr, source);
+        dataref_ordered.insert(std::make_pair(name, datarefs.cend() - 1));
+        ok++;
+        std::string success_message = "Success: " + name + "\n";
+        XPLMDebugString(success_message.c_str());
 	}
-
-	sortDatarefs();
 
 	return ok;
 }
-
-bool loadDatarefsFile() {
-	char system_path_c[1000];
-	XPLMGetSystemPath(system_path_c);
-
-	std::string dr_path(system_path_c);
-
-	const char * dir_sep = XPLMGetDirectorySeparator();
-
-	dr_path += "Resources";
-	dr_path += dir_sep;
-	dr_path += "plugins";
-	dr_path += dir_sep;
-	dr_path += "DataRefs.txt";
-
-	std::string dr_path_message = "DRT: Loading datarefs from path " + dr_path + "\n";
-	XPLMDebugString(dr_path_message.c_str());
-
-	std::ifstream dr_file;
-	dr_file.open(dr_path);
-
-	if(dr_file.bad()) {
-		XPLMDebugString("DRT: DataRefs.txt file could not be loaded\n");
-		return false;
-	}
-
-	//remove existing datarefs from file:
-	auto is_from_file = [](const DataRefRecord & record) -> bool {
-		return record.getSource() == dataref_src_t::FILE;
-	};
-
-	datarefs.erase(std::remove_if(datarefs.begin(), datarefs.end(), is_from_file), datarefs.end());
-
-	std::string line;
-	std::getline(dr_file, line);	//discard header
-	while(std::getline(dr_file, line)) {
-		size_t tab_offset = line.find('\t');
-		if(tab_offset == std::string::npos) {
-			continue;
-		}
-
-		line.erase(line.begin() + tab_offset, line.end());
-
-		addUserDataref(line, dataref_src_t::FILE);
-	}
-
-	sortDatarefs();
-
-	std::string dr_count_message = "DRT: Finished loading " + std::to_string(datarefs.size()) + " datarefs" + "\n";
-	XPLMDebugString(dr_count_message.c_str());
-
-	datarefUpdate();
-
-	return false == datarefs.empty();
-}
-
-void cleanupDatarefs() {
-	datarefs.clear();
-}
-
-void datarefUpdate() {
+void DataRefRecords::update() {
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 	for(DataRefRecord & dr : datarefs) {
-		dr.update(now);
+        if(false == dr.isBlacklisted()) {
+            dr.update(now);
+        }
 	}
 }
 
-void doDatarefSearch(const std::string & search_term, bool regex, bool case_insensitive, bool changed_recently, bool only_big_changes, std::vector<DataRefRecord *> & data_out) {
+std::vector<DataRefRecord *> DataRefRecords::search(const std::string & search_term, bool regex, bool case_insensitive, bool changed_recently, bool only_big_changes) {
 
 	std::cerr << "Doing search for " << search_term << std::endl;
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 	std::vector<std::regex> search_regexes;
+    
 
 	std::vector<std::string> search_terms;
     boost::split(search_terms, search_term, boost::is_any_of(" "));
@@ -185,7 +97,6 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
     auto end_it = std::remove_if(search_terms.begin(), search_terms.end(), [](const std::string & s)-> bool { return s.empty(); });
     search_terms.erase(end_it, search_terms.end());
 
-	data_out.clear();
 	if(regex) {
 		search_regexes.reserve(search_terms.size());
 		for(const std::string & st : search_terms) {
@@ -193,7 +104,7 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
 				search_regexes.emplace_back(st, std::regex::ECMAScript | std::regex::optimize | (case_insensitive ? std::regex::icase : std::regex::flag_type(0)));
 			} catch (std::exception &) {
 				std::cerr << "Search expression \"" << st << "\" isn't a valid regex." << std::endl;
-				return;
+                return {};
 			}
 		}
 	}
@@ -227,6 +138,7 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
 	};
 
 	//actually perform the search
+    std::vector<DataRefRecord *> data_out;
 	for(DataRefRecord & record : datarefs) {
 		const std::string & haystack = record.getName();
 
@@ -257,285 +169,19 @@ void doDatarefSearch(const std::string & search_term, bool regex, bool case_inse
 
 		data_out.push_back(&record);
 	}
-}
-
-bool DataRefRecord::Updater::operator()(float & old_val) const {
-    float newval = XPLMGetDataf(dr.ref);
-    if(newval != old_val) {
-        if(0.01f < fabs(newval - old_val) / old_val) {
-            dr.last_updated_big = current_time;
-        }
-        dr.last_updated = current_time;
-        dr.value = newval;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool DataRefRecord::Updater::operator()(double& oldval) const {
-    double newval = XPLMGetDatad(dr.ref);
-    if(newval != oldval) {
-        if(0.01 < fabsl(newval - oldval) / oldval) {
-            dr.last_updated_big = current_time;
-        }
-        dr.last_updated = current_time;
-        dr.value = newval;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool DataRefRecord::Updater::operator()(int& oldval) const {
-    int newval = XPLMGetDatai(dr.ref);
-    if(newval != oldval) {
-        dr.last_updated = current_time;
-        dr.value = newval;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-bool DataRefRecord::Updater::operator()(std::vector<float>&) const {
-    int current_array_length = XPLMGetDatavf(dr.ref, nullptr, 0, 0);
-    static std::vector<float> scratch_buffer;
-    scratch_buffer.resize(current_array_length);
-    int copied = XPLMGetDatavf(dr.ref, scratch_buffer.data(), 0, current_array_length);
-    if(copied == current_array_length) {
-        size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
-        if(new_hash != dr.array_hash) {
-            dr.array_hash = new_hash;
-            dr.last_updated = current_time;
-            dr.value = scratch_buffer;
-            return true;
-        } else {
-            return false;
-        }
-    } else {
-        //Dataref is reporting an inconsistent size
-        return false;
+    
+    //sort results
+    {
+        auto dr_name_sort = [](const DataRefRecord * a, const DataRefRecord * b) -> bool {
+            return a->getName() < b->getName();
+        };
+        std::sort(data_out.begin(), data_out.end(), dr_name_sort);
     }
     
-}
-
-bool DataRefRecord::Updater::operator()(std::vector<int>&) const {
-    int current_array_length = XPLMGetDatavi(dr.ref, nullptr, 0, 0);
-    static std::vector<int> scratch_buffer;
-    scratch_buffer.resize(current_array_length);
-    int copied = XPLMGetDatavi(dr.ref, scratch_buffer.data(), 0, current_array_length);
-    if(copied == current_array_length) {
-        size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
-        if(new_hash != dr.array_hash) {
-            dr.array_hash = new_hash;
-            dr.last_updated = current_time;
-            dr.value = scratch_buffer;
-            return true;
-        } else {
-            return false;
-        }
-    } else {
-        //Dataref is reporting an inconsistent size
-        return false;
+    {
+        std::string count_message = "Search found " + std::to_string(data_out.size()) + " results";
+        XPLMDebugString(count_message.c_str());
     }
     
+    return data_out;
 }
-
-bool DataRefRecord::Updater::operator()(std::vector<uint8_t>&) const {
-    int current_array_length = XPLMGetDatab(dr.ref, nullptr, 0, 0);
-    static std::vector<uint8_t> scratch_buffer;
-    scratch_buffer.resize(current_array_length);
-    int copied = XPLMGetDatab(dr.ref, scratch_buffer.data(), 0, current_array_length);
-    if(copied == current_array_length) {
-        size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
-        if(new_hash != dr.array_hash) {
-            dr.array_hash = new_hash;
-            dr.last_updated = current_time;
-            dr.value = scratch_buffer;
-            return true;
-        } else {
-            return false;
-        }
-    } else {
-        //Dataref is reporting an inconsistent size
-        return false;
-    }
-    
-}
-
-bool DataRefRecord::Updater::operator()(std::nullptr_t&) const {
-    dr.last_updated = current_time;
-    return false;
-}
-
-bool DataRefRecord::update(const std::chrono::system_clock::time_point current_time) {
-    return boost::apply_visitor(Updater(*this, current_time), value);
-}
-
-template <class T>
-std::string compactFpString(T f) {
-	std::string ret = std::to_string(f);
-
-	while(false == ret.empty() && ret.back() == '0') {
-		ret.erase(ret.end() - 1);
-	}
-
-	return ret;
-}
-
-std::string printableFromByteArray(const std::vector<uint8_t> & bytes) {
-	std::string ret;
-	for(const uint8_t byte : bytes) {
-		if(0 == byte) {
-			break;
-		} else if(::isprint(byte)) {
-			ret.push_back(byte);
-		} else {
-			break;
-		}
-	}
-
-	return ret;
-}
-
-template <class T>
-std::string makeArrayString(std::string (*stringify_func)(T), const std::vector<T> & array, size_t max_chars) {
-	std::stringstream s;
-	s << "[";
-    
-    size_t current_length = 2;  //for the braces
-    const std::string elipses = "...";
-
-    for(const T & element : array) {
-        const std::string & s_element = stringify_func(element);
-        
-        size_t max_length_if_ending_now = current_length + elipses.size();
-        size_t max_length_if_ending_next = max_length_if_ending_now + 1 + s_element.size(); //comma + value
-        
-        if(max_length_if_ending_next < max_chars) {
-            if(current_length != 2) {
-                s << ",";
-            }
-            s << s_element;
-            current_length += 1 + s_element.size();
-        } else {
-            s << elipses;
-            break;
-        }
-	}
-
-	s << "]";
-	return s.str();
-}
-
-std::string DataRefRecord::getLabelString() const {
-	std::string ret = getName();
-	if(isArray()) {
-		ret += "[" + std::to_string(getArrayLength()) + "]";
-	}
-	return ret;
-}
-
-class DatarefDisplayStringifier : public boost::static_visitor<std::string> {
-    size_t max_chars;
-public:
-    DatarefDisplayStringifier(size_t max_chars) : max_chars(max_chars) {}
-	std::string operator()(const float & f) const { return compactFpString(f); }
-	std::string operator()(const double & f) const { return compactFpString(f); }
-	std::string operator()(const int & i) const { return std::to_string(i); }
-	std::string operator()(const std::vector<float> & fv) const {
-		return makeArrayString<float>(compactFpString<float>, fv, max_chars);
-	}
-    std::string operator()(const std::vector<int> & iv) const {
-        std::string (*stringify_func)(int) = std::to_string;
-		return makeArrayString<int>(stringify_func, iv, max_chars);
-	}
-	std::string operator()(const std::vector<uint8_t> & iv) const {
-		return "\"" + printableFromByteArray(iv) + "\"";
-    }
-    std::string operator()(const std::nullptr_t &) const {
-        return "(null)";
-    }
-};
-
-class DatarefEditStringifier : public boost::static_visitor<std::string> {
-public:
-    std::string operator()(const float f) const { return compactFpString(f); }
-    std::string operator()(const double f) const { return compactFpString(f); }
-    std::string operator()(const int i) const { return std::to_string(i); }
-    std::string operator()(const std::vector<float> & fv) const {
-        return makeArrayString<float>(compactFpString<float>, fv, std::numeric_limits<size_t>::max());
-    }
-    std::string operator()(const std::vector<int> & iv) const {
-        std::string (*stringify_func)(int) = std::to_string;
-        return makeArrayString<int>(stringify_func, iv, std::numeric_limits<size_t>::max());
-    }
-    std::string operator()(const std::vector<uint8_t> & iv) const {
-        return "\"" + printableFromByteArray(iv) + "\"";
-    }
-    std::string operator()(const std::nullptr_t ) const {
-        return "(null)";
-    }
-};
-
-std::string DataRefRecord::getDisplayString(size_t display_length) const {
-	return boost::apply_visitor(DatarefDisplayStringifier(display_length), value);
-}
-
-std::string DataRefRecord::getEditString() const {
-    return boost::apply_visitor(DatarefEditStringifier(), value);
-}
-
-template <typename T>
-inline T parseElement(const std::string &s);
-
-template <>
-inline float parseElement<float>(const std::string &s) {
-	return std::stof(s);
-}
-template <>
-inline int parseElement<int>(const std::string &s) {
-	return std::stoi(s);
-}
-
-template <class T>
-bool parseArray(const std::string & txt, std::vector<T> & data_out, int length) {
-	std::vector<std::string> txt_fields;
-
-	std::string trimmed_txt = txt;
-	if(trimmed_txt.front() == '[') {
-		trimmed_txt.erase(trimmed_txt.begin());
-	}
-
-	if(trimmed_txt.back() == '[') {
-		trimmed_txt.pop_back();
-	}
-
-	boost::split(txt_fields, trimmed_txt, boost::is_any_of(","));
-
-	if(length != int(txt_fields.size())) {
-		XPLMDebugString("Save cancelled, as supplied data array doesn't match DR array length");
-		return false;
-	}
-
-	data_out.clear();
-	data_out.reserve(length);
-
-	for(const std::string & txt_field : txt_fields) {
-		try {
-			data_out.push_back(parseElement<T>(txt_field));
-		} catch (std::exception &) {
-			XPLMDebugString("Save cancelled, failed to parse field");
-			return false;
-		}
-	}
-
-	return true;
-}
-
-template
-bool parseArray<float>(const std::string & txt, std::vector<float> & data_out, int length);
-
-template
-bool parseArray<int>(const std::string & txt, std::vector<int> & data_out, int length);

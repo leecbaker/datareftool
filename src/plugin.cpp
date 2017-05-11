@@ -9,6 +9,7 @@
 #include "find_datarefs_in_files.h"
 
 #include "datarefs.h"
+#include "dataref_files.h"
 
 #include "prefs.h"
 
@@ -24,6 +25,8 @@ boost::filesystem::path prefs_path;
 
 XPLMMenuID plugin_menu = nullptr;
 
+boost::optional<DataRefRecords> datarefs;
+
 void loadAircraftDatarefs() {
 	//get path
 	char filename[256] = {0};
@@ -31,7 +34,7 @@ void loadAircraftDatarefs() {
 	XPLMGetNthAircraftModel(0, filename, path);
 	std::vector<std::string> aircraft_datarefs = getDatarefsFromAircraft(path);
 
-	int loaded_ok = addUserDatarefs(aircraft_datarefs, dataref_src_t::AIRCRAFT);
+	int loaded_ok = datarefs->add(aircraft_datarefs, dataref_src_t::AIRCRAFT);
 	const std::string message = std::string("DRT: Found ") + std::to_string(aircraft_datarefs.size()) + std::string(" possible datarefs from aircraft files; " + std::to_string(loaded_ok) + " loaded OK.\n");
 	XPLMDebugString(message.c_str());
 }
@@ -41,17 +44,28 @@ void loadAircraftDatarefs() {
 float load_acf_dr_callback(float, float, int, void *) {
 	loadAircraftDatarefs();
 
-	updateViewerResults();
-	updateSearchResults();
+    updateWindowsAsDatarefsAdded();
 
 	return 0; 
 }
 
 float load_dr_callback(float, float, int, void *) {
-	if(false == loadDatarefsFile()) {
-		XPLMDebugString("DRT: Couldn't load datarefs from file.\n");
-		return 0;
-	}
+    char system_path_c[1000];
+    XPLMGetSystemPath(system_path_c);
+    boost::filesystem::path system_path(system_path_c);
+    
+    {
+        std::vector<std::string> blacklisted_dr = loadBlacklistFile(system_path / "Resources" / "plugins" / "drt_blacklist.txt");
+        int success_count = datarefs->add(blacklisted_dr, dataref_src_t::BLACKLIST);
+        std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from blacklist opened successfully.\n";
+        XPLMDebugString(success_message.c_str());
+    }
+    {
+        std::vector<std::string> dr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "DataRefs.txt");
+        int success_count = datarefs->add(dr_file, dataref_src_t::FILE);
+        std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from DataRefs.txt opened successfully.\n";
+        XPLMDebugString(success_message.c_str());
+    }
 
 	loadAircraftDatarefs();
 
@@ -77,12 +91,11 @@ float load_dr_callback(float, float, int, void *) {
 
 	removeVectorUniques(all_plugin_datarefs);
 
-	int loaded_ok = addUserDatarefs(all_plugin_datarefs, dataref_src_t::PLUGIN);
+	int loaded_ok = datarefs->add(all_plugin_datarefs, dataref_src_t::PLUGIN);
 	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + " loaded OK.\n");
 	XPLMDebugString(message.c_str());
-
-	updateViewerResults();
-	updateSearchResults();
+    
+    updateWindowsAsDatarefsAdded();
 
 	return 0; 
 }
@@ -214,7 +227,8 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
         ss << "DRT: prefs loaded from " << prefs_path.string() << "\n";
         XPLMDebugString(ss.str().c_str());
     }
-
+    
+    datarefs.emplace();
 	XPLMRegisterFlightLoopCallback(load_dr_callback, -1, nullptr);
 
 	XPLMRegisterFlightLoopCallback(plugin_changed_check_callback, 1., nullptr);
@@ -258,7 +272,9 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	XPLMRegisterCommandHandler(reload_plugins_command, command_handler, 0, nullptr);
 	XPLMRegisterCommandHandler(reload_scenery_command, command_handler, 0, nullptr);
 	XPLMRegisterCommandHandler(show_datarefs_command, command_handler, 0, nullptr);
-
+    
+    updateWindowsAsDatarefsAdded();
+    
 	return 1;
 }
 
@@ -271,7 +287,7 @@ PLUGIN_API void	XPluginStop(void) {
 	//closeCommandWindows();
 	closeAboutWindow();
 	closeViewerWindows();
-	cleanupDatarefs();
+    datarefs = boost::none;
 	XPLMUnregisterFlightLoopCallback(load_dr_callback, nullptr);
 	XPLMUnregisterFlightLoopCallback(load_acf_dr_callback, nullptr);
 }
@@ -296,9 +312,9 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 		// http://www.xsquawkbox.net/xpsdk/mediawiki/Register_Custom_DataRef_in_DRE
 		case MSG_ADD_DATAREF: {
 			char * dataref_name = (char *) inParam;
-			bool added_ok = addUserDataref(dataref_name, dataref_src_t::USER_MSG);
-			if(added_ok) {
-				updateViewerResults();
+			bool added_ok = datarefs->add(dataref_name, dataref_src_t::USER_MSG);
+            if(added_ok) {
+                updateWindowsAsDatarefsAdded();
 			} else {
 				const std::string message = std::string("DRT: Couldn't load dataref from message: ") + dataref_name + std::string("\n");
 				XPLMDebugString(message.c_str());
