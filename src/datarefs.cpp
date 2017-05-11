@@ -28,6 +28,10 @@ bool DataRefRecords::add(const std::string & name_untrimmed, dataref_src_t sourc
 		return false;
 	}
 
+	if ("sim/aircraft/panel/acf_ins_size" == name) {
+		return false;
+	}
+
 	XPLMDataRef dr = XPLMFindDataRef(name.c_str());
     if(nullptr == dr) {
 		return false;
@@ -48,6 +52,10 @@ int DataRefRecords::add(const std::vector<std::string> & names, dataref_src_t so
 		//check for duplicates:
         NameMapType::iterator existing_location = dataref_ordered.find(name);
         if(dataref_ordered.cend() != existing_location) {
+			continue;
+		}
+
+		if ("sim/aircraft/panel/acf_ins_size" == name) {
 			continue;
 		}
 
