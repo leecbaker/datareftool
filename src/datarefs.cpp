@@ -25,21 +25,15 @@ bool DataRefRecords::add(const std::string & name_untrimmed, dataref_src_t sourc
 	//check for duplicates:
     NameMapType::iterator existing_location = dataref_ordered.find(name);
     if(dataref_ordered.cend() != existing_location) {
-        std::string fail_message = "Already have: " + name + "\n";
-        XPLMDebugString(fail_message.c_str());
 		return false;
 	}
 
 	XPLMDataRef dr = XPLMFindDataRef(name.c_str());
     if(nullptr == dr) {
-        std::string fail_message = "Fail load: " + name + "\n";
-        XPLMDebugString(fail_message.c_str());
 		return false;
 	}
 	datarefs.emplace_back(name, dr, source);
     dataref_ordered.insert(std::make_pair(name, datarefs.cend() - 1));
-    std::string success_message = "Success: " + name + "\n";
-    XPLMDebugString(success_message.c_str());
 
 	return true;
 }
@@ -54,22 +48,16 @@ int DataRefRecords::add(const std::vector<std::string> & names, dataref_src_t so
 		//check for duplicates:
         NameMapType::iterator existing_location = dataref_ordered.find(name);
         if(dataref_ordered.cend() != existing_location) {
-            std::string fail_message = "Already have: " + name + "\n";
-            XPLMDebugString(fail_message.c_str());
 			continue;
 		}
 
 		XPLMDataRef dr = XPLMFindDataRef(name.c_str());
         if(nullptr == dr) {
-            std::string fail_message = "Fail load: " + name + "\n";
-            XPLMDebugString(fail_message.c_str());
 			continue;
 		}
         datarefs.emplace_back(name, dr, source);
         dataref_ordered.insert(std::make_pair(name, datarefs.cend() - 1));
         ok++;
-        std::string success_message = "Success: " + name + "\n";
-        XPLMDebugString(success_message.c_str());
 	}
 
 	return ok;
@@ -85,7 +73,6 @@ void DataRefRecords::update() {
 
 std::vector<DataRefRecord *> DataRefRecords::search(const std::string & search_term, bool regex, bool case_insensitive, bool changed_recently, bool only_big_changes) {
 
-	std::cerr << "Doing search for " << search_term << std::endl;
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 	std::vector<std::regex> search_regexes;
     
