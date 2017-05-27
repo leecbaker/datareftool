@@ -49,6 +49,14 @@ float load_acf_dr_callback(float, float, int, void *) {
 	return 0; 
 }
 
+float update_dr_callback(float, float, int, void *) {
+	if(datarefs) {
+		datarefs->update();
+	}
+
+	return -1.f; 
+}
+
 float load_dr_callback(float, float, int, void *) {
     char system_path_c[1000];
     XPLMGetSystemPath(system_path_c);
@@ -219,6 +227,9 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	strcpy(outDesc, "View and edit X-Plane Datarefs");
 	XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
 
+
+    datarefs.emplace();
+
 	char prefs_dir_c[512];
 	XPLMGetPrefsPath(prefs_dir_c);
 	prefs_path = boost::filesystem::path(prefs_dir_c).parent_path() / "datareftool.json";
@@ -228,8 +239,8 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
         XPLMDebugString(ss.str().c_str());
     }
     
-    datarefs.emplace();
 	XPLMRegisterFlightLoopCallback(load_dr_callback, -1, nullptr);
+	XPLMRegisterFlightLoopCallback(update_dr_callback, -1, nullptr);
 
 	XPLMRegisterFlightLoopCallback(plugin_changed_check_callback, 1., nullptr);
 	
@@ -290,6 +301,7 @@ PLUGIN_API void	XPluginStop(void) {
     datarefs = boost::none;
 	XPLMUnregisterFlightLoopCallback(load_dr_callback, nullptr);
 	XPLMUnregisterFlightLoopCallback(load_acf_dr_callback, nullptr);
+	XPLMUnregisterFlightLoopCallback(update_dr_callback, nullptr);
 }
 
 PLUGIN_API void XPluginDisable(void) {
