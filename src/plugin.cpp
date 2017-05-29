@@ -1,5 +1,6 @@
 #include <cstring>
 #include <unordered_map>
+#include <iostream>
 
 #include <boost/filesystem.hpp>
 #include <boost/functional/hash.hpp> 
@@ -26,6 +27,7 @@ boost::filesystem::path prefs_path;
 XPLMMenuID plugin_menu = nullptr;
 
 boost::optional<DataRefRecords> datarefs;
+std::vector<std::string> blacklisted_datarefs;
 
 void loadAircraftDatarefs() {
 	//get path
@@ -42,6 +44,11 @@ void loadAircraftDatarefs() {
 
 //callback so we can load new aircraft datarefs when the aircraft is reloaded
 float load_acf_dr_callback(float, float, int, void *) {
+	std::cerr << "load acf callback running" << std::endl;
+	{ // re-add the blacklisted datarefs in case a new plugin was loaded. needed for, eg, x737
+		int success_count = datarefs->add(blacklisted_datarefs, dataref_src_t::BLACKLIST);
+		std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from blacklist opened successfully.\n";
+	}
 	loadAircraftDatarefs();
 
     updateWindowsAsDatarefsAdded();
@@ -58,16 +65,15 @@ float update_dr_callback(float, float, int, void *) {
 }
 
 float load_dr_callback(float, float, int, void *) {
+	{	//re-add the blacklisted datarefs in case a new plugin was loaded
+		int success_count = datarefs->add(blacklisted_datarefs, dataref_src_t::BLACKLIST);
+		std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from blacklist opened successfully.\n";
+	}
+
     char system_path_c[1000];
     XPLMGetSystemPath(system_path_c);
     boost::filesystem::path system_path(system_path_c);
-    
-    {
-        std::vector<std::string> blacklisted_dr = loadBlacklistFile(system_path / "Resources" / "plugins" / "drt_blacklist.txt");
-        int success_count = datarefs->add(blacklisted_dr, dataref_src_t::BLACKLIST);
-        std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from blacklist opened successfully.\n";
-        XPLMDebugString(success_message.c_str());
-    }
+
     {
         std::vector<std::string> dr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "DataRefs.txt");
         int success_count = datarefs->add(dr_file, dataref_src_t::FILE);
@@ -284,6 +290,14 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	XPLMRegisterCommandHandler(reload_scenery_command, command_handler, 0, nullptr);
 	XPLMRegisterCommandHandler(show_datarefs_command, command_handler, 0, nullptr);
     
+	{	//load blacklist first, before everything else
+		char system_path_c[1000];
+		XPLMGetSystemPath(system_path_c);
+		boost::filesystem::path system_path(system_path_c);
+		
+		blacklisted_datarefs = loadBlacklistFile(system_path / "Resources" / "plugins" / "drt_blacklist.txt");
+	}
+
     updateWindowsAsDatarefsAdded();
     
 	return 1;
