@@ -44,7 +44,7 @@ std::vector<std::string> loadDatarefsFile(const boost::filesystem::path & filena
     std::getline(dr_file, line);	//discard header
     std::vector<std::string> datarefs;
     while(std::getline(dr_file, line)) {
-        size_t tab_offset = line.find('\t');
+        size_t tab_offset = line.find_first_of("\t ");
         if(tab_offset == std::string::npos) {
             continue;
         }

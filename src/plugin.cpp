@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <iostream>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/functional/hash.hpp> 
 
@@ -28,6 +29,49 @@ XPLMMenuID plugin_menu = nullptr;
 
 boost::optional<DataRefRecords> datarefs;
 std::vector<std::string> blacklisted_datarefs;
+
+std::vector<std::string> commandrefs;
+using commands_storage = std::unordered_map<std::string, XPLMCommandRef>;
+commands_storage commands;
+
+size_t addPotentialCommandrefs(const std::vector<std::string> & new_commands) {
+	size_t success_count = 0;
+	for(const std::string & name : new_commands) {
+		commands_storage::const_iterator cr_location = commands.find(name);
+
+		if(commands.cend() == cr_location) {
+			XPLMCommandRef cr = XPLMFindCommand(name.c_str());
+			if(nullptr != cr) {
+				commands.insert(std::make_pair(name, cr));
+				success_count++;
+			}
+		}
+	}
+
+	{    
+		char system_path_c[1000];
+    	XPLMGetSystemPath(system_path_c);
+    	boost::filesystem::path system_path(system_path_c);
+
+		boost::filesystem::path output_path = system_path / "Output" / "preferences" / "drt_last_run_commandrefs.txt";
+		std::vector<const std::string *> sorted_names;
+		sorted_names.reserve(commands.size());
+		for(std::pair<const std::string, XPLMCommandRef> & command : commands) {
+			sorted_names.emplace_back(&command.first);
+		}
+		auto p_str_comparator = [](const std::string * s1, const std::string * s2) -> bool {
+			return boost::ilexicographical_compare(*s1, *s2);
+		};
+		std::sort(sorted_names.begin(), sorted_names.end(), p_str_comparator);
+
+		std::ofstream f(output_path.string());
+		for(const std::string * pstr : sorted_names) {
+			f << *pstr << "\n";
+		}
+	}
+
+	return success_count;
+}
 
 void loadAircraftDatarefs() {
 	//get path
@@ -81,6 +125,13 @@ float load_dr_callback(float, float, int, void *) {
         XPLMDebugString(success_message.c_str());
     }
 
+	{
+        std::vector<std::string> cr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "Commands.txt");
+		size_t success_count = addPotentialCommandrefs(cr_file);
+        std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from Commands.txt opened successfully.\n";
+        XPLMDebugString(success_message.c_str());
+    }
+
 	loadAircraftDatarefs();
 
 	//load plugins
@@ -105,8 +156,9 @@ float load_dr_callback(float, float, int, void *) {
 
 	removeVectorUniques(all_plugin_datarefs);
 
+	size_t new_cr_count = addPotentialCommandrefs(all_plugin_datarefs);
 	int loaded_ok = datarefs->add(all_plugin_datarefs, dataref_src_t::PLUGIN);
-	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + " loaded OK.\n");
+	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + "datarefs and " + std::to_string(new_cr_count) + " commands loaded OK.\n");
 	XPLMDebugString(message.c_str());
     
     updateWindowsAsDatarefsAdded();
