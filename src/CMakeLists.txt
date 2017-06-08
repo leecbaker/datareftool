@@ -1,7 +1,7 @@
 project(datareftool CXX)
 
-SET(SRC about_window.cpp plugin.cpp viewer_window.cpp datarefs.cpp dataref.cpp dataref_files.cpp string_util.cpp find_datarefs_in_files.cpp prefs.cpp)
-SET(HDR about_window.h plugin.h viewer_window.h datarefs.h dataref.h dataref_files.h string_util.h clipboard.h find_datarefs_in_files.h prefs.h)
+SET(SRC about_window.cpp plugin.cpp viewer_window.cpp allrefs.cpp dataref.cpp commandref.cpp dataref_files.cpp string_util.cpp find_datarefs_in_files.cpp prefs.cpp)
+SET(HDR about_window.h plugin.h viewer_window.h allrefs.h dataref.h commandref.h ref.h dataref_files.h string_util.h clipboard.h find_datarefs_in_files.h prefs.h)
 
 SET(SRC_PLUGIN_EXAMPLE plugin_custom_dataref.cpp)
 
@@ -38,7 +38,7 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHECK_RESULT_USED=_Check_return_")
 	add_definitions(-DNOMINMAX)
 else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra --std=c++11")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra --std=c++14")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHECK_RESULT_USED=\"__attribute__ ((warn_unused_result))\"")
 endif()
 

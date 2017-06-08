@@ -2,4 +2,6 @@
 
 #include <boost/optional.hpp>
 
-extern boost::optional<DataRefRecords> datarefs;
+#include "allrefs.h"
+
+extern boost::optional<RefRecords> refs;

@@ -10,7 +10,7 @@
 #include "viewer_window.h"
 #include "find_datarefs_in_files.h"
 
-#include "datarefs.h"
+#include "allrefs.h"
 #include "dataref_files.h"
 
 #include "prefs.h"
@@ -27,51 +27,8 @@ boost::filesystem::path prefs_path;
 
 XPLMMenuID plugin_menu = nullptr;
 
-boost::optional<DataRefRecords> datarefs;
+boost::optional<RefRecords> refs;
 std::vector<std::string> blacklisted_datarefs;
-
-std::vector<std::string> commandrefs;
-using commands_storage = std::unordered_map<std::string, XPLMCommandRef>;
-commands_storage commands;
-
-size_t addPotentialCommandrefs(const std::vector<std::string> & new_commands) {
-	size_t success_count = 0;
-	for(const std::string & name : new_commands) {
-		commands_storage::const_iterator cr_location = commands.find(name);
-
-		if(commands.cend() == cr_location) {
-			XPLMCommandRef cr = XPLMFindCommand(name.c_str());
-			if(nullptr != cr) {
-				commands.insert(std::make_pair(name, cr));
-				success_count++;
-			}
-		}
-	}
-
-	{    
-		char system_path_c[1000];
-    	XPLMGetSystemPath(system_path_c);
-    	boost::filesystem::path system_path(system_path_c);
-
-		boost::filesystem::path output_path = system_path / "Output" / "preferences" / "drt_last_run_commandrefs.txt";
-		std::vector<const std::string *> sorted_names;
-		sorted_names.reserve(commands.size());
-		for(std::pair<const std::string, XPLMCommandRef> & command : commands) {
-			sorted_names.emplace_back(&command.first);
-		}
-		auto p_str_comparator = [](const std::string * s1, const std::string * s2) -> bool {
-			return boost::ilexicographical_compare(*s1, *s2);
-		};
-		std::sort(sorted_names.begin(), sorted_names.end(), p_str_comparator);
-
-		std::ofstream f(output_path.string());
-		for(const std::string * pstr : sorted_names) {
-			f << *pstr << "\n";
-		}
-	}
-
-	return success_count;
-}
 
 void loadAircraftDatarefs() {
 	//get path
@@ -80,8 +37,8 @@ void loadAircraftDatarefs() {
 	XPLMGetNthAircraftModel(0, filename, path);
 	std::vector<std::string> aircraft_datarefs = getDatarefsFromAircraft(path);
 
-	int loaded_ok = datarefs->add(aircraft_datarefs, dataref_src_t::AIRCRAFT);
-	const std::string message = std::string("DRT: Found ") + std::to_string(aircraft_datarefs.size()) + std::string(" possible datarefs from aircraft files; " + std::to_string(loaded_ok) + " loaded OK.\n");
+	int loaded_ok = refs->add(aircraft_datarefs, ref_src_t::AIRCRAFT);
+	const std::string message = std::string("DRT: Found ") + std::to_string(aircraft_datarefs.size()) + std::string(" possible datarefs from aircraft files; " + std::to_string(loaded_ok) + " commandrefs and datarefs OK.\n");
 	XPLMDebugString(message.c_str());
 }
 
@@ -90,7 +47,7 @@ void loadAircraftDatarefs() {
 float load_acf_dr_callback(float, float, int, void *) {
 	std::cerr << "load acf callback running" << std::endl;
 	{ // re-add the blacklisted datarefs in case a new plugin was loaded. needed for, eg, x737
-		int success_count = datarefs->add(blacklisted_datarefs, dataref_src_t::BLACKLIST);
+		int success_count = refs->add(blacklisted_datarefs, ref_src_t::BLACKLIST);
 		std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from blacklist opened successfully.\n";
 	}
 	loadAircraftDatarefs();
@@ -101,8 +58,8 @@ float load_acf_dr_callback(float, float, int, void *) {
 }
 
 float update_dr_callback(float, float, int, void *) {
-	if(datarefs) {
-		datarefs->update();
+	if(refs && 0 != countViewerWindows()) {
+		refs->update();
 	}
 
 	return -1.f; 
@@ -110,7 +67,7 @@ float update_dr_callback(float, float, int, void *) {
 
 float load_dr_callback(float, float, int, void *) {
 	{	//re-add the blacklisted datarefs in case a new plugin was loaded
-		int success_count = datarefs->add(blacklisted_datarefs, dataref_src_t::BLACKLIST);
+		int success_count = refs->add(blacklisted_datarefs, ref_src_t::BLACKLIST);
 		std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from blacklist opened successfully.\n";
 	}
 
@@ -120,14 +77,14 @@ float load_dr_callback(float, float, int, void *) {
 
     {
         std::vector<std::string> dr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "DataRefs.txt");
-        int success_count = datarefs->add(dr_file, dataref_src_t::FILE);
+        int success_count = refs->add(dr_file, ref_src_t::FILE);
         std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from DataRefs.txt opened successfully.\n";
         XPLMDebugString(success_message.c_str());
     }
 
 	{
         std::vector<std::string> cr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "Commands.txt");
-		size_t success_count = addPotentialCommandrefs(cr_file);
+        int success_count = refs->add(cr_file, ref_src_t::FILE);
         std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from Commands.txt opened successfully.\n";
         XPLMDebugString(success_message.c_str());
     }
@@ -156,9 +113,8 @@ float load_dr_callback(float, float, int, void *) {
 
 	removeVectorUniques(all_plugin_datarefs);
 
-	size_t new_cr_count = addPotentialCommandrefs(all_plugin_datarefs);
-	int loaded_ok = datarefs->add(all_plugin_datarefs, dataref_src_t::PLUGIN);
-	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + "datarefs and " + std::to_string(new_cr_count) + " commands loaded OK.\n");
+	int loaded_ok = refs->add(all_plugin_datarefs, ref_src_t::PLUGIN);
+	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + "datarefs and commands loaded OK.\n");
 	XPLMDebugString(message.c_str());
     
     updateWindowsAsDatarefsAdded();
@@ -227,8 +183,8 @@ void plugin_menu_handler(void *, void * inItemRef)
 {
 	switch ( intptr_t(inItemRef) )
 	{
-		case 0: showViewerWindow(); break;	
-		//case 1: showCommandWindow(); break;	
+		case 0: showViewerWindow(true, false); break;	
+		case 1: showViewerWindow(false, true); break;	
 		case 2:
 			XPLMSetFlightLoopCallbackInterval(load_dr_callback, -1, 1, nullptr);
 			break;
@@ -285,8 +241,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	strcpy(outDesc, "View and edit X-Plane Datarefs");
 	XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
 
-
-    datarefs.emplace();
+    refs.emplace();
 
 	char prefs_dir_c[512];
 	XPLMGetPrefsPath(prefs_dir_c);
@@ -319,7 +274,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	XPLMAppendMenuItem(plugin_menu, "About DataRefTool", (void *)6, 1);
 
 	XPLMEnableMenuItem(plugin_menu, 0, 1);
-	XPLMEnableMenuItem(plugin_menu, 1, 0);
+	XPLMEnableMenuItem(plugin_menu, 1, 1);
 	XPLMEnableMenuItem(plugin_menu, 2, 1);	//sep
 	XPLMEnableMenuItem(plugin_menu, 3, 1);
 	XPLMEnableMenuItem(plugin_menu, 4, 1);	//sep
@@ -361,10 +316,10 @@ PLUGIN_API void	XPluginStop(void) {
         ss << "DRT: prefs saved to " << prefs_path.string() << "\n";
         XPLMDebugString(ss.str().c_str());
     }
-	//closeCommandWindows();
+
 	closeAboutWindow();
 	closeViewerWindows();
-    datarefs = boost::none;
+    refs = boost::none;
 	XPLMUnregisterFlightLoopCallback(load_dr_callback, nullptr);
 	XPLMUnregisterFlightLoopCallback(load_acf_dr_callback, nullptr);
 	XPLMUnregisterFlightLoopCallback(update_dr_callback, nullptr);
@@ -390,7 +345,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 		// http://www.xsquawkbox.net/xpsdk/mediawiki/Register_Custom_DataRef_in_DRE
 		case MSG_ADD_DATAREF: {
 			char * dataref_name = (char *) inParam;
-			bool added_ok = datarefs->add(dataref_name, dataref_src_t::USER_MSG);
+			bool added_ok = refs->add({dataref_name}, ref_src_t::USER_MSG);
             if(added_ok) {
                 updateWindowsAsDatarefsAdded();
 			} else {
@@ -401,9 +356,9 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 		}
 		case MSG_ADD_COMMANDREF: {
 			char * commandref_name = (char *) inParam;
-			bool added_ok = true;//addUserCommandref(commandref_name);
+			bool added_ok = refs->add({commandref_name}, ref_src_t::USER_MSG);
 			if(added_ok) {
-				//updateCommandWindows();
+                updateWindowsAsDatarefsAdded();
 			} else {
 				const std::string message = std::string("DRT: Couldn't load commandref from message: ") + commandref_name + std::string("\n");
 				XPLMDebugString(message.c_str());

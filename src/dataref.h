@@ -9,17 +9,10 @@
 #include <boost/variant/variant.hpp>
 #include <boost/variant/static_visitor.hpp>
 
+#include "ref.h"
 
-enum class dataref_src_t {
-    FILE,
-    AIRCRAFT,
-    PLUGIN,
-    USER_MSG,
-    BLACKLIST,
-};
 
-class DataRefRecord {
-    std::string name;
+class DataRefRecord : public RefRecord {
     std::chrono::system_clock::time_point last_updated;
     std::chrono::system_clock::time_point last_updated_big;
     using value_type = boost::variant<float,double, int, std::vector<float>, std::vector<int>, std::vector<uint8_t>, std::nullptr_t>;
@@ -27,7 +20,6 @@ class DataRefRecord {
     
     XPLMDataTypeID type;
     XPLMDataRef ref;
-    dataref_src_t source;
     size_t array_hash = 0;
     
     class Updater : public boost::static_visitor<bool> {
@@ -55,15 +47,13 @@ class DataRefRecord {
         int operator()(const std::nullptr_t&) const { return -1; }
     };
 public:
-    DataRefRecord(const std::string & name, XPLMDataRef ref, dataref_src_t source);
+    DataRefRecord(const std::string & name, XPLMDataRef ref, ref_src_t source);
     
     /// @return true if updated, false if not
     std::string getLabelString() const;
-    std::string getDisplayString(size_t display_length) const;
+    virtual std::string getDisplayString(size_t display_length) const override;
     std::string getEditString() const;
-    dataref_src_t getSource() const { return source; }
-    bool update(const std::chrono::system_clock::time_point current_time);
-    const std::string & getName() const { return name; }
+    virtual bool update(const std::chrono::system_clock::time_point current_time);
     const std::chrono::system_clock::time_point & getLastUpdateTime() const { return last_updated; }
     const std::chrono::system_clock::time_point & getLastBigUpdateTime() const { return last_updated_big; }
     bool writable() const;
@@ -83,6 +73,4 @@ public:
     
     void setIntArray(const std::vector<int> & i) { assert(isIntArray()); XPLMSetDatavi(ref, (int *) i.data(), 0, i.size()); }
     void setFloatArray(const std::vector<float> & f) { assert(isFloatArray()); XPLMSetDatavf(ref, (float *) f.data(), 0, f.size()); }
-    
-    bool isBlacklisted() const { return dataref_src_t::BLACKLIST == source; }
 };

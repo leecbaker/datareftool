@@ -1,0 +1,33 @@
+{
+    "files.associations": {
+        "cstddef": "cpp",
+        "atomic": "cpp",
+        "deque": "cpp",
+        "set": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "unordered_set": "cpp",
+        "vector": "cpp",
+        "*.tcc": "cpp",
+        "slist": "cpp",
+        "hashtable": "cpp",
+        "*.ipp": "cpp",
+        "__config": "cpp",
+        "exception": "cpp",
+        "initializer_list": "cpp",
+        "new": "cpp",
+        "stdexcept": "cpp",
+        "typeinfo": "cpp",
+        "array": "cpp",
+        "cstdint": "cpp",
+        "random": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "__bit_reference": "cpp",
+        "__hash_table": "cpp",
+        "__split_buffer": "cpp",
+        "__tree": "cpp",
+        "iterator": "cpp",
+        "regex": "cpp"
+    }
+}
