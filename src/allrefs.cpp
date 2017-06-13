@@ -217,7 +217,7 @@ std::vector<RefRecord *> RefRecords::search(const std::string & search_term, boo
     }
     
     {
-        std::string count_message = "DRT: Search found " + std::to_string(data_out.size()) + " results";
+        std::string count_message = "DRT: Search found " + std::to_string(data_out.size()) + " results\n";
         XPLMDebugString(count_message.c_str());
     }
     

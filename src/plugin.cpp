@@ -97,19 +97,27 @@ float load_dr_callback(float, float, int, void *) {
 
 	std::vector<std::string> all_plugin_datarefs;
 
+	std::stringstream msg;
+
 	for(int i = 0; i < num_plugins; i++) {
 		XPLMPluginID id = XPLMGetNthPlugin(i);
 		if(id == my_id) {
 			continue;
 		}
 
-		char filename[256] = {0};
+		char name[256] = {0};
 		char path[512] = {0};
-		XPLMGetPluginInfo(id, filename, path, nullptr, nullptr);
+		char signature[512] = {0};
+		char description[512] = {0};
+		XPLMGetPluginInfo(id, name, path, signature, description);
 
 		std::vector<std::string> this_plugin_datarefs = getDatarefsFromFile(path);
 		all_plugin_datarefs.insert(all_plugin_datarefs.end(), this_plugin_datarefs.begin(), this_plugin_datarefs.end());
+
+		msg << "DRT: found plugin with name=\"" << name << "\" desc=\"" << description << "\" signature=\"" << signature << "\"\n";
 	}
+
+	XPLMDebugString(msg.str().c_str());
 
 	removeVectorUniques(all_plugin_datarefs);
 
@@ -178,6 +186,13 @@ void reloadAircraft() {
 	XPLMGetNthAircraftModel(0, acf_filename, acf_path);
 	XPLMSetUsersAircraft(acf_path);
 }
+int impersonate_dre_menu_item = -1;
+int reload_on_plugin_change_item = -1;
+
+void updateMenus() {
+	XPLMCheckMenuItem(plugin_menu, impersonate_dre_menu_item, getImpersonateDRE() ? xplm_Menu_Checked : xplm_Menu_Unchecked);
+	XPLMCheckMenuItem(plugin_menu, reload_on_plugin_change_item, getAutoReloadPlugins() ? xplm_Menu_Checked : xplm_Menu_Unchecked);
+}
 
 void plugin_menu_handler(void *, void * inItemRef)
 {
@@ -203,13 +218,14 @@ void plugin_menu_handler(void *, void * inItemRef)
 		case 6: 
 			showAboutWindow(); 
 			break;
-		case 7: {
-			bool auto_reload_plugins = getAutoReloadPlugins();
-			auto_reload_plugins = !auto_reload_plugins;
-			setAutoReloadPlugins(auto_reload_plugins);
-			XPLMCheckMenuItem(plugin_menu, 9, auto_reload_plugins ? xplm_Menu_Checked : xplm_Menu_Unchecked);
+		case 7:
+			setAutoReloadPlugins(!getAutoReloadPlugins());
+			updateMenus();
 			break;
-		}
+		case 8:
+			setImpersonateDRE(!getImpersonateDRE());
+			updateMenus();
+			break;
 		default:
 			break;
 	}
@@ -235,10 +251,12 @@ int command_handler(XPLMCommandRef command, XPLMCommandPhase phase, void * ) {
 	return 1;
 }
 
+const char * dre_signature = "xplanesdk.examples.DataRefEditor";
+const char * dre_name = "DataRefEditor";
+const char * dre_description = "A plugin that shows all data refs!.";
+
 PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
-	strcpy(outName, "DataRef Tool");
-	strcpy(outSig, "com.leecbaker.datareftool");
-	strcpy(outDesc, "View and edit X-Plane Datarefs");
+
 	XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
 
     refs.emplace();
@@ -251,6 +269,22 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
         ss << "DRT: prefs loaded from " << prefs_path.string() << "\n";
         XPLMDebugString(ss.str().c_str());
     }
+
+	// let's try to find DRE before we register the plugin. If it's already here, we shouldnt register with the same signature!
+	bool found_dre_early = XPLM_NO_PLUGIN_ID != XPLMFindPluginBySignature(dre_signature);
+	if(found_dre_early && getImpersonateDRE()) {
+		XPLMDebugString("DRT: Impersonating DataRefEditor failed, because DataRefEditor is currently running.\n");
+	}
+	if(false == found_dre_early && getImpersonateDRE()) {
+		strcpy(outName, dre_name);
+		strcpy(outSig, dre_signature);
+		strcpy(outDesc, dre_description);
+		XPLMDebugString("DRT: Impersonating DataRefEditor\n");
+	} else {
+		strcpy(outName, "DataRefTool");
+		strcpy(outSig, "com.leecbaker.datareftool");
+		strcpy(outDesc, "View and edit X-Plane Datarefs");
+	}
     
 	XPLMRegisterFlightLoopCallback(load_dr_callback, -1, nullptr);
 	XPLMRegisterFlightLoopCallback(update_dr_callback, -1, nullptr);
@@ -269,7 +303,9 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	XPLMAppendMenuItem(plugin_menu, "Reload plugins", (void *)4, 1);
 	XPLMAppendMenuItem(plugin_menu, "Reload scenery", (void *)5, 1);
 	XPLMAppendMenuSeparator(plugin_menu);
-	XPLMAppendMenuItem(plugin_menu, "Reload plugins on modification", (void *)7, 1);
+	reload_on_plugin_change_item = XPLMAppendMenuItem(plugin_menu, "Reload plugins on modification", (void *)7, 1);
+	XPLMAppendMenuSeparator(plugin_menu);
+	impersonate_dre_menu_item = XPLMAppendMenuItem(plugin_menu, "Impersonate DRE (requires reload)", (void *)8, 1);
 	XPLMAppendMenuSeparator(plugin_menu);
 	XPLMAppendMenuItem(plugin_menu, "About DataRefTool", (void *)6, 1);
 
@@ -285,6 +321,8 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	XPLMEnableMenuItem(plugin_menu, 9, 1);
 	XPLMEnableMenuItem(plugin_menu, 10, 1);	//sep
 	XPLMEnableMenuItem(plugin_menu, 11, 1);
+	XPLMEnableMenuItem(plugin_menu, 12, 1);	//sep
+	XPLMEnableMenuItem(plugin_menu, 13, 1);
 
 	//commands
 	reload_aircraft_command = XPLMCreateCommand("datareftool/reload_aircraft", "Reload the current aircraft");
@@ -306,6 +344,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	}
 
     updateWindowsAsDatarefsAdded();
+	updateMenus();
     
 	return 1;
 }
@@ -329,10 +368,7 @@ PLUGIN_API void XPluginDisable(void) {
 }
 
 PLUGIN_API int XPluginEnable(void) {
-	{
-		bool auto_reload_plugins = getAutoReloadPlugins();
-		XPLMCheckMenuItem(plugin_menu, 9, auto_reload_plugins ? xplm_Menu_Checked : xplm_Menu_Unchecked);
-	}
+	updateMenus();
 	return 1;
 }
 
@@ -348,6 +384,8 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 			bool added_ok = refs->add({dataref_name}, ref_src_t::USER_MSG);
             if(added_ok) {
                 updateWindowsAsDatarefsAdded();
+				const std::string message = std::string("DRT: Message received for dataref ") + dataref_name + std::string("\n");
+				XPLMDebugString(message.c_str());
 			} else {
 				const std::string message = std::string("DRT: Couldn't load dataref from message: ") + dataref_name + std::string("\n");
 				XPLMDebugString(message.c_str());

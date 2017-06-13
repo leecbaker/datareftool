@@ -11,13 +11,19 @@
 #include <boost/foreach.hpp>
 
 bool auto_reload_plugins;
+bool impersonate_dre = false;
 
 bool getAutoReloadPlugins() { return auto_reload_plugins; }
 void setAutoReloadPlugins(bool reload_automatically) {
 	auto_reload_plugins = reload_automatically;
 }
 
+
+bool getImpersonateDRE() { return impersonate_dre; }
+void setImpersonateDRE(bool impersonate) { impersonate_dre = impersonate; }
+
 const char * auto_reload_plugin_key = "auto_reload_plugins";
+const char * impersonate_dre_key = "impersonate_dre";
 
 bool loadPrefs(const boost::filesystem::path & path) {
 	//open file, and deserialize
@@ -36,6 +42,7 @@ bool loadPrefs(const boost::filesystem::path & path) {
     }
 
 	auto_reload_plugins = prefs.get<bool>(auto_reload_plugin_key, true);
+	impersonate_dre = prefs.get<bool>(impersonate_dre_key, true);
 
 	return true;
 }
@@ -49,6 +56,7 @@ bool savePrefs(const boost::filesystem::path & path) {
     prefs.put("compile_date", __DATE__ " " __TIME__);
     prefs.add_child("windows", windows);
 	prefs.put(auto_reload_plugin_key, auto_reload_plugins);
+	prefs.put(impersonate_dre_key, impersonate_dre);
 
 	//serialize and save to file
 	std::ofstream f(path.string());
