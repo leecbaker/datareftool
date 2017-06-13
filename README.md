@@ -14,12 +14,13 @@ DRT is a work in progress; code contributions are welcome.
 
 ![Screenshot of data ref tool](doc/datareftool.png)
 
-###License
+### License
 DRT is available under the MIT license. See the LICENSE file for more details.
 
 ### Feature list
 
 * Read, write, and search for datarefs
+* Search for and execute commands
 * Case insensitive search
 * Regex search
 * Windows, Mac, Linux are all supported
@@ -59,7 +60,24 @@ On Linux, you'll need a couple of packages that you might not have. This worked 
 ### Adding custom datarefs
 You can use DRT to display your plugin's custom datarefs. Just send a message of type 0x01000000 with a pointer to the name of the dataref as the payload. There is an example of how to do this in [plugin_custom_dataref.cpp](src/plugin_custom_dataref.cpp). (This is exactly the same method that you use to add a custom dataref to Data Ref Editor.)
 
+
+### FAQ: DRT can't find my dataref!
+DRT scans files to find datarefs. This might not work if your dataref is in an encrypted Lua file or something, so you have several options:
+
+* If this is an aircraft, add a file called "dataref.txt" inside your aircraft directory with a list of datarefs and commands, one on each line
+* Have your plugin send DRT a message with as described above in "Adding custom datarefs"
+* Turn on "Impersonate DataRefEditor" on the plugin menu inside X-Plane. Before you do this, ensure that the DataRefEditor plugin is not installed. This way, X-Plane itself will tell DRT about all datarefs it knows about.
+
+### FAQ: Using DRT causes X-Plane to crash!
+I don't always know why DRT causes X-Plane to crash, but here's are common causes:
+
+* DRT reads every dataref published by every aircraft and plugin, on every frame of the simulation. Sometimes, they haven't fully been debugged, and may crash. (If you're a developer, the best way to do this is to run X-Plane in a debugger and look at the backtrace of the crash- if you see RefRecords::update() in the backtrace, this is likely what happened.)
+
+  If you can figure out which dataref caused the crash, the best way to work around this is to add the name of the dataref to a file called "drt_blacklist.txt" in the Resources/plugins directory. This will cause DRT to never read the value of the dataref, even if it does come up in search results.
+
+* Other causes TBD.
+
 ### Author
 DRT is written by Lee C. Baker. If you benefitted from this plugin, please consider purchasing the <a href="https://planecommand.com">PlaneCommand voice recognition plugin.
 
-&copy; 2015 Lee C. Baker.
+&copy; 2017 Lee C. Baker.

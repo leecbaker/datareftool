@@ -28,6 +28,8 @@
         "__split_buffer": "cpp",
         "__tree": "cpp",
         "iterator": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "fstream": "cpp",
+        "locale": "cpp"
     }
 }
