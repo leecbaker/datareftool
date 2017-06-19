@@ -1,4 +1,6 @@
 # Data Ref Tool for X-Plane plugin development
+**[Download from GitHub](https://github.com/leecbaker/datareftool/releases)**
+
 [![Appveyor Build status](https://ci.appveyor.com/api/projects/status/ivs0yirbv24rb5ng?svg=true)](https://ci.appveyor.com/project/leecbaker/datareftool)
 [![Travis Build Status](https://travis-ci.org/leecbaker/datareftool.svg)](https://travis-ci.org/leecbaker/datareftool)
 
