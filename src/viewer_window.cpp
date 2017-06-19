@@ -661,7 +661,7 @@ public:
 				}
 			} else {
 				const CommandRefRecord * pcr = dynamic_cast<const CommandRefRecord *>(record);
-				colors = {{1.f, .5f, 1.f}}; //pink ish
+				colors = {{0.f, 1.f, 0.f}}; //green
 				linetext = pcr->getName();
 			}
 
