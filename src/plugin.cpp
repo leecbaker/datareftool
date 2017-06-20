@@ -29,6 +29,7 @@ XPLMMenuID plugin_menu = nullptr;
 
 boost::optional<RefRecords> refs;
 std::vector<std::string> blacklisted_datarefs;
+std::vector<std::string> new_datarefs_from_messages_this_frame;
 
 bool search_needs_update = false;
 
@@ -66,6 +67,16 @@ float load_acf_dr_callback(float, float, int, void *) {
 float update_dr_callback(float, float, int, void *) {
 	if(refs && 0 != countViewerWindows()) {
 		refs->update();
+
+		if(false == new_datarefs_from_messages_this_frame.empty()) {
+			size_t new_count = refs->add(new_datarefs_from_messages_this_frame, ref_src_t::USER_MSG);
+			search_needs_update = true;
+
+			const std::string message = std::string("DRT: Loaded : ") + std::to_string(new_datarefs_from_messages_this_frame.size()) + std::string(" commands/datarefs from messages; ") + std::to_string(new_count) + std::string(" are ok\n");
+			XPLMDebugString(message.c_str());
+			new_datarefs_from_messages_this_frame.clear();
+		}
+
 		if(search_needs_update) {
 			search_needs_update = false;
 			updateWindowsAsDatarefsAdded();
@@ -132,7 +143,7 @@ float load_dr_callback(float, float, int, void *) {
 	removeVectorUniques(all_plugin_datarefs);
 
 	int loaded_ok = refs->add(all_plugin_datarefs, ref_src_t::PLUGIN);
-	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + "datarefs and commands loaded OK.\n");
+	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + " datarefs and commands loaded OK.\n");
 	XPLMDebugString(message.c_str());
     
     requestSearchUpdate();
@@ -389,29 +400,12 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 	switch(inMessage) {
 		// Add custom datarefs in the style of DRE:
 		// http://www.xsquawkbox.net/xpsdk/mediawiki/Register_Custom_DataRef_in_DRE
-		case MSG_ADD_DATAREF: {
-			char * dataref_name = (char *) inParam;
-			bool added_ok = refs->add({dataref_name}, ref_src_t::USER_MSG);
-            if(added_ok) {
-                requestSearchUpdate();
-			} else {
-				const std::string message = std::string("DRT: Couldn't load dataref from message: ") + dataref_name + std::string("\n");
-				XPLMDebugString(message.c_str());
-			}
+		case MSG_ADD_DATAREF:
+			new_datarefs_from_messages_this_frame.emplace_back((char *)inParam);
 			break;
-		}
-		case MSG_ADD_COMMANDREF: {
-			char * commandref_name = (char *) inParam;
-			bool added_ok = refs->add({commandref_name}, ref_src_t::USER_MSG);
-			if(added_ok) {
-                requestSearchUpdate();
-			} else {
-				const std::string message = std::string("DRT: Couldn't load commandref from message: ") + commandref_name + std::string("\n");
-				XPLMDebugString(message.c_str());
-			}
+		case MSG_ADD_COMMANDREF:
+			new_datarefs_from_messages_this_frame.emplace_back((char *)inParam);
 			break;
-		}
-
 		case XPLM_MSG_PLANE_LOADED: {
 			int64_t plane_num = int64_t(inParam);
 			const std::string message = std::string("DRT: Plane loaded #: ") + std::to_string(plane_num) + std::string("\n");
