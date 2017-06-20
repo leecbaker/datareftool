@@ -30,6 +30,12 @@ XPLMMenuID plugin_menu = nullptr;
 boost::optional<RefRecords> refs;
 std::vector<std::string> blacklisted_datarefs;
 
+bool search_needs_update = false;
+
+void requestSearchUpdate() {
+	search_needs_update = true;
+}
+
 void loadAircraftDatarefs() {
 	//get path
 	char filename[256] = {0};
@@ -52,7 +58,7 @@ float load_acf_dr_callback(float, float, int, void *) {
 	}
 	loadAircraftDatarefs();
 
-    updateWindowsAsDatarefsAdded();
+    requestSearchUpdate();
 
 	return 0; 
 }
@@ -60,6 +66,10 @@ float load_acf_dr_callback(float, float, int, void *) {
 float update_dr_callback(float, float, int, void *) {
 	if(refs && 0 != countViewerWindows()) {
 		refs->update();
+		if(search_needs_update) {
+			search_needs_update = false;
+			updateWindowsAsDatarefsAdded();
+		}
 	}
 
 	return -1.f; 
@@ -125,7 +135,7 @@ float load_dr_callback(float, float, int, void *) {
 	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + "datarefs and commands loaded OK.\n");
 	XPLMDebugString(message.c_str());
     
-    updateWindowsAsDatarefsAdded();
+    requestSearchUpdate();
 
 	return 0; 
 }
@@ -343,7 +353,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 		blacklisted_datarefs = loadBlacklistFile(system_path / "Resources" / "plugins" / "drt_blacklist.txt");
 	}
 
-    updateWindowsAsDatarefsAdded();
+    requestSearchUpdate();
 	updateMenus();
     
 	return 1;
@@ -383,9 +393,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 			char * dataref_name = (char *) inParam;
 			bool added_ok = refs->add({dataref_name}, ref_src_t::USER_MSG);
             if(added_ok) {
-                updateWindowsAsDatarefsAdded();
-				const std::string message = std::string("DRT: Message received for dataref ") + dataref_name + std::string("\n");
-				XPLMDebugString(message.c_str());
+                requestSearchUpdate();
 			} else {
 				const std::string message = std::string("DRT: Couldn't load dataref from message: ") + dataref_name + std::string("\n");
 				XPLMDebugString(message.c_str());
@@ -396,7 +404,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 			char * commandref_name = (char *) inParam;
 			bool added_ok = refs->add({commandref_name}, ref_src_t::USER_MSG);
 			if(added_ok) {
-                updateWindowsAsDatarefsAdded();
+                requestSearchUpdate();
 			} else {
 				const std::string message = std::string("DRT: Couldn't load commandref from message: ") + commandref_name + std::string("\n");
 				XPLMDebugString(message.c_str());
