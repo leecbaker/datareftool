@@ -42,7 +42,7 @@ bool loadPrefs(const boost::filesystem::path & path) {
     }
 
 	auto_reload_plugins = prefs.get<bool>(auto_reload_plugin_key, true);
-	impersonate_dre = prefs.get<bool>(impersonate_dre_key, true);
+	impersonate_dre = prefs.get<bool>(impersonate_dre_key, false);
 
 	return true;
 }
