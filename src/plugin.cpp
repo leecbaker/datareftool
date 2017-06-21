@@ -146,7 +146,7 @@ float load_dr_callback(float, float, int, void *) {
 	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + " datarefs and commands loaded OK.\n");
 	XPLMDebugString(message.c_str());
     
-    requestSearchUpdate();
+    updateWindowsAsDatarefsAdded();
 
 	return 0; 
 }
