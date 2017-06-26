@@ -5,3 +5,5 @@
 #include "allrefs.h"
 
 extern boost::optional<RefRecords> refs;
+
+void requestSearchUpdate();

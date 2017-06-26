@@ -30,6 +30,7 @@
         "iterator": "cpp",
         "regex": "cpp",
         "fstream": "cpp",
-        "locale": "cpp"
+        "locale": "cpp",
+        "__functional_base": "cpp"
     }
 }

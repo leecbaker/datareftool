@@ -7,7 +7,7 @@
 
 #include <boost/functional/hash.hpp>
 
-DataRefRecord::DataRefRecord(const std::string & name, XPLMDataRef ref, ref_src_t source) : RefRecord(name, source), last_updated(std::chrono::system_clock::now()), ref(ref) {
+DataRefRecord::DataRefRecord(const std::string & name, XPLMDataRef ref, ref_src_t source) : RefRecord(name, source), ref(ref) {
     type = 	XPLMGetDataRefTypes(ref);
     
     if(type & xplmType_Double) {

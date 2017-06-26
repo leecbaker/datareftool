@@ -642,13 +642,13 @@ public:
 		std::string linetext;
 		for(int i = 0; i < lines_to_render; i++) {
 			const RefRecord * record = refs[i + list_start_index];
-			const DataRefRecord * dr_record = dynamic_cast<const DataRefRecord *>(record);
 			std::array<float, 3> colors;
 			int xstart = left;
 			int ystart = top - (i + 1) * fontheight;
+			float timediff = 0.001f * std::chrono::duration_cast<std::chrono::milliseconds>(now - record->getLastUpdateTime()).count();
+			float timediff_fraction = std::min<float>(1.f, timediff / 10.f);
+			const DataRefRecord * dr_record = dynamic_cast<const DataRefRecord *>(record);
 			if(nullptr != dr_record) {
-				float timediff = 0.001f * std::chrono::duration_cast<std::chrono::milliseconds>(now - dr_record->getLastUpdateTime()).count();
-				float timediff_fraction = std::min<float>(1.f, timediff / 10.f);
 				const std::string & label = dr_record->getLabelString();
 				size_t max_value_chars = std::max<int>(0, list_width_in_chars - 1 - int(label.size()));
 				linetext += label;
@@ -661,7 +661,7 @@ public:
 				}
 			} else {
 				const CommandRefRecord * pcr = dynamic_cast<const CommandRefRecord *>(record);
-				colors = {{0.f, 1.f, 0.f}}; //green
+				colors = {{1.f - timediff_fraction, 1.f, 0.f}}; //green
 				linetext = pcr->getName();
 			}
 

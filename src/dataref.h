@@ -13,8 +13,6 @@
 
 
 class DataRefRecord : public RefRecord {
-    std::chrono::system_clock::time_point last_updated;
-    std::chrono::system_clock::time_point last_updated_big;
     using value_type = boost::variant<float,double, int, std::vector<float>, std::vector<int>, std::vector<uint8_t>, std::nullptr_t>;
     value_type value;
     
@@ -54,8 +52,6 @@ public:
     virtual std::string getDisplayString(size_t display_length) const override;
     std::string getEditString() const;
     virtual bool update(const std::chrono::system_clock::time_point current_time);
-    const std::chrono::system_clock::time_point & getLastUpdateTime() const { return last_updated; }
-    const std::chrono::system_clock::time_point & getLastBigUpdateTime() const { return last_updated_big; }
     bool writable() const;
     
     bool isDouble() const { return 0 != (xplmType_Double & type); }

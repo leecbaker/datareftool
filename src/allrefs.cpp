@@ -101,7 +101,6 @@ void RefRecords::update() {
 
 std::vector<RefRecord *> RefRecords::search(const std::string & search_term, bool regex, bool case_insensitive, bool changed_recently, bool only_big_changes, bool include_drs, bool include_crs) {
 
-	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 	std::vector<std::regex> search_regexes;
     
 
@@ -152,10 +151,10 @@ std::vector<RefRecord *> RefRecords::search(const std::string & search_term, boo
 		return true;
 	};
 
-	//actually perform the search
     std::vector<RefRecord *> data_out;
-	if(include_drs) {
-		for(DataRefRecord & record : datarefs) {
+	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	auto search_vector = [&data_out, &search_terms, regex, &search_regexes, &regex_search, &string_search, changed_recently, only_big_changes, now](auto & vec) -> void {
+		for(auto & record : vec) {
 			const std::string & haystack = record.getName();
 
 			//first deal with search term
@@ -185,27 +184,15 @@ std::vector<RefRecord *> RefRecords::search(const std::string & search_term, boo
 
 			data_out.push_back(&record);
 		}
+	};
+
+	//actually perform the search
+	if(include_drs) {
+		search_vector(datarefs);
 	}
 
 	if(include_crs) {
-		for(CommandRefRecord & record : commandrefs) {
-			const std::string & haystack = record.getName();
-
-			//first deal with search term
-			if(false == search_terms.empty()) {
-				if(regex) {
-					if(false == regex_search(haystack, search_regexes)) {
-						continue;
-					}
-				} else {
-					if(false == string_search(haystack, search_terms)) {
-						continue;
-					}
-				}
-			}
-
-			data_out.push_back(&record);
-		}
+		search_vector(commandrefs);
 	}
     
     //sort results
