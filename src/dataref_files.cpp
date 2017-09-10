@@ -1,6 +1,5 @@
 #include "dataref_files.h"
-
-#include "XPLMUtilities.h"
+#include "logging.h"
 
 #include <boost/algorithm/string.hpp>
 
@@ -8,8 +7,8 @@ std::vector<std::string> loadBlacklistFile(const boost::filesystem::path & filen
     std::vector<std::string> entries;
     std::ifstream f(filename.string());
     if(f.fail()) {
-        std::string no_file_message = std::string("DRT: Failed to open blacklist file at ") + filename.string();
-        XPLMDebugString(no_file_message.c_str());
+        std::string no_file_message = std::string("Failed to open blacklist file at ") + filename.string();
+        LOG(no_file_message);
         return {};
     }
     
@@ -22,21 +21,21 @@ std::vector<std::string> loadBlacklistFile(const boost::filesystem::path & filen
         entries.emplace_back(std::move(line));
     }
     {
-        std::string loaded_message = std::string("DRT: Loaded blacklist with ") + std::to_string(entries.size()) + " entries\n";
-        XPLMDebugString(loaded_message.c_str());
+        std::string loaded_message = std::string("Loaded blacklist with ") + std::to_string(entries.size()) + " entries";
+        LOG(loaded_message);
     }
     
     return entries;
 }
 
 std::vector<std::string> loadDatarefsFile(const boost::filesystem::path & filename) {
-    std::string dr_path_message = "DRT: Loading datarefs from path " + filename.string() + "\n";
-    XPLMDebugString(dr_path_message.c_str());
+    std::string dr_path_message = "Loading datarefs from path " + filename.string();
+    LOG(dr_path_message);
     
     std::ifstream dr_file(filename.string());
     
     if(dr_file.bad()) {
-        XPLMDebugString("DRT: DataRefs.txt file could not be loaded\n");
+        LOG("DataRefs.txt file could not be loaded");
         return {};
     }
     
@@ -54,8 +53,8 @@ std::vector<std::string> loadDatarefsFile(const boost::filesystem::path & filena
     }
     
     {
-        std::string dr_count_message = "DRT: Finished loading " + std::to_string(datarefs.size()) + " datarefs" + "\n";
-        XPLMDebugString(dr_count_message.c_str());
+        std::string dr_count_message = "Finished loading " + std::to_string(datarefs.size()) + " datarefs";
+        LOG(dr_count_message);
     }
     
     return datarefs;

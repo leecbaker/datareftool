@@ -1,3 +1,4 @@
+#include "logging.h"
 #include "string_util.h"
 
 #include <boost/algorithm/string.hpp>
@@ -33,7 +34,7 @@ bool parseArray(const std::string & txt, std::vector<T> & data_out, int length) 
     boost::split(txt_fields, trimmed_txt, boost::is_any_of(","));
     
     if(length != int(txt_fields.size())) {
-        XPLMDebugString("Save cancelled, as supplied data array doesn't match DR array length");
+        LOG("Save cancelled, as supplied data array doesn't match DR array length");
         return false;
     }
     
@@ -44,7 +45,7 @@ bool parseArray(const std::string & txt, std::vector<T> & data_out, int length) 
         try {
             data_out.push_back(parseElement<T>(txt_field));
         } catch (std::exception &) {
-            XPLMDebugString("Save cancelled, failed to parse field");
+            LOG("Save cancelled, failed to parse field");
             return false;
         }
     }

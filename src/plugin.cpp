@@ -12,7 +12,7 @@
 
 #include "allrefs.h"
 #include "dataref_files.h"
-
+#include "logging.h"
 #include "prefs.h"
 
 #include "XPWidgets.h"
@@ -45,8 +45,8 @@ void loadAircraftDatarefs() {
 	std::vector<std::string> aircraft_datarefs = getDatarefsFromAircraft(path);
 
 	int loaded_ok = refs->add(aircraft_datarefs, ref_src_t::AIRCRAFT);
-	const std::string message = std::string("DRT: Found ") + std::to_string(aircraft_datarefs.size()) + std::string(" possible datarefs from aircraft files; " + std::to_string(loaded_ok) + " commandrefs and datarefs OK.\n");
-	XPLMDebugString(message.c_str());
+	const std::string message = std::string("Found ") + std::to_string(aircraft_datarefs.size()) + std::string(" possible datarefs from aircraft files; " + std::to_string(loaded_ok) + " commandrefs and datarefs OK.");
+	LOG(message);
 }
 
 
@@ -55,7 +55,7 @@ float load_acf_dr_callback(float, float, int, void *) {
 	std::cerr << "load acf callback running" << std::endl;
 	{ // re-add the blacklisted datarefs in case a new plugin was loaded. needed for, eg, x737
 		int success_count = refs->add(blacklisted_datarefs, ref_src_t::BLACKLIST);
-		std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from blacklist opened successfully.\n";
+		std::string success_message = std::to_string(success_count) + " datarefs from blacklist opened successfully.";
 	}
 	loadAircraftDatarefs();
 
@@ -72,8 +72,8 @@ float update_dr_callback(float, float, int, void *) {
 			size_t new_count = refs->add(new_datarefs_from_messages_this_frame, ref_src_t::USER_MSG);
 			search_needs_update = true;
 
-			const std::string message = std::string("DRT: Loaded : ") + std::to_string(new_datarefs_from_messages_this_frame.size()) + std::string(" commands/datarefs from messages; ") + std::to_string(new_count) + std::string(" are ok\n");
-			XPLMDebugString(message.c_str());
+			const std::string message = std::string("Loaded : ") + std::to_string(new_datarefs_from_messages_this_frame.size()) + std::string(" commands/datarefs from messages; ") + std::to_string(new_count) + std::string(" are ok");
+			LOG(message);
 			new_datarefs_from_messages_this_frame.clear();
 		}
 
@@ -89,7 +89,7 @@ float update_dr_callback(float, float, int, void *) {
 float load_dr_callback(float, float, int, void *) {
 	{	//re-add the blacklisted datarefs in case a new plugin was loaded
 		int success_count = refs->add(blacklisted_datarefs, ref_src_t::BLACKLIST);
-		std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from blacklist opened successfully.\n";
+		std::string success_message = std::to_string(success_count) + " datarefs from blacklist opened successfully.";
 	}
 
     char system_path_c[1000];
@@ -99,15 +99,15 @@ float load_dr_callback(float, float, int, void *) {
     {
         std::vector<std::string> dr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "DataRefs.txt");
         int success_count = refs->add(dr_file, ref_src_t::FILE);
-        std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from DataRefs.txt opened successfully.\n";
-        XPLMDebugString(success_message.c_str());
+        std::string success_message = std::to_string(success_count) + " datarefs from DataRefs.txt opened successfully.";
+        LOG(success_message);
     }
 
 	{
         std::vector<std::string> cr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "Commands.txt");
         int success_count = refs->add(cr_file, ref_src_t::FILE);
-        std::string success_message = "DRT: " + std::to_string(success_count) + " datarefs from Commands.txt opened successfully.\n";
-        XPLMDebugString(success_message.c_str());
+        std::string success_message = std::to_string(success_count) + " datarefs from Commands.txt opened successfully.";
+        LOG(success_message);
     }
 
 	loadAircraftDatarefs();
@@ -135,16 +135,16 @@ float load_dr_callback(float, float, int, void *) {
 		std::vector<std::string> this_plugin_datarefs = getDatarefsFromFile(path);
 		all_plugin_datarefs.insert(all_plugin_datarefs.end(), this_plugin_datarefs.begin(), this_plugin_datarefs.end());
 
-		msg << "DRT: found plugin with name=\"" << name << "\" desc=\"" << description << "\" signature=\"" << signature << "\"\n";
+		msg << "found plugin with name=\"" << name << "\" desc=\"" << description << "\" signature=\"" << signature << "\"";
 	}
 
-	XPLMDebugString(msg.str().c_str());
+	LOG(msg.str());
 
 	removeVectorUniques(all_plugin_datarefs);
 
 	int loaded_ok = refs->add(all_plugin_datarefs, ref_src_t::PLUGIN);
-	const std::string message = std::string("DRT: Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + " datarefs and commands loaded OK.\n");
-	XPLMDebugString(message.c_str());
+	const std::string message = std::string("Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + " datarefs and commands loaded OK.");
+	LOG(message);
     
     updateWindowsAsDatarefsAdded();
 
@@ -179,8 +179,8 @@ float plugin_changed_check_callback(float, float, int, void *) {
 			plugin_path_canonical = boost::filesystem::canonical(plugin_path);
 			modification_date = boost::filesystem::last_write_time(plugin_path_canonical);
 		} catch (boost::filesystem::filesystem_error & ec) {
-			std::string message = "Error reading modification date. Msg: " + std::string(ec.what()) + " file:" + plugin_path_canonical.string() + "\n";
-			XPLMDebugString(message.c_str());
+			std::string message = "Error reading modification date. Msg: " + std::string(ec.what()) + " file:" + plugin_path_canonical.string();
+			LOG(message);
 			continue;
 		}
 		plugin_last_modified_t::iterator plugin_entry_it = plugin_last_modified.find(plugin_path_canonical);
@@ -191,9 +191,8 @@ float plugin_changed_check_callback(float, float, int, void *) {
 				plugin_entry_it->second = modification_date;
 				if(getAutoReloadPlugins()) {
 					std::stringstream message_ss;
-					message_ss << "DRT: Observed plugin with new modification (reloading):" << plugin_path_canonical << std::string("\n");
-					std::string message = message_ss.str();
-					XPLMDebugString(message.c_str());
+					message_ss << "Observed plugin with new modification (reloading):" << plugin_path_canonical;
+					LOG(message_ss.str());
 					XPLMReloadPlugins();
 				}
 			}
@@ -225,15 +224,15 @@ void plugin_menu_handler(void *, void * inItemRef)
 			XPLMSetFlightLoopCallbackInterval(load_dr_callback, -1, 1, nullptr);
 			break;
 		case 3: 
-			XPLMDebugString("DRT: reloaded aircraft\n");
+			LOG("Reloaded aircraft");
 			reloadAircraft();
 			break;
 		case 4: 
-			XPLMDebugString("DRT: reloaded plugins\n");
+			LOG("Reloading plugins");
 			XPLMReloadPlugins(); 
 			break;
 		case 5: 
-			XPLMDebugString("DRT: reloaded scenery\n");
+			LOG("Reloading scenery");
 			XPLMReloadScenery(); 
 			break;
 		case 6: 
@@ -287,20 +286,20 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	prefs_path = boost::filesystem::path(prefs_dir_c).parent_path() / "datareftool.json";
     if(loadPrefs(prefs_path)) {
         std::stringstream ss;
-        ss << "DRT: prefs loaded from " << prefs_path.string() << "\n";
-        XPLMDebugString(ss.str().c_str());
+        ss << "prefs loaded from " << prefs_path.string();
+        LOG(ss.str());
     }
 
 	// let's try to find DRE before we register the plugin. If it's already here, we shouldnt register with the same signature!
 	bool found_dre_early = XPLM_NO_PLUGIN_ID != XPLMFindPluginBySignature(dre_signature);
 	if(found_dre_early && getImpersonateDRE()) {
-		XPLMDebugString("DRT: Impersonating DataRefEditor failed, because DataRefEditor is currently running.\n");
+		LOG("Impersonating DataRefEditor failed, because DataRefEditor is currently running.");
 	}
 	if(false == found_dre_early && getImpersonateDRE()) {
 		strcpy(outName, dre_name);
 		strcpy(outSig, dre_signature);
 		strcpy(outDesc, dre_description);
-		XPLMDebugString("DRT: Impersonating DataRefEditor\n");
+		LOG("Impersonating DataRefEditor");
 	} else {
 		strcpy(outName, "DataRefTool");
 		strcpy(outSig, "com.leecbaker.datareftool");
@@ -372,9 +371,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 
 PLUGIN_API void	XPluginStop(void) {
     if(savePrefs(prefs_path)) {
-        std::stringstream ss;
-        ss << "DRT: prefs saved to " << prefs_path.string() << "\n";
-        XPLMDebugString(ss.str().c_str());
+        LOG("Prefs saved to " + prefs_path.string());
     }
 
 	closeAboutWindow();
@@ -408,8 +405,8 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 			break;
 		case XPLM_MSG_PLANE_LOADED: {
 			int64_t plane_num = int64_t(inParam);
-			const std::string message = std::string("DRT: Plane loaded #: ") + std::to_string(plane_num) + std::string("\n");
-			XPLMDebugString(message.c_str());
+			const std::string message = std::string("Plane loaded #: ") + std::to_string(plane_num);
+			LOG(message);
 			if(0 == plane_num) {	//user's plane
 				XPLMRegisterFlightLoopCallback(load_acf_dr_callback, -1, nullptr);
 			}

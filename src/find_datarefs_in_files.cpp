@@ -1,5 +1,7 @@
 #include "find_datarefs_in_files.h"
 
+#include "logging.h"
+
 #include <algorithm>
 #include <cctype>
 #include <fstream>
@@ -10,8 +12,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/algorithm/string.hpp>
-
-#include "XPLMUtilities.h"
 
 inline char isValidDatarefChar(char c) {
 	return std::isalnum((unsigned char)(c)) || '_' == c || '/' == c || '-' == c || '.' == c;
@@ -55,8 +55,8 @@ std::vector<std::string> getDatarefsFromFile(const std::string & filename) {
 	
 	removeVectorUniques(all_refs);
 
-	const std::string message = std::string("DRT: Found ") + std::to_string(all_refs.size()) + std::string(" unique possible datarefs in file ") + filename + std::string("\n");
-	XPLMDebugString(message.c_str());
+	const std::string message = std::string("Found ") + std::to_string(all_refs.size()) + std::string(" unique possible datarefs in file ") + filename;
+	LOG(message);
 
 	return all_refs;
 }
@@ -93,8 +93,8 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 
 		all_refs.insert(all_refs.begin(), cdataref_entries.begin(), cdataref_entries.end());
 
-		const std::string message = std::string("DRT: Found ") + std::to_string(cdataref_entries.size()) + std::string(" unique possible datarefs in ") + cdataref_path.string() + std::string("\n");
-		XPLMDebugString(message.c_str());
+		const std::string message = std::string("Found ") + std::to_string(cdataref_entries.size()) + std::string(" unique possible datarefs in ") + cdataref_path.string();
+		LOG(message);
 	}
 
 	//plugins
@@ -152,8 +152,8 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 		}
 	}
 	removeVectorUniques(all_refs);
-	const std::string message = std::string("DRT: Found ") + std::to_string(all_refs.size()) + std::string(" unique possible datarefs for aircraft ") + acf_path + std::string("\n");
-	XPLMDebugString(message.c_str());
+	const std::string message = std::string("Found ") + std::to_string(all_refs.size()) + std::string(" unique possible datarefs for aircraft ") + acf_path;
+	LOG(message);
 
 	return all_refs;
 }

@@ -2,8 +2,7 @@
 
 #include "prefs.h"
 
-#include "XPLMUtilities.h"
-
+#include "logging.h"
 #include "viewer_window.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -12,18 +11,21 @@
 
 bool auto_reload_plugins;
 bool impersonate_dre = false;
+bool logging_enabled = true;
 
 bool getAutoReloadPlugins() { return auto_reload_plugins; }
 void setAutoReloadPlugins(bool reload_automatically) {
 	auto_reload_plugins = reload_automatically;
 }
 
+bool getLoggingEnabled() { return logging_enabled; }
 
 bool getImpersonateDRE() { return impersonate_dre; }
 void setImpersonateDRE(bool impersonate) { impersonate_dre = impersonate; }
 
 const char * auto_reload_plugin_key = "auto_reload_plugins";
 const char * impersonate_dre_key = "impersonate_dre";
+const char * logging_enabled_key = "logging_enabled";
 
 bool loadPrefs(const boost::filesystem::path & path) {
 	//open file, and deserialize
@@ -43,6 +45,13 @@ bool loadPrefs(const boost::filesystem::path & path) {
 
 	auto_reload_plugins = prefs.get<bool>(auto_reload_plugin_key, true);
 	impersonate_dre = prefs.get<bool>(impersonate_dre_key, false);
+	bool logging_enabled_loaded = prefs.get<bool>(logging_enabled_key, true);
+
+	if(false == logging_enabled_loaded) {
+		LOG("Logging disabled via prefs file");
+	}
+	LOG("Loaded prefs from " + path.string());
+	logging_enabled = logging_enabled_loaded;
 
 	return true;
 }
@@ -57,6 +66,7 @@ bool savePrefs(const boost::filesystem::path & path) {
     prefs.add_child("windows", windows);
 	prefs.put(auto_reload_plugin_key, auto_reload_plugins);
 	prefs.put(impersonate_dre_key, impersonate_dre);
+	prefs.put(logging_enabled_key, logging_enabled);
 
 	//serialize and save to file
 	std::ofstream f(path.string());
@@ -66,10 +76,9 @@ bool savePrefs(const boost::filesystem::path & path) {
     try {
 		write_json(f, prefs);
     } catch(boost::property_tree::json_parser_error & e) {
-    	const std::string message = std::string("DRT: Error writing preferences file at ") + path.string() + std::string("\n");
-		XPLMDebugString(message.c_str());
-		XPLMDebugString(("DRT: " + e.filename() + ":" + std::to_string(e.line())).c_str());
-		XPLMDebugString(("DRT: " + e.message()).c_str());
+		LOG(std::string("Error writing preferences file at ") + path.string());
+		LOG(e.filename() + ":" + std::to_string(e.line()));
+		LOG(e.message());
     	return false;
     }
 
