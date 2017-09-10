@@ -261,9 +261,9 @@ int command_handler(XPLMCommandRef command, XPLMCommandPhase phase, void * ) {
 		if(command == reload_aircraft_command) {
 				reloadAircraft();
 		} else if(command == reload_plugins_command) {
-				XPLMReloadPlugins(); 
+				XPLMReloadPlugins();
 		} else if(command == reload_scenery_command) {
-				XPLMReloadScenery(); 
+				XPLMReloadScenery();
 		} else if(command == show_datarefs_command) {
 				showViewerWindow();
 		}

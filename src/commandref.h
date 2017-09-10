@@ -23,4 +23,5 @@ public:
     void commandOnce() const { XPLMCommandOnce(ref); }
     void commandBegin() const { XPLMCommandBegin(ref); }
     void commandEnd() const { XPLMCommandEnd(ref); }
+    void touch() { last_updated_big = last_updated = std::chrono::system_clock::now(); }
 };

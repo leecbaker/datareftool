@@ -40,7 +40,9 @@ class ViewerWindow {
 	XPWidgetID cr_dr_filter_button = nullptr;
 	XPWidgetID search_field = nullptr;
 	XPWidgetID edit_field = nullptr;
-	XPWidgetID command_button = nullptr;
+	XPWidgetID command_button_begin = nullptr;
+	XPWidgetID command_button_end = nullptr;
+	XPWidgetID command_button_once = nullptr;
 	XPWidgetID scroll_bar = nullptr;
 	XPWidgetID custom_list = nullptr;
 
@@ -64,6 +66,12 @@ class ViewerWindow {
 	bool edit_modified = false;
 
 	std::vector<RefRecord *> refs;
+
+	void hideCommandButtons() {
+		XPHideWidget(command_button_once);
+		XPHideWidget(command_button_begin);
+		XPHideWidget(command_button_end);
+	}
 
 	static int viewerWindowCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t) {
 		XPMouseState_t * mouse_info = (XPMouseState_t *) inParam1;
@@ -123,7 +131,7 @@ class ViewerWindow {
 							XPSetWidgetDescriptor(obj->edit_field, name.c_str());
 							obj->setEditSelection(0, name.size());
 							XPShowWidget(obj->edit_field);
-							XPHideWidget(obj->command_button);
+							obj->hideCommandButtons();
 							obj->edit_modified = false;
 						} else {
 							DataRefRecord * dr_record = dynamic_cast<DataRefRecord *>(record);
@@ -135,15 +143,19 @@ class ViewerWindow {
 								XPSetWidgetDescriptor(obj->edit_field, value_str.c_str());
 								obj->setEditSelection(0, value_str.size());
 								XPShowWidget(obj->edit_field);
-								XPHideWidget(obj->command_button);
+								obj->hideCommandButtons();
 								obj->edit_modified = false;
 							}
 							if(nullptr != cr_record) {
 								obj->selected_command = cr_record;
 								int right = obj->drag_start_window_right - mouse_drag_margin - scroll_width + box_padding_x;
-								int left = std::max(valuestart_x, right - 120);
-								XPSetWidgetGeometry(obj->command_button, left, top, right, bottom - box_padding_y);
-								XPShowWidget(obj->command_button);
+								int left = std::max(valuestart_x, right - 180);
+								XPSetWidgetGeometry(obj->command_button_once, left, top, left + 60, bottom - box_padding_y);
+								XPSetWidgetGeometry(obj->command_button_begin, left + 60, top, left + 120, bottom - box_padding_y);
+								XPSetWidgetGeometry(obj->command_button_end, left + 120, top, left + 180, bottom - box_padding_y);
+								XPShowWidget(obj->command_button_once);
+								XPShowWidget(obj->command_button_begin);
+								XPShowWidget(obj->command_button_end);
 								XPHideWidget(obj->edit_field);
 							}
 						}
@@ -323,7 +335,14 @@ class ViewerWindow {
 		switch(inMessage) {
 			case xpMsg_PushButtonPressed:
 				if(nullptr != obj->selected_command) {
-					obj->selected_command->commandOnce();
+					obj->selected_command->touch();
+					if(inWidget == obj->command_button_once) {
+						obj->selected_command->commandOnce();
+					} else if(inWidget == obj->command_button_begin) {
+						obj->selected_command->commandBegin();
+					} else if(inWidget == obj->command_button_end) {
+						obj->selected_command->commandEnd();
+					}
 				}
 				return 1;
 		}
@@ -401,11 +420,16 @@ public:
 		XPSetWidgetProperty(edit_field, xpProperty_Object, (intptr_t)this);
 		XPHideWidget(edit_field);
 
-		command_button = XPCreateWidget(0, 0, 1, 1, 1,"CommandOnce", 0, window, xpWidgetClass_Button);
-		XPSetWidgetProperty(command_button, xpProperty_ButtonType, xpPushButton);
-		XPAddWidgetCallback(command_button, commandButtonCallback);
-		XPSetWidgetProperty(command_button, xpProperty_Object, (intptr_t)this);	
-		XPHideWidget(command_button);				
+		command_button_once = XPCreateWidget(0, 0, 1, 1, 1,"Once", 0, window, xpWidgetClass_Button);
+		command_button_begin = XPCreateWidget(0, 0, 1, 1, 1,"Begin", 0, window, xpWidgetClass_Button);
+		command_button_end = XPCreateWidget(0, 0, 1, 1, 1,"End", 0, window, xpWidgetClass_Button);
+		for(XPWidgetID button : {command_button_once, command_button_begin, command_button_end}) {
+			XPSetWidgetProperty(button, xpProperty_ButtonType, xpPushButton);
+			XPSetWidgetProperty(button, xpProperty_ButtonBehavior, xpButtonBehaviorPushButton);
+			XPAddWidgetCallback(button, commandButtonCallback);
+			XPSetWidgetProperty(button, xpProperty_Object, (intptr_t)this);
+		}
+		hideCommandButtons();
 
 		scroll_bar = XPCreateWidget(0, 0, 1, 1, 1,"", 0, window, xpWidgetClass_ScrollBar);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarType, xpScrollBarTypeScrollBar);	//might need changing
@@ -472,7 +496,7 @@ public:
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarSliderPosition, scroll_pos);
 		deselectEditField();
 		XPHideWidget(edit_field);
-		XPHideWidget(command_button);
+		hideCommandButtons();
 	}
 
 	std::string getSearchText() const {
@@ -548,7 +572,7 @@ public:
 		select_edit_dataref = nullptr;
 		XPLoseKeyboardFocus(edit_field);
 		XPHideWidget(edit_field);
-		XPHideWidget(command_button);
+		hideCommandButtons();
 	}
 
 	std::string getEditText() const {
