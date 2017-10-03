@@ -19,7 +19,7 @@ protected:
     ref_src_t source;
     std::chrono::system_clock::time_point last_updated;
     std::chrono::system_clock::time_point last_updated_big;
-    RefRecord(const std::string & name, ref_src_t source) : name(name), source(source), last_updated(std::chrono::system_clock::now()) {}
+    RefRecord(const std::string & name, ref_src_t source) : name(name), source(source), last_updated(std::chrono::system_clock::from_time_t(0)), last_updated_big(std::chrono::system_clock::from_time_t(0)) {}
 public:
     virtual ~RefRecord() {}
     const std::string & getName() const { return name; }
