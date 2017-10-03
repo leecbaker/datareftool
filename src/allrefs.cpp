@@ -125,36 +125,44 @@ std::vector<RefRecord *> RefRecords::search(const std::string & search_term, boo
 
 	// Feels a bit messy using all these lambdas, and also I'm a bit skeptical if it all getting optimized well
 	const auto string_search = [case_insensitive](const std::string & haystack, const std::vector<std::string> & needles) -> bool {
-
-		const auto case_insensitive_comparator = [](const char ch1, const char ch2) -> bool { return ::toupper(ch1) == ::toupper(ch2); };
-
-		for(const std::string & needle : needles) {
-			std::string::const_iterator it;
-			if(case_insensitive) {
-				it = std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end(), case_insensitive_comparator);
-			} else {
-				it = std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end());
-			}
-			if(it == haystack.cend()) {
-				return false;
-			}
+		if(case_insensitive) {
+			const auto case_insensitive_comparator = [](const char ch1, const char ch2) -> bool { return ::toupper(ch1) == ::toupper(ch2); };
+			const auto case_insensitive_single_search = [&case_insensitive_comparator, &haystack](const std::string & needle) -> bool {
+				return haystack.cend() != std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end(), case_insensitive_comparator);
+			};
+			return std::all_of(needles.cbegin(), needles.cend(), case_insensitive_single_search);
+		} else {
+			const auto case_sensitive_single_search = [&haystack](const std::string & needle) -> bool {
+				return haystack.cend() != std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end());
+			};
+			return std::all_of(needles.cbegin(), needles.cend(), case_sensitive_single_search);
 		}
-		return true;
 	};
 
 	const auto regex_search = [](const std::string & haystack, const std::vector<std::regex> & regexes) -> bool {
-		for(const std::regex & needle_regex : regexes) {
-			if(false == std::regex_search(haystack.begin(), haystack.end(), needle_regex)) {
-				return false;
-			}
-		}
-		return true;
+		auto regex_single_search = [&haystack](const std::regex & r) -> bool {
+			return std::regex_search(haystack.cbegin(), haystack.cend(), r);
+		};
+		return std::all_of(regexes.cbegin(), regexes.cend(), regex_single_search);
 	};
 
     std::vector<RefRecord *> data_out;
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 	auto search_vector = [&data_out, &search_terms, regex, &search_regexes, &regex_search, &string_search, changed_recently, only_big_changes, now](auto & vec) -> void {
 		for(auto & record : vec) {
+			// Deal with update time first, as this will eliminate most regexes / string compares when it can
+			if(changed_recently) {
+				float timediff;
+				if(only_big_changes) {
+					timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record.getLastBigUpdateTime()).count());
+				} else {
+					timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record.getLastUpdateTime()).count());
+				}
+				if(timediff > 10.f) {
+					continue;
+				}
+			}
+
 			const std::string & haystack = record.getName();
 
 			//first deal with search term
@@ -167,18 +175,6 @@ std::vector<RefRecord *> RefRecords::search(const std::string & search_term, boo
 					if(false == string_search(haystack, search_terms)) {
 						continue;
 					}
-				}
-			}
-
-			if(changed_recently) {
-				float timediff;
-				if(only_big_changes) {
-					timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record.getLastBigUpdateTime()).count());
-				} else {
-					timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record.getLastUpdateTime()).count());
-				}
-				if(timediff > 10.f) {
-					continue;
 				}
 			}
 
