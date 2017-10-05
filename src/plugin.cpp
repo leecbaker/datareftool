@@ -31,10 +31,10 @@ boost::optional<RefRecords> refs;
 std::vector<std::string> blacklisted_datarefs;
 std::vector<std::string> new_datarefs_from_messages_this_frame;
 
-bool search_needs_update = false;
+std::vector<RefRecord *> new_refs_this_frame, changed_cr_this_frame;
 
-void requestSearchUpdate() {
-	search_needs_update = true;
+void addUpdatedCommandThisFrame(RefRecord * record) {
+	changed_cr_this_frame.push_back(record);
 }
 
 void loadAircraftDatarefs() {
@@ -44,43 +44,42 @@ void loadAircraftDatarefs() {
 	XPLMGetNthAircraftModel(0, filename, path);
 	std::vector<std::string> aircraft_datarefs = getDatarefsFromAircraft(path);
 
-	int loaded_ok = refs->add(aircraft_datarefs, ref_src_t::AIRCRAFT);
-	const std::string message = std::string("Found ") + std::to_string(aircraft_datarefs.size()) + std::string(" possible datarefs from aircraft files; " + std::to_string(loaded_ok) + " commandrefs and datarefs OK.");
+	std::vector<RefRecord *> acf_refs = refs->add(aircraft_datarefs, ref_src_t::AIRCRAFT);
+	const std::string message = std::string("Found ") + std::to_string(aircraft_datarefs.size()) + std::string(" possible datarefs from aircraft files; " + std::to_string(acf_refs.size()) + " commandrefs and datarefs OK.");
 	LOG(message);
-}
 
+	new_refs_this_frame.insert(new_refs_this_frame.cend(), acf_refs.cbegin(), acf_refs.cend());
+}
 
 //callback so we can load new aircraft datarefs when the aircraft is reloaded
 float load_acf_dr_callback(float, float, int, void *) {
 	std::cerr << "load acf callback running" << std::endl;
 	{ // re-add the blacklisted datarefs in case a new plugin was loaded. needed for, eg, x737
-		int success_count = refs->add(blacklisted_datarefs, ref_src_t::BLACKLIST);
-		std::string success_message = std::to_string(success_count) + " datarefs from blacklist opened successfully.";
+		std::vector<RefRecord *> bl_refs = refs->add(blacklisted_datarefs, ref_src_t::BLACKLIST);
+		std::string success_message = std::to_string(bl_refs.size()) + " datarefs from blacklist opened successfully.";
 	}
 	loadAircraftDatarefs();
-
-    requestSearchUpdate();
 
 	return 0; 
 }
 
 float update_dr_callback(float, float, int, void *) {
 	if(refs && 0 != countViewerWindows()) {
-		refs->update();
+		std::vector<RefRecord *> changed_drs = refs->update();
 
 		if(false == new_datarefs_from_messages_this_frame.empty()) {
-			size_t new_count = refs->add(new_datarefs_from_messages_this_frame, ref_src_t::USER_MSG);
-			search_needs_update = true;
+			std::vector<RefRecord *> refs_from_msg = refs->add(new_datarefs_from_messages_this_frame, ref_src_t::USER_MSG);
 
-			const std::string message = std::string("Loaded : ") + std::to_string(new_datarefs_from_messages_this_frame.size()) + std::string(" commands/datarefs from messages; ") + std::to_string(new_count) + std::string(" are ok");
+			const std::string message = std::string("Loaded : ") + std::to_string(new_datarefs_from_messages_this_frame.size()) + std::string(" commands/datarefs from messages; ") + std::to_string(refs_from_msg.size()) + std::string(" are ok");
 			LOG(message);
 			new_datarefs_from_messages_this_frame.clear();
 		}
 
-		if(search_needs_update) {
-			search_needs_update = false;
-			updateWindowsAsDatarefsAdded();
-		}
+		updateWindowsPerFrame(new_refs_this_frame, changed_cr_this_frame, changed_drs);
+
+		changed_cr_this_frame.clear();
+		changed_drs.clear();
+		new_refs_this_frame.clear();
 	}
 
 	return -1.f; 
@@ -88,25 +87,26 @@ float update_dr_callback(float, float, int, void *) {
 
 float load_dr_callback(float, float, int, void *) {
 	{	//re-add the blacklisted datarefs in case a new plugin was loaded
-		int success_count = refs->add(blacklisted_datarefs, ref_src_t::BLACKLIST);
-		std::string success_message = std::to_string(success_count) + " datarefs from blacklist opened successfully.";
+		std::vector<RefRecord *> bl_refs = refs->add(blacklisted_datarefs, ref_src_t::BLACKLIST);
+		std::string success_message = std::to_string(bl_refs.size()) + " datarefs from blacklist opened successfully.";
 	}
 
     char system_path_c[1000];
     XPLMGetSystemPath(system_path_c);
-    boost::filesystem::path system_path(system_path_c);
+	boost::filesystem::path system_path(system_path_c);
+	std::vector<RefRecord *> dr_file_refs, cr_file_refs;
 
     {
         std::vector<std::string> dr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "DataRefs.txt");
-        int success_count = refs->add(dr_file, ref_src_t::FILE);
-        std::string success_message = std::to_string(success_count) + " datarefs from DataRefs.txt opened successfully.";
+        dr_file_refs = refs->add(dr_file, ref_src_t::FILE);
+        std::string success_message = std::to_string(dr_file_refs.size()) + " datarefs from DataRefs.txt opened successfully.";
         LOG(success_message);
     }
 
 	{
         std::vector<std::string> cr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "Commands.txt");
-        int success_count = refs->add(cr_file, ref_src_t::FILE);
-        std::string success_message = std::to_string(success_count) + " datarefs from Commands.txt opened successfully.";
+        cr_file_refs = refs->add(cr_file, ref_src_t::FILE);
+        std::string success_message = std::to_string(cr_file_refs.size()) + " datarefs from Commands.txt opened successfully.";
         LOG(success_message);
     }
 
@@ -142,11 +142,13 @@ float load_dr_callback(float, float, int, void *) {
 
 	removeVectorUniques(all_plugin_datarefs);
 
-	int loaded_ok = refs->add(all_plugin_datarefs, ref_src_t::PLUGIN);
-	const std::string message = std::string("Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(loaded_ok) + " datarefs and commands loaded OK.");
+	std::vector<RefRecord *> plugin_refs = refs->add(all_plugin_datarefs, ref_src_t::PLUGIN);
+	const std::string message = std::string("Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(plugin_refs.size()) + " datarefs and commands loaded OK.");
 	LOG(message);
-    
-    updateWindowsAsDatarefsAdded();
+	
+	new_refs_this_frame.insert(new_refs_this_frame.cend(), cr_file_refs.cbegin(), cr_file_refs.cend());
+	new_refs_this_frame.insert(new_refs_this_frame.cend(), dr_file_refs.cbegin(), dr_file_refs.cend());
+	new_refs_this_frame.insert(new_refs_this_frame.cend(), plugin_refs.cbegin(), plugin_refs.cend());
 
 	return 0; 
 }
@@ -363,7 +365,6 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 		blacklisted_datarefs = loadBlacklistFile(system_path / "Resources" / "plugins" / "drt_blacklist.txt");
 	}
 
-    requestSearchUpdate();
 	updateMenus();
     
 	return 1;

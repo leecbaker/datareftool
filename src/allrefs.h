@@ -6,7 +6,7 @@
 #include <cstring>
 #include <vector>
 #include <string>
-#include <unordered_map>
+#include <unordered_set>
 #include "XPLMDataAccess.h"
 
 #include <boost/filesystem.hpp>
@@ -14,23 +14,29 @@
 #include "dataref.h"
 #include "commandref.h"
 
+class SearchParams;
+
 //Store all commandrefs and datarefs here
 
 class RefRecords {
-    using DatarefStorageType = std::vector<DataRefRecord>;
-    using CommandrefStorageType = std::vector<CommandRefRecord>;
+    using DatarefStorageType = std::deque<DataRefRecord>;
+    using CommandrefStorageType = std::deque<CommandRefRecord>;
     using RecordPointerType = std::vector<RefRecord *>;
-    using NameMapType = std::unordered_multimap<std::string, RecordPointerType::const_iterator>;
+    using NameMapType = std::unordered_set<std::string>;
 
     DatarefStorageType datarefs;
     CommandrefStorageType commandrefs;
-    RecordPointerType ref_pointers;
-    NameMapType refs_ordered;
+    RecordPointerType cr_pointers;
+    RecordPointerType dr_pointers;
+    NameMapType ref_names_loaded;
+
+	DataRefUpdater updater;
 public:
-    int add(const std::vector<std::string> & names, ref_src_t source);
-    
-    std::vector<RefRecord *> search(const std::string & search_term, bool regex, bool case_insensitive, bool changed_recently, bool only_big_changes, bool include_drs, bool include_crs);
-    
-    void update();
+    std::vector<RefRecord *> CHECK_RESULT_USED add(const std::vector<std::string> & names, ref_src_t source);
+
+    std::vector<RefRecord *> update();
     bool saveToFile(const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const;
+
+    const RecordPointerType & getAllCommandrefs() const { return cr_pointers; }
+    const RecordPointerType & getAllDatarefs() const { return dr_pointers; }
 };

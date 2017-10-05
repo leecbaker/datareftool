@@ -8,7 +8,8 @@ void showViewerWindow(bool show_dr, bool show_cr);
 void showViewerWindow(const boost::property_tree::ptree & window_details);
 boost::property_tree::ptree getViewerWindowsDetails();
 
-void updateWindowsAsDatarefsAdded();
+class RefRecord;
+void updateWindowsPerFrame(const std::vector<RefRecord *> & new_refs, std::vector<RefRecord *> & changed_crs, std::vector<RefRecord *> & changed_drs);
 void closeViewerWindow(const ViewerWindow * window);
 void closeViewerWindows();
 size_t countViewerWindows();

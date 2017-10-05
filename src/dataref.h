@@ -11,29 +11,17 @@
 
 #include "ref.h"
 
+class DataRefUpdater;
 
 class DataRefRecord : public RefRecord {
+    friend class DataRefUpdater;
     using value_type = boost::variant<float,double, int, std::vector<float>, std::vector<int>, std::vector<uint8_t>, std::nullptr_t>;
     value_type value;
     
     XPLMDataTypeID type;
     XPLMDataRef ref;
     size_t array_hash = 0;
-    
-    class Updater : public boost::static_visitor<bool> {
-        DataRefRecord & dr;
-        const std::chrono::system_clock::time_point current_time;
-    public:
-        Updater(DataRefRecord & dr, const std::chrono::system_clock::time_point current_time)
-        : dr(dr), current_time(current_time) {}
-        bool operator()(float&) const;
-        bool operator()(double&) const;
-        bool operator()(int&) const;
-        bool operator()(std::vector<float>&) const;
-        bool operator()(std::vector<int>&) const;
-        bool operator()(std::vector<uint8_t>&) const;
-        bool operator()(std::nullptr_t&) const;
-    };
+
     class GetArraySize : public boost::static_visitor<int> {
     public:
         int operator()(const float&) const { return -1; }
@@ -51,7 +39,7 @@ public:
     std::string getLabelString() const;
     virtual std::string getDisplayString(size_t display_length) const override;
     std::string getEditString() const;
-    virtual bool update(const std::chrono::system_clock::time_point current_time);
+    virtual bool CHECK_RESULT_USED update(DataRefUpdater & updater);
     bool writable() const;
     
     bool isDouble() const { return 0 != (xplmType_Double & type); }
@@ -69,4 +57,19 @@ public:
     
     void setIntArray(const std::vector<int> & i) { assert(isIntArray()); XPLMSetDatavi(ref, (int *) i.data(), 0, i.size()); }
     void setFloatArray(const std::vector<float> & f) { assert(isFloatArray()); XPLMSetDatavf(ref, (float *) f.data(), 0, f.size()); }
+};
+
+class DataRefUpdater : public boost::static_visitor<bool> {
+    std::chrono::system_clock::time_point current_time;
+    DataRefRecord * dr;
+public:
+    void setDataref(DataRefRecord * dr) { this->dr = dr; }
+    void updateTime(const std::chrono::system_clock::time_point current_time) { this->current_time = current_time; }
+    bool operator()(float&) const;
+    bool operator()(double&) const;
+    bool operator()(int&) const;
+    bool operator()(std::vector<float>&) const;
+    bool operator()(std::vector<int>&) const;
+    bool operator()(std::vector<uint8_t>&) const;
+    bool operator()(std::nullptr_t&) const;
 };

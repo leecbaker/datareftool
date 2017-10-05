@@ -55,6 +55,11 @@
         "streambuf": "cpp",
         "functional": "cpp",
         "utility": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "algorithm": "cpp",
+        "__functional_base_03": "cpp",
+        "__tuple": "cpp",
+        "chrono": "cpp",
+        "ratio": "cpp"
     }
 }

@@ -2,6 +2,7 @@
 #include "allrefs.h"
 #include "commandref.h"
 #include "plugin.h"
+#include "search.h"
 #include "string_util.h"
 #include "viewer_window.h"
 
@@ -25,12 +26,6 @@ const int bottom_row_height = 20;
 const int right_col_width = 20;
 const int toggle_button_width = 28;
 const int title_bar_height = 20;
-
-int last_top = -1, last_bottom = -1, last_left = -1, last_right = -1;
-std::string last_search_term;
-bool last_case_sensitive = false, last_regex = false;
-int last_change_filter_state = 0;
-int last_cr_dr_filter_state = 0;
 
 class ViewerWindow {
 	XPLMWindowID window = nullptr;
@@ -60,12 +55,15 @@ class ViewerWindow {
 
 	int change_filter_state = 0;	//0, 1, 2 for off, changes, only big changes
 	int cr_dr_filter_state = 0;	//0 for dataref only, 1 for CR only, 2 for both
+	bool params_changed = false;
 
 	DataRefRecord * select_edit_dataref = nullptr;
 	CommandRefRecord * selected_command = nullptr;
 	bool edit_modified = false;
 
 	std::vector<RefRecord *> refs;
+
+	SearchParams params;
 
 	void hideCommandButtons() {
 		XPHideWidget(command_button_once);
@@ -192,7 +190,8 @@ class ViewerWindow {
 		XPKeyState_t * keystruct = (XPKeyState_t *) inParam1;
 		switch(inMessage) {
 			case xpMsg_DescriptorChanged:
-				obj->doSearch();
+				obj->params.setSearchTerms(obj->getSearchTermText());
+				obj->params_changed = true;
 				return 1;
 			case xpMsg_KeyPress:
 				if(keystruct->flags & 6 && keystruct->flags & xplm_DownFlag) {	//alt, command, control are down
@@ -245,6 +244,11 @@ class ViewerWindow {
 						case XPLM_VK_ESCAPE:
 							obj->deselectSearchField();
 							break;
+						case XPLM_VK_DELETE:
+						case XPLM_VK_BACK:
+							obj->params.setSearchTerms(obj->getSearchTermText());
+							obj->params_changed = true;
+							break;
 					}
 				}
 		}
@@ -257,7 +261,6 @@ class ViewerWindow {
 		XPKeyState_t * keystruct = (XPKeyState_t *) inParam1;
 		switch(inMessage) {
 			case xpMsg_DescriptorChanged:
-				//obj->doSearch();
 				return 1;
 			case xpMsg_KeyPress:
 				if(keystruct->flags & 6 && keystruct->flags & xplm_DownFlag) {	//alt, command, control are down
@@ -324,7 +327,15 @@ class ViewerWindow {
 					obj->cr_dr_filter_state = (obj->cr_dr_filter_state + 1) % 3;
 					obj->updateCrDrFilterButton();
 				}
-				obj->doSearch();
+				if(inWidget == obj->case_sensitive_button) {        
+					intptr_t property = XPGetWidgetProperty(obj->case_sensitive_button, xpProperty_ButtonState, nullptr);
+					obj->params.setCaseSensitive(0 != property);
+				}
+				if(inWidget == obj->regex_toggle_button) {        
+					intptr_t property = XPGetWidgetProperty(obj->regex_toggle_button, xpProperty_ButtonState, nullptr);
+					obj->params.setUseRegex(0 != property);
+				}
+				obj->params_changed = true;
 				return 1;
 		}
 		return 0;
@@ -436,37 +447,15 @@ public:
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMin, 0);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, 0);
 
-		if(last_left != -1) {
-			XPSetWidgetGeometry(window, last_left, last_top, last_right, last_bottom);
-			XPSetWidgetDescriptor(search_field, last_search_term.c_str());
-			XPSetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, last_case_sensitive ? 1 : 0);
-			XPSetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, last_regex ? 1 : 0);
-			last_left = last_top = last_right = last_bottom = -1;
-			last_search_term.clear();
-			last_case_sensitive = last_regex = false;
-			change_filter_state = last_change_filter_state;
-			cr_dr_filter_state = last_cr_dr_filter_state;
-			updateChangeButton();
-			updateCrDrFilterButton();
-		}
-
 		resize();
 
-		doSearch();
+		params_changed = true;
 		int max_scroll = std::max<int>(0, int(refs.size() - displayed_lines));
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, max_scroll);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarSliderPosition, max_scroll);
 	}
 
 	~ViewerWindow() {
-		XPGetWidgetGeometry(window, &last_left, &last_top, &last_right, &last_bottom);
-		last_search_term = getSearchText();
-
-		last_case_sensitive = 0 != XPGetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, nullptr);
-		last_regex = 0 != XPGetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, nullptr);
-		last_change_filter_state = change_filter_state;
-		last_cr_dr_filter_state = cr_dr_filter_state;
-
 		XPHideWidget(window);
 		XPLMDestroyWindow(window);
 	}
@@ -581,6 +570,12 @@ public:
 		return std::string(editfield_text);
 	}
 
+	std::string getSearchTermText() const {
+		char searchfield_text[1024];
+		XPGetWidgetDescriptor(search_field, searchfield_text, 1024);
+		return searchfield_text;
+	}
+
 	intptr_t getEditSelectionStart() const {
 		return XPGetWidgetProperty(edit_field, xpProperty_EditFieldSelStart, NULL);
 	}
@@ -599,14 +594,17 @@ public:
 			case 0:
 				XPSetWidgetDescriptor(change_filter_button, "Ch");
 				XPSetWidgetProperty(change_filter_button, xpProperty_ButtonState, 0);
+				params.setChangeDetection(false, false);
 				break;
 			case 1:
 				XPSetWidgetDescriptor(change_filter_button, "ch");
 				XPSetWidgetProperty(change_filter_button, xpProperty_ButtonState, 1);
+				params.setChangeDetection(true, false);
 				break;
 			case 2:
 				XPSetWidgetDescriptor(change_filter_button, "CH");
 				XPSetWidgetProperty(change_filter_button, xpProperty_ButtonState, 1);
+				params.setChangeDetection(true, true);
 				break;
 		}
 	}
@@ -616,29 +614,37 @@ public:
 			case 0:
 				XPSetWidgetDescriptor(cr_dr_filter_button, "dat");
 				XPSetWidgetProperty(cr_dr_filter_button, xpProperty_ButtonState, 1);
+				params.setIncludeRefs(false, true);
 				break;
 			case 1:
 				XPSetWidgetDescriptor(cr_dr_filter_button, "com");
 				XPSetWidgetProperty(cr_dr_filter_button, xpProperty_ButtonState, 1);
+				params.setIncludeRefs(true, false);
 				break;
 			case 2:
 				XPSetWidgetDescriptor(cr_dr_filter_button, "d+c");
 				XPSetWidgetProperty(cr_dr_filter_button, xpProperty_ButtonState, 0);
+				params.setIncludeRefs(true, true);
 				break;
 		}
 	}
 
-	void doSearch() {
+	void doSearch(const std::vector<RefRecord *> & new_refs, std::vector<RefRecord *> & changed_crs, std::vector<RefRecord *> & changed_drs) {
 		deselectEditField();
 
-		char searchfield_text[1024];
-		XPGetWidgetDescriptor(search_field, searchfield_text, 1024);
-
-        this->refs = ::refs->search(searchfield_text, isRegex(), false == isCaseSensitive(), isChanged(), isOnlyBigChanges(), includeDataRefs(), includeCommandRefs());
+        if(params_changed) { // TODO optimization- only return datarefs, or commandrefs, depending on setting
+            this->refs = params.freshSearch(::refs->getAllCommandrefs(), ::refs->getAllDatarefs());
+            params_changed = false;
+        } else {
+            this->refs = params.updateSearch(this->refs, new_refs, changed_crs, changed_drs);
+        }
 
 		updateScroll();
 
-		std::string window_title = std::string("DataRef Tool (") + std::to_string(refs.size()) + ")"; 
+		std::string window_title = std::string("DataRef Tool (") + std::to_string(this->refs.size()) + ")"; 
+		if(params.invalidRegex()) {
+			window_title += " (Invalid regex)";
+		}
 		XPSetWidgetDescriptor(window, window_title.c_str());
 	}
 
@@ -723,38 +729,23 @@ public:
 	void show() {
 		XPShowWidget(window);
 	}
+
+	const SearchParams & getSearchParams() const { return params; }
     
     void setCaseSensitive(bool is_case_sensitive) {
+		params.setCaseSensitive(is_case_sensitive);
         int i = is_case_sensitive ? 1 : 0;
         XPSetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, i);
     }
     
-    bool isCaseSensitive() const {
-        intptr_t property = XPGetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, nullptr);
-        return property != 0;
-    }
-    
     void setIsRegex(bool is_regex) {
-        int i = is_regex ? 1 : 0;
-        XPSetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, i);
-    }
-    
-    bool isRegex() const {
-        intptr_t property = XPGetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, nullptr);
-        return property != 0;
+		params.setUseRegex(is_regex);
+        XPSetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, is_regex ? 1 : 0);
     }
     
     void setIsChanged(bool is_changed, bool only_big_changes) {
         change_filter_state = only_big_changes ? 2 : (is_changed ? 1 : 0);
         updateChangeButton();
-    }
-    
-    bool isChanged() const {
-        return 0 != change_filter_state;
-    }
-    
-    bool isOnlyBigChanges() const {
-        return 2 == change_filter_state;
     }
 
 	void setCrDrFilter(bool has_datarefs, bool has_commandrefs) {
@@ -768,13 +759,9 @@ public:
 		updateCrDrFilterButton();
 	}
 
-	bool includeDataRefs() const {
-		return cr_dr_filter_state == 0 || cr_dr_filter_state == 2;
-	}
+	bool includeDataRefs() const { return cr_dr_filter_state == 0 || cr_dr_filter_state == 2; }
 
-	bool includeCommandRefs() const {
-		return cr_dr_filter_state == 1 || cr_dr_filter_state == 2;
-	}
+	bool includeCommandRefs() const { return cr_dr_filter_state == 1 || cr_dr_filter_state == 2; }
     
     int getWidth() const {
         int l,r;
@@ -823,9 +810,9 @@ void closeViewerWindows() {
 	viewer_windows.clear();
 }
 
-void updateWindowsAsDatarefsAdded() {
+void updateWindowsPerFrame(const std::vector<RefRecord *> & new_refs, std::vector<RefRecord *> & changed_crs, std::vector<RefRecord *> & changed_drs) {
     for(const std::unique_ptr<ViewerWindow> & window : viewer_windows) {
-        window->doSearch();
+        window->doSearch(new_refs, changed_crs, changed_drs);
     }
 }
 
@@ -838,13 +825,14 @@ boost::property_tree::ptree getViewerWindowsDetails() {
         window_details.put("window_width", pwindow->getWidth());
         window_details.put("x", pwindow->getX());
         window_details.put("y", pwindow->getY());
+		
+		const SearchParams & params = pwindow->getSearchParams();
+        window_details.put("case_sensitive", params.isCaseSensitive());
+        window_details.put("regex", params.useRegex());
+        window_details.put("changed", params.useChangeDetection());
+        window_details.put("big_changes_only", params.useOnlyLargeChanges());
         
-        window_details.put("case_sensitive", pwindow->isCaseSensitive());
-        window_details.put("regex", pwindow->isRegex());
-        window_details.put("changed", pwindow->isChanged());
-        window_details.put("big_changes_only", pwindow->isOnlyBigChanges());
-        
-        window_details.put("search_term", pwindow->getSearchText());
+        window_details.put("search_term", params.getSearchField());
         
         windows.push_back(std::make_pair("", window_details));
     }

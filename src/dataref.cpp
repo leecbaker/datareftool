@@ -36,56 +36,56 @@ bool DataRefRecord::writable() const {
 }
 
 
-bool DataRefRecord::Updater::operator()(float & old_val) const {
-    float newval = XPLMGetDataf(dr.ref);
+bool DataRefUpdater::operator()(float & old_val) const {
+    float newval = XPLMGetDataf(dr->ref);
     if(newval != old_val) {
         if(0.01f < fabs(newval - old_val) / old_val) {
-            dr.last_updated_big = current_time;
+            dr->last_updated_big = current_time;
         }
-        dr.last_updated = current_time;
-        dr.value = newval;
+        dr->last_updated = current_time;
+        dr->value = newval;
         return true;
     } else {
         return false;
     }
 }
 
-bool DataRefRecord::Updater::operator()(double& oldval) const {
-    double newval = XPLMGetDatad(dr.ref);
+bool DataRefUpdater::operator()(double& oldval) const {
+    double newval = XPLMGetDatad(dr->ref);
     if(newval != oldval) {
         if(0.01 < fabsl(newval - oldval) / oldval) {
-            dr.last_updated_big = current_time;
+            dr->last_updated_big = current_time;
         }
-        dr.last_updated = current_time;
-        dr.value = newval;
+        dr->last_updated = current_time;
+        dr->value = newval;
         return true;
     } else {
         return false;
     }
 }
 
-bool DataRefRecord::Updater::operator()(int& oldval) const {
-    int newval = XPLMGetDatai(dr.ref);
+bool DataRefUpdater::operator()(int& oldval) const {
+    int newval = XPLMGetDatai(dr->ref);
     if(newval != oldval) {
-        dr.last_updated = current_time;
-        dr.value = newval;
+        dr->last_updated = current_time;
+        dr->value = newval;
         return true;
     } else {
         return false;
     }
 }
 
-bool DataRefRecord::Updater::operator()(std::vector<float>&) const {
-    int current_array_length = XPLMGetDatavf(dr.ref, nullptr, 0, 0);
+bool DataRefUpdater::operator()(std::vector<float>&) const {
+    int current_array_length = XPLMGetDatavf(dr->ref, nullptr, 0, 0);
     static std::vector<float> scratch_buffer;
     scratch_buffer.resize(current_array_length);
-    int copied = XPLMGetDatavf(dr.ref, scratch_buffer.data(), 0, current_array_length);
+    int copied = XPLMGetDatavf(dr->ref, scratch_buffer.data(), 0, current_array_length);
     if(copied == current_array_length) {
         size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
-        if(new_hash != dr.array_hash) {
-            dr.array_hash = new_hash;
-            dr.last_updated = current_time;
-            dr.value = scratch_buffer;
+        if(new_hash != dr->array_hash) {
+            dr->array_hash = new_hash;
+            dr->last_updated = current_time;
+            dr->value = scratch_buffer;
             return true;
         } else {
             return false;
@@ -97,17 +97,17 @@ bool DataRefRecord::Updater::operator()(std::vector<float>&) const {
     
 }
 
-bool DataRefRecord::Updater::operator()(std::vector<int>&) const {
-    int current_array_length = XPLMGetDatavi(dr.ref, nullptr, 0, 0);
+bool DataRefUpdater::operator()(std::vector<int>&) const {
+    int current_array_length = XPLMGetDatavi(dr->ref, nullptr, 0, 0);
     static std::vector<int> scratch_buffer;
     scratch_buffer.resize(current_array_length);
-    int copied = XPLMGetDatavi(dr.ref, scratch_buffer.data(), 0, current_array_length);
+    int copied = XPLMGetDatavi(dr->ref, scratch_buffer.data(), 0, current_array_length);
     if(copied == current_array_length) {
         size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
-        if(new_hash != dr.array_hash) {
-            dr.array_hash = new_hash;
-            dr.last_updated = current_time;
-            dr.value = scratch_buffer;
+        if(new_hash != dr->array_hash) {
+            dr->array_hash = new_hash;
+            dr->last_updated = current_time;
+            dr->value = scratch_buffer;
             return true;
         } else {
             return false;
@@ -119,17 +119,17 @@ bool DataRefRecord::Updater::operator()(std::vector<int>&) const {
     
 }
 
-bool DataRefRecord::Updater::operator()(std::vector<uint8_t>&) const {
-    int current_array_length = XPLMGetDatab(dr.ref, nullptr, 0, 0);
+bool DataRefUpdater::operator()(std::vector<uint8_t>&) const {
+    int current_array_length = XPLMGetDatab(dr->ref, nullptr, 0, 0);
     static std::vector<uint8_t> scratch_buffer;
     scratch_buffer.resize(current_array_length);
-    int copied = XPLMGetDatab(dr.ref, scratch_buffer.data(), 0, current_array_length);
+    int copied = XPLMGetDatab(dr->ref, scratch_buffer.data(), 0, current_array_length);
     if(copied == current_array_length) {
         size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
-        if(new_hash != dr.array_hash) {
-            dr.array_hash = new_hash;
-            dr.last_updated = current_time;
-            dr.value = scratch_buffer;
+        if(new_hash != dr->array_hash) {
+            dr->array_hash = new_hash;
+            dr->last_updated = current_time;
+            dr->value = scratch_buffer;
             return true;
         } else {
             return false;
@@ -138,16 +138,16 @@ bool DataRefRecord::Updater::operator()(std::vector<uint8_t>&) const {
         //Dataref is reporting an inconsistent size
         return false;
     }
-    
 }
 
-bool DataRefRecord::Updater::operator()(std::nullptr_t&) const {
-    dr.last_updated = current_time;
+bool DataRefUpdater::operator()(std::nullptr_t&) const {
+    dr->last_updated = current_time;
     return false;
 }
 
-bool DataRefRecord::update(const std::chrono::system_clock::time_point current_time) {
-    return boost::apply_visitor(Updater(*this, current_time), value);
+bool DataRefRecord::update(DataRefUpdater & updater) {
+    updater.setDataref(this);
+    return boost::apply_visitor(updater, value);
 }
 
 std::string DataRefRecord::getLabelString() const {

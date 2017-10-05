@@ -1,7 +1,7 @@
 project(datareftool CXX)
 
-SET(SRC about_window.cpp plugin.cpp viewer_window.cpp allrefs.cpp dataref.cpp commandref.cpp dataref_files.cpp string_util.cpp find_datarefs_in_files.cpp prefs.cpp logging.cpp)
-SET(HDR about_window.h plugin.h viewer_window.h allrefs.h dataref.h commandref.h ref.h dataref_files.h string_util.h clipboard.h find_datarefs_in_files.h prefs.h logging.h)
+SET(SRC about_window.cpp plugin.cpp viewer_window.cpp allrefs.cpp dataref.cpp commandref.cpp dataref_files.cpp string_util.cpp find_datarefs_in_files.cpp prefs.cpp logging.cpp search.cpp)
+SET(HDR about_window.h plugin.h viewer_window.h allrefs.h dataref.h commandref.h ref.h dataref_files.h string_util.h clipboard.h find_datarefs_in_files.h prefs.h logging.h search.h)
 
 SET(SRC_PLUGIN_EXAMPLE plugin_custom_dataref.cpp)
 

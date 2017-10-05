@@ -6,4 +6,4 @@
 
 extern boost::optional<RefRecords> refs;
 
-void requestSearchUpdate();
+void addUpdatedCommandThisFrame(RefRecord *);

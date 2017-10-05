@@ -9,6 +9,6 @@ int CommandRefRecord::cr_callback(XPLMCommandRef /*inCommand*/, XPLMCommandPhase
     record->last_updated = now;
     record->last_updated_big = now;
 
-    requestSearchUpdate();
+    addUpdatedCommandThisFrame(record);
     return 1;
 }
