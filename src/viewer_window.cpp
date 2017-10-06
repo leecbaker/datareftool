@@ -626,7 +626,7 @@ public:
 	void doSearch(const std::vector<RefRecord *> & new_refs, std::vector<RefRecord *> & changed_crs, std::vector<RefRecord *> & changed_drs) {
         if(params_changed) {
 			deselectEditField();
-            this->refs = params.freshSearch(::refs->getAllCommandrefs(), ::refs->getAllDatarefs());
+            params.freshSearch(this->refs, ::refs->getAllCommandrefs(), ::refs->getAllDatarefs());
 			params_changed = false;
 			deselectEditField();
 			updateScroll();
@@ -635,7 +635,7 @@ public:
 			// position. Previously, we would deselect the edit field as a result, but this may cause the
 			// edit field to disappear unexpectedly. The edit field won't line up with the corresponding
 			// dataref, but that's ok.
-			this->refs = params.updateSearch(this->refs, new_refs, changed_crs, changed_drs);
+			params.updateSearch(this->refs, new_refs, changed_crs, changed_drs);
 
 			updateScroll();
         }

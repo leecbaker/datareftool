@@ -94,11 +94,10 @@ bool SearchParams::filterByTime(const RefRecord * record, const std::chrono::sys
     return true;
 }
 
-std::vector<RefRecord *> SearchParams::freshSearch(const std::vector<RefRecord *> & commandrefs, const std::vector<RefRecord *> & datarefs) {
-    std::vector<RefRecord *> results;
-    std::back_insert_iterator<std::vector<RefRecord *>> result_inserter = std::back_inserter(results);
-
+void SearchParams::freshSearch(std::vector<RefRecord *> & results_out, const std::vector<RefRecord *> & commandrefs, const std::vector<RefRecord *> & datarefs) {
+    std::back_insert_iterator<std::vector<RefRecord *>> result_inserter = std::back_inserter(results_out);
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    results_out.clear();
 
     //actually perform the search
     if(include_drs_) {
@@ -109,51 +108,46 @@ std::vector<RefRecord *> SearchParams::freshSearch(const std::vector<RefRecord *
         std::copy_if(commandrefs.cbegin(), commandrefs.cend(), result_inserter, [this, now](const RefRecord * r) -> bool { return filterByTimeAndName(r, now); });
     }
 
-    sort(results);
-    
-    return results;
+    sort(results_out);
 }
 
-std::vector<RefRecord *> SearchParams::updateSearch(const std::vector<RefRecord *> & existing_results, const std::vector<RefRecord *> & new_refs, const std::vector<RefRecord *> & changed_cr, const std::vector<RefRecord *> & changed_dr) {
+void SearchParams::updateSearch(std::vector<RefRecord *> & results_in_out, const std::vector<RefRecord *> & new_refs, const std::vector<RefRecord *> & changed_cr, const std::vector<RefRecord *> & changed_dr) {
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
     if(change_detection_) {
-        std::vector<RefRecord *> results;
-        std::back_insert_iterator<std::vector<RefRecord *>> result_inserter = std::back_inserter(results);
-        results.reserve(existing_results.size());
-
         //filter existing results by change date and not search term
-        std::copy_if(existing_results.cbegin(), existing_results.cend(), result_inserter, [this, now](const RefRecord * r) -> bool { return filterByTime(r, now); });
+        auto new_end = std::remove_if(results_in_out.begin(), results_in_out.end(), [this, now](const RefRecord * r) -> bool { return false == filterByTime(r, now); });
+        results_in_out.erase(new_end, results_in_out.end());
 
-        //changed dr/cr filter by search term. Probably can assume change is ok
+        //changed dr/cr filter by search term, and possibly filter out small changes.
         {
+            auto filter = [this, now](const RefRecord * r) -> bool {
+                if(useOnlyLargeChanges()) { // need additional filtering for only bigger changes then
+                    return filterByTimeAndName(r, now);
+                } else {
+                    return filterByName(r);
+                }
+            };
             working_buffer.clear();
             std::back_insert_iterator<std::vector<RefRecord *>> working_inserter = std::back_inserter(working_buffer);
             if(include_drs_) {
-                std::copy_if(changed_dr.cbegin(), changed_dr.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterByName(r); });
+                std::copy_if(changed_dr.cbegin(), changed_dr.cend(), working_inserter, filter);
             }
             if(include_crs_) {
-                std::copy_if(changed_cr.cbegin(), changed_cr.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterByName(r); });
+                std::copy_if(changed_cr.cbegin(), changed_cr.cend(), working_inserter, filter);
             }
             sort(working_buffer);
-            results = merge(working_buffer, results);
+            inplace_union(results_in_out, working_buffer);
         }
 
         //new refs, filter by search term and by update date
-        {
+        if(false == new_refs.empty()) {
             working_buffer.clear();
             std::back_insert_iterator<std::vector<RefRecord *>> working_inserter = std::back_inserter(working_buffer);
             std::copy_if(new_refs.cbegin(), new_refs.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterByTimeAndName(r, now); });
             sort(working_buffer);
-            results = merge(working_buffer, results);
+            inplace_union(results_in_out, working_buffer);
         }
-
-        return results;
     } else {
-        //common case- if no new refs, we can just return existing results
-        if(new_refs.empty()) {
-            return existing_results;
-        }
-
         //keep existing results
         //filter new refs by search term only
         if(false == new_refs.empty()) {
@@ -161,8 +155,7 @@ std::vector<RefRecord *> SearchParams::updateSearch(const std::vector<RefRecord 
             std::back_insert_iterator<std::vector<RefRecord *>> working_inserter = std::back_inserter(working_buffer);
             std::copy_if(new_refs.cbegin(), new_refs.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterByTimeAndName(r, now); });
             sort(working_buffer);
+            inplace_union(results_in_out, working_buffer);
         }
-
-        return merge(existing_results, working_buffer);
     }
 }

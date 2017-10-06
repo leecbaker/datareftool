@@ -33,18 +33,21 @@ public:
     void sort(std::vector<RefRecord *> & records) {
         std::sort(records.begin(), records.end(), nameComparator);
     }
-    std::vector<RefRecord *> merge(const std::vector<RefRecord *> & a, const std::vector<RefRecord *> & b) {
-        std::vector<RefRecord *> merged;
-        merged.reserve(a.size() + b.size());
-        std::set_union(a.cbegin(), a.cend(), b.cbegin(), b.cend(), std::back_inserter(merged), nameComparator);
-        return merged;
+
+    /// @precondition: both inputs are sorted
+    void inplace_union(std::vector<RefRecord *> & results_in_out, const std::vector<RefRecord *> & a) {
+        results_in_out.reserve(results_in_out.size() + a.size());   //< ensure no iterators invalidated
+        auto midpoint = results_in_out.end();
+
+        std::set_difference(a.cbegin(), a.cend(), results_in_out.begin(), results_in_out.end(), std::back_inserter(results_in_out), nameComparator);
+        std::inplace_merge(results_in_out.begin(), midpoint, results_in_out.end(), nameComparator);
     }
 
     // For a completely fresh search
-    std::vector<RefRecord *> freshSearch(const std::vector<RefRecord *> & commandrefs, const std::vector<RefRecord *> & datarefs);
+    void freshSearch(std::vector<RefRecord *> & results_out, const std::vector<RefRecord *> & commandrefs, const std::vector<RefRecord *> & datarefs);
 
     // Filter by modification time. Needed for searches by modification to be updated in real time
-    std::vector<RefRecord *> updateSearch(const std::vector<RefRecord *> & existing_results, const std::vector<RefRecord *> & new_refs, const std::vector<RefRecord *> & changed_cr, const std::vector<RefRecord *> & changed_dr);
+    void updateSearch(std::vector<RefRecord *> & results_in_out, const std::vector<RefRecord *> & new_refs, const std::vector<RefRecord *> & changed_cr, const std::vector<RefRecord *> & changed_dr);
 
     bool useChangeDetection() const { return change_detection_; }
     bool useOnlyLargeChanges() const { return only_large_changes_; }
