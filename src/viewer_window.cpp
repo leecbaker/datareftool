@@ -103,9 +103,6 @@ class ViewerWindow {
 
 					if(click_y_offset_index < displayed_list_elements && 0 <= click_list_index) {	//click is over a real list entry
 						RefRecord * record = obj->refs[click_list_index];
-						if(nullptr == record) {	//clicked on a commandref. ignore.
-							return 1;
-						}
 						const std::string name = record->getName();
 						float dataref_name_width = XPLMMeasureString(font, name.c_str(), int(name.size()) + 1);
 						float dataref_name_width_plus_eq = XPLMMeasureString(font, (name + "=").c_str(), int(name.size()) + 2);
@@ -426,7 +423,7 @@ public:
 		XPSetWidgetProperty(search_field, xpProperty_Object, (intptr_t)this);
 
 		edit_field = XPCreateWidget(0, 0, 1, 1, 1,"", 0, window, xpWidgetClass_TextField);
-		//XPSetWidgetProperty(edit_field, xpProperty_TextFieldType, xpTextTranslucent);
+		XPSetWidgetProperty(edit_field, xpProperty_TextFieldType, xpTextEntryField);
 		XPAddWidgetCallback(edit_field, editFieldCallback);
 		XPSetWidgetProperty(edit_field, xpProperty_Object, (intptr_t)this);
 		XPHideWidget(edit_field);
@@ -461,8 +458,6 @@ public:
 	}
 
 	void updateScroll() {
-		deselectEditField();
-
 		//update the scrollbar
 		int scroll_pos = (int)XPGetWidgetProperty(scroll_bar, xpProperty_ScrollBarSliderPosition, nullptr);
 		int max_scroll_pos = std::max<int>(0, int(refs.size()) - displayed_lines);
@@ -484,7 +479,6 @@ public:
 
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarSliderPosition, scroll_pos);
 		deselectEditField();
-		XPHideWidget(edit_field);
 		hideCommandButtons();
 	}
 
@@ -630,16 +624,22 @@ public:
 	}
 
 	void doSearch(const std::vector<RefRecord *> & new_refs, std::vector<RefRecord *> & changed_crs, std::vector<RefRecord *> & changed_drs) {
-		deselectEditField();
-
-        if(params_changed) { // TODO optimization- only return datarefs, or commandrefs, depending on setting
+        if(params_changed) {
+			deselectEditField();
             this->refs = params.freshSearch(::refs->getAllCommandrefs(), ::refs->getAllDatarefs());
-            params_changed = false;
+			params_changed = false;
+			deselectEditField();
+			updateScroll();
         } else {
-            this->refs = params.updateSearch(this->refs, new_refs, changed_crs, changed_drs);
+			// Updating the search may increase or decrease the number of results, and change the scroll
+			// position. Previously, we would deselect the edit field as a result, but this may cause the
+			// edit field to disappear unexpectedly. The edit field won't line up with the corresponding
+			// dataref, but that's ok.
+			this->refs = params.updateSearch(this->refs, new_refs, changed_crs, changed_drs);
+
+			updateScroll();
         }
 
-		updateScroll();
 
 		std::string window_title = std::string("DataRef Tool (") + std::to_string(this->refs.size()) + ")"; 
 		if(params.invalidRegex()) {
@@ -723,6 +723,7 @@ public:
 		displayed_lines = (top - bottom - bottom_row_height - mouse_drag_margin) / fontheight;
 
 		XPSetWidgetGeometry(custom_list, left, top, right - right_col_width, bottom + bottom_row_height);
+		deselectEditField();
 		updateScroll();
 	}
 

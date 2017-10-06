@@ -60,6 +60,10 @@
         "__functional_base_03": "cpp",
         "__tuple": "cpp",
         "chrono": "cpp",
-        "ratio": "cpp"
+        "ratio": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "string_view": "cpp",
+        "valarray": "cpp"
     }
 }

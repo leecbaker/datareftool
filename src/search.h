@@ -19,7 +19,12 @@ class SearchParams {
 
     bool regex_fail_ = false;
 
-    bool filterRecord(const RefRecord * record, const std::chrono::system_clock::time_point now);
+    bool filterByName(const RefRecord * record);
+    bool filterByTime(const RefRecord * record, const std::chrono::system_clock::time_point now);
+    bool filterByTimeAndName(const RefRecord * record, const std::chrono::system_clock::time_point now) {
+        // filter by time first, as it's the cheapest
+        return filterByTime(record, now) && filterByName(record);
+    }
 
     std::vector<RefRecord *> working_buffer;
     void buildRegex();

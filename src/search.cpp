@@ -35,7 +35,7 @@ void SearchParams::buildRegex() {
     }
 }
 
-bool SearchParams::filterRecord(const RefRecord * record, const std::chrono::system_clock::time_point now) {
+bool SearchParams::filterByName(const RefRecord * record) {
     // Feels a bit messy using all these lambdas, and also I'm a bit skeptical if it all getting optimized well
     const auto string_search = [this](const std::string & haystack) -> bool {
         if(case_sensitive_) {
@@ -59,19 +59,6 @@ bool SearchParams::filterRecord(const RefRecord * record, const std::chrono::sys
         return std::all_of(search_regexes_.cbegin(), search_regexes_.cend(), regex_single_search);
     };
 
-    // Deal with update time first, as this will eliminate most regexes / string compares when it can
-    if(change_detection_) {
-        float timediff;
-        if(only_large_changes_) {
-            timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record->getLastBigUpdateTime()).count());
-        } else {
-            timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record->getLastUpdateTime()).count());
-        }
-        if(timediff > 10.f) {
-            return false;
-        }
-    }
-
     const std::string & haystack = record->getName();
 
     if(false == search_terms_.empty()) {
@@ -89,6 +76,24 @@ bool SearchParams::filterRecord(const RefRecord * record, const std::chrono::sys
     return true;
 }
 
+bool SearchParams::filterByTime(const RefRecord * record, const std::chrono::system_clock::time_point now) {
+    if(!change_detection_) {
+        return true;
+    }
+
+    float timediff;
+    if(only_large_changes_) {
+        timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record->getLastBigUpdateTime()).count());
+    } else {
+        timediff = float(std::chrono::duration_cast<std::chrono::seconds>(now - record->getLastUpdateTime()).count());
+    }
+    if(timediff > 10.f) {
+        return false;
+    }
+
+    return true;
+}
+
 std::vector<RefRecord *> SearchParams::freshSearch(const std::vector<RefRecord *> & commandrefs, const std::vector<RefRecord *> & datarefs) {
     std::vector<RefRecord *> results;
     std::back_insert_iterator<std::vector<RefRecord *>> result_inserter = std::back_inserter(results);
@@ -97,11 +102,11 @@ std::vector<RefRecord *> SearchParams::freshSearch(const std::vector<RefRecord *
 
     //actually perform the search
     if(include_drs_) {
-        std::copy_if(datarefs.cbegin(), datarefs.cend(), result_inserter, [this, now](const RefRecord * r) -> bool { return filterRecord(r, now); });
+        std::copy_if(datarefs.cbegin(), datarefs.cend(), result_inserter, [this, now](const RefRecord * r) -> bool { return filterByTimeAndName(r, now); });
     }
 
     if(include_crs_) {
-        std::copy_if(commandrefs.cbegin(), commandrefs.cend(), result_inserter, [this, now](const RefRecord * r) -> bool { return filterRecord(r, now); });
+        std::copy_if(commandrefs.cbegin(), commandrefs.cend(), result_inserter, [this, now](const RefRecord * r) -> bool { return filterByTimeAndName(r, now); });
     }
 
     sort(results);
@@ -117,17 +122,17 @@ std::vector<RefRecord *> SearchParams::updateSearch(const std::vector<RefRecord 
         results.reserve(existing_results.size());
 
         //filter existing results by change date and not search term
-        std::copy_if(existing_results.cbegin(), existing_results.cend(), result_inserter, [this, now](const RefRecord * r) -> bool { return filterRecord(r, now); });
+        std::copy_if(existing_results.cbegin(), existing_results.cend(), result_inserter, [this, now](const RefRecord * r) -> bool { return filterByTime(r, now); });
 
         //changed dr/cr filter by search term. Probably can assume change is ok
         {
             working_buffer.clear();
             std::back_insert_iterator<std::vector<RefRecord *>> working_inserter = std::back_inserter(working_buffer);
             if(include_drs_) {
-                std::copy_if(changed_dr.cbegin(), changed_dr.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterRecord(r, now); });
+                std::copy_if(changed_dr.cbegin(), changed_dr.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterByName(r); });
             }
             if(include_crs_) {
-                std::copy_if(changed_cr.cbegin(), changed_cr.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterRecord(r, now); });
+                std::copy_if(changed_cr.cbegin(), changed_cr.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterByName(r); });
             }
             sort(working_buffer);
             results = merge(working_buffer, results);
@@ -137,7 +142,7 @@ std::vector<RefRecord *> SearchParams::updateSearch(const std::vector<RefRecord 
         {
             working_buffer.clear();
             std::back_insert_iterator<std::vector<RefRecord *>> working_inserter = std::back_inserter(working_buffer);
-            std::copy_if(new_refs.cbegin(), new_refs.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterRecord(r, now); });
+            std::copy_if(new_refs.cbegin(), new_refs.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterByTimeAndName(r, now); });
             sort(working_buffer);
             results = merge(working_buffer, results);
         }
@@ -151,10 +156,10 @@ std::vector<RefRecord *> SearchParams::updateSearch(const std::vector<RefRecord 
 
         //keep existing results
         //filter new refs by search term only
-        {
+        if(false == new_refs.empty()) {
             working_buffer.clear();
             std::back_insert_iterator<std::vector<RefRecord *>> working_inserter = std::back_inserter(working_buffer);
-            std::copy_if(new_refs.cbegin(), new_refs.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterRecord(r, now); });
+            std::copy_if(new_refs.cbegin(), new_refs.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterByTimeAndName(r, now); });
             sort(working_buffer);
         }
 
