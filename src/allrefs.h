@@ -35,7 +35,7 @@ public:
     std::vector<RefRecord *> CHECK_RESULT_USED add(const std::vector<std::string> & names, ref_src_t source);
 
     std::vector<RefRecord *> update();
-    bool saveToFile(const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const;
+    void saveToFile(const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const;
 
     const RecordPointerType & getAllCommandrefs() const { return cr_pointers; }
     const RecordPointerType & getAllDatarefs() const { return dr_pointers; }

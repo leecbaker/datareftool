@@ -19,7 +19,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 
-bool RefRecords::saveToFile(const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const {
+void RefRecords::saveToFile(const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const {
 	std::vector<const std::string *> dataref_names, commandref_names;
 	dataref_names.reserve(datarefs.size());
 	for(const DataRefRecord & dr : datarefs) {
@@ -42,10 +42,14 @@ bool RefRecords::saveToFile(const boost::filesystem::path & dataref_filename, co
 			f << *pstr << "\n";
 		}
 		f.close();
+		if(f.fail()) {
+			LOG("Error writing file " + filename.string());
+		}
 		return f.fail();
 	};
 
-	return sort_and_write_names(dataref_names, dataref_filename) && sort_and_write_names(commandref_names, commandref_filename);
+	sort_and_write_names(dataref_names, dataref_filename);
+	sort_and_write_names(commandref_names, commandref_filename);
 }
 
 std::vector<RefRecord *> RefRecords::add(const std::vector<std::string> & names, ref_src_t source) {
@@ -76,18 +80,6 @@ std::vector<RefRecord *> RefRecords::add(const std::vector<std::string> & names,
 			cr_pointers.emplace_back(&commandrefs.back());
 			ref_names_loaded.insert(name);
 		}
-	}
-
-	// When adding more datarefs and commandrefs, it's possible that the storage vector
-	// may need to reallocate. This means pointers to the elements may be invalidated, a
-
-	{
-		char system_path_c[1000];
-		XPLMGetSystemPath(system_path_c);
-		boost::filesystem::path system_path(system_path_c);
-		boost::filesystem::path output_dir = system_path / "Output" / "preferences";
-
-		saveToFile(output_dir / "drt_last_run_datarefs.txt", output_dir / "drt_last_run_commandrefs.txt");
 	}
 
 	return new_records;

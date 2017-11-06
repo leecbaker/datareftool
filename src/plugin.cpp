@@ -392,6 +392,16 @@ PLUGIN_API void	XPluginStop(void) {
 
 	closeAboutWindow();
 	closeViewerWindows();
+
+	{
+		char system_path_c[1000];
+		XPLMGetSystemPath(system_path_c);
+		boost::filesystem::path system_path(system_path_c);
+		boost::filesystem::path output_dir = system_path / "Output" / "preferences";
+
+		refs->saveToFile(output_dir / "drt_last_run_datarefs.txt", output_dir / "drt_last_run_commandrefs.txt");
+	}
+
     refs = boost::none;
 	XPLMUnregisterFlightLoopCallback(load_dr_callback, nullptr);
 	XPLMUnregisterFlightLoopCallback(load_acf_dr_callback, nullptr);
