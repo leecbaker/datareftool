@@ -23,6 +23,8 @@
 #include "XPLMProcessing.h"
 #include "XPLMPlanes.h"
 
+using namespace std::string_literals;
+
 boost::filesystem::path prefs_path;
 
 XPLMMenuID plugin_menu = nullptr;
@@ -148,7 +150,7 @@ float load_dr_callback(float, float, int, void *) {
 		std::vector<std::string> this_plugin_datarefs = getDatarefsFromFile(path);
 		all_plugin_datarefs.insert(all_plugin_datarefs.end(), this_plugin_datarefs.begin(), this_plugin_datarefs.end());
 
-		msg << "found plugin with name=\"" << name << "\" desc=\"" << description << "\" signature=\"" << signature << "\"";
+		LOG("Found plugin with name=\""s + name + "\" desc=\""s + description + "\" signature=\""s + signature + "\""s);
 	}
 
 	LOG(msg.str());
