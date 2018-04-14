@@ -37,7 +37,14 @@ bool loadPrefs(const boost::filesystem::path & path) {
 	}
 
 	boost::property_tree::ptree prefs;
-	read_json(f, prefs);
+	try {
+		read_json(f, prefs);
+	} catch (const boost::property_tree::json_parser_error & e) {
+		LOG(std::string("Error parsing preferences file at ") + path.string());
+		LOG(std::string("Error: ") + e.what());
+		LOG("Preferences going back to default.");
+		return false;
+	}
 
 	BOOST_FOREACH(boost::property_tree::ptree::value_type & window_detail_val, prefs.get_child("windows")) {
         showViewerWindow(window_detail_val.second);
