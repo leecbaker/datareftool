@@ -11,7 +11,7 @@
  */
 
 /*
- * The XPLMPlanes APIs allow you to control the various aircraft in x-plane, 
+ * The XPLMPlanes APIs allow you to control the various aircraft in X-Plane, 
  * both the user's and the sim's.                                              
  *
  */
@@ -29,7 +29,6 @@ extern "C" {
  *                                                                             
  *
  */
-
 
 /*
  * XPLMSetUsersAircraft
@@ -50,6 +49,26 @@ XPLM_API void                 XPLMSetUsersAircraft(
  */
 XPLM_API void                 XPLMPlaceUserAtAirport(
                                    const char *         inAirportCode);    
+#if defined(XPLM300)
+/*
+ * XPLMPlaceUserAtLocation
+ * 
+ * Places the user at a specific location after performing any necessary 
+ * scenery loads. 
+ * 
+ * As with in-air starts initiated from the X-Plane user interface, the 
+ * aircraft will always start with its engines running, regardless of the 
+ * user's preferences (i.e., regardless of what the dataref 
+ * sim/operation/prefs/startup_running says).                                  
+ *
+ */
+XPLM_API void                 XPLMPlaceUserAtLocation(
+                                   double               latitudeDegrees,    
+                                   double               longitudeDegrees,    
+                                   float                elevationMetersMSL,    
+                                   float                headingDegreesTrue,    
+                                   float                speedMetersPerSecond);    
+#endif /* XPLM300 */
 /***************************************************************************
  * GLOBAL AIRCRAFT ACCESS
  ***************************************************************************/
@@ -57,7 +76,6 @@ XPLM_API void                 XPLMPlaceUserAtAirport(
  *                                                                             
  *
  */
-
 
 /* The user's aircraft is always index 0.                                      */
 #define XPLM_USER_AIRCRAFT   0
@@ -137,7 +155,6 @@ XPLM_API void                 XPLMGetNthAircraftModel(
  * one plugin may have this access at a time.                                  
  *
  */
-
 
 
 /*
@@ -239,8 +256,8 @@ XPLM_API void                 XPLMDrawAircraft(
  * 
  * This function recomputes the derived flight model data from the aircraft 
  * structure in memory.  If you have used the data access layer to modify the 
- * aircraft structure, use this routine to resynchronize x-plane; since 
- * X-plane works at least partly from derived values, the sim will not behave 
+ * aircraft structure, use this routine to resynchronize X-Plane; since 
+ * X-Plane works at least partly from derived values, the sim will not behave 
  * properly until this is called. 
  * 
  * WARNING: this routine does not necessarily place the airplane at the 

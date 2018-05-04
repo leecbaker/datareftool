@@ -13,3 +13,5 @@ void updateWindowsPerFrame(const std::vector<RefRecord *> & new_refs, std::vecto
 void closeViewerWindow(const ViewerWindow * window);
 void closeViewerWindows();
 size_t countViewerWindows();
+
+void setAllWindowsInVr(bool in_vr);

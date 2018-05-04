@@ -45,11 +45,11 @@ extern "C" {
 		#if __GNUC__ >= 4
 			#define WIDGET_API __attribute__((visibility("default")))
 		#else
-			#define WIDGET_API 
+			#define WIDGET_API
 		#endif
 	#else
-		#define WIDGET_API 
-	#endif	
+		#define WIDGET_API
+	#endif
 #else
 #pragma error "Platform not defined!"
 #endif
@@ -58,22 +58,21 @@ extern "C" {
  ***************************************************************************/
 /*
  * A widget is a call-back driven screen entity like a push-button, window, 
- * text entry field, etc.  
+ * text entry field, etc. 
  * 
- * Use the widget API to create widgets of various classes.  You can nest them 
+ * Use the widget API to create widgets of various classes. You can nest them 
  * into trees of widgets to create complex user interfaces.                    
  *
  */
 
 
-
 /*
  * XPWidgetID
  * 
- * A Widget ID is an opaque unique non-zero handle identifying your widget.  
- * Use 0 to specify "no widget".  This type is defined as wide enough to hold 
- * a pointer.  You receive a widget ID when you create a new widget and then 
- * use that widget ID to further refer to the widget.                          
+ * A Widget ID is an opaque unique non-zero handle identifying your widget. 
+ * Use 0 to specify "no widget". This type is defined as wide enough to hold a 
+ * pointer. You receive a widget ID when you create a new widget and then use 
+ * that widget ID to further refer to the widget.                              
  *
  */
 typedef void * XPWidgetID;
@@ -81,10 +80,10 @@ typedef void * XPWidgetID;
 /*
  * XPWidgetPropertyID
  * 
- * Properties are values attached to instances of your widgets.  A property is 
- * identified by a 32-bit ID and its value is the width of a pointer.   
+ * Properties are values attached to instances of your widgets. A property is 
+ * identified by a 32-bit ID and its value is the width of a pointer. 
  * 
- * Each widget instance may have a property or not have it.  When you set a 
+ * Each widget instance may have a property or not have it. When you set a 
  * property on a widget for the first time, the property is added to the 
  * widget; it then stays there for the life of the widget. 
  * 
@@ -213,8 +212,8 @@ typedef int XPDispatchMode;
 /*
  * XPWidgetClass
  * 
- * Widget classes define predefined widget types.  A widget class basically 
- * specifies from a library the widget function to be used for the widget.  
+ * Widget classes define predefined widget types. A widget class basically 
+ * specifies from a library the widget function to be used for the widget. 
  * Most widgets can be made right from classes.                                
  *
  */
@@ -232,12 +231,11 @@ typedef int XPWidgetClass;
  *
  */
 
-
 /*
  * XPWidgetMessage
  * 
- * Widgets receive 32-bit messages indicating what action is to be taken or  
- * notifications of events.  The list of messages may be expanded.             
+ * Widgets receive 32-bit messages indicating what action is to be taken or 
+ * notifications of events. The list of messages may be expanded.              
  *
  */
 enum {
@@ -262,9 +260,9 @@ enum {
       * explicit deletion.                                                          */
     ,xpMsg_Destroy                            = 2
 
-     /* The paint message is sent to your widget to draw itself.  The paint message *
-      * is the bare-bones  message; in response you must draw yourself, draw your   *
-      * children, set up clipping and culling, check for visibility, etc.  If you   *
+     /* The paint message is sent to your widget to draw itself. The paint message  *
+      * is the bare-bones message; in response you must draw yourself, draw your    *
+      * children, set up clipping and culling, check for visibility, etc. If you    *
       * don't want to do all of this, ignore the paint message and a draw message   *
       * (see below) will be sent to you.                                            *
       *                                                                             *
@@ -278,9 +276,9 @@ enum {
       * Dispatching: Direct                                                         */
     ,xpMsg_Draw                               = 4
 
-     /* The key press message is sent once per key that is pressed.  The first      *
+     /* The key press message is sent once per key that is pressed. The first       *
       * parameter is the type of key code (integer or char) and the second is the   *
-      * code itself.  By handling this event, you consume the key stroke.           *
+      * code itself. By handling this event, you consume the key stroke.            *
       *                                                                             *
       * Handling this message 'consumes' the keystroke; not handling it passes it   *
       * to your parent widget.                                                      *
@@ -290,9 +288,9 @@ enum {
       * : Param 1: A pointer to an XPKeyState_t structure with the keystroke.       */
     ,xpMsg_KeyPress                           = 5
 
-     /* Keyboard focus is being given to you.  By handling this message you accept  *
-      * keyboard focus.  The  first parameter will be one if a child of yours gave  *
-      * up focus to you, 0 if someone set focus on you explicitly.  	               *
+     /* Keyboard focus is being given to you. By handling this message you accept   *
+      * keyboard focus. The first parameter will be one if a child of yours gave up *
+      * focus to you, 0 if someone set focus on you explicitly.                     *
       *                                                                             *
       * : Handling this message accepts focus; not handling refuses focus.          *
       *                                                                             *
@@ -302,9 +300,9 @@ enum {
       * if someone is explicitly giving you focus.                                  */
     ,xpMsg_KeyTakeFocus                       = 6
 
-     /* Keyboard focus is being taken away from you.  The first parameter will be   *
-      * one if you are losing  focus because another widget is taking it, or 0 if   *
-      * someone called the API to make you lose focus explicitly. 	                 *
+     /* Keyboard focus is being taken away from you. The first parameter will be    *
+      * one if you are losing focus because another widget is taking it, or 0 if    *
+      * someone called the API to make you lose focus explicitly.                   *
       *                                                                             *
       * Dispatching: Direct                                                         *
       *                                                                             *
@@ -314,8 +312,8 @@ enum {
 
      /* You receive one mousedown event per click with a mouse-state structure      *
       * pointed to by parameter 1, by accepting this you eat the click, otherwise   *
-      * your parent gets it.  You will not receive drag and mouse up messages if    *
-      * you do not accept the down message.                                         *
+      * your parent gets it. You will not receive drag and mouse up messages if you *
+      * do not accept the down message.                                             *
       *                                                                             *
       * Handling this message consumes the mouse click, not handling it passes it   *
       * to the next widget. You can act 'transparent' as a window by never handling *
@@ -329,11 +327,11 @@ enum {
     ,xpMsg_MouseDown                          = 8
 
      /* You receive a series of mouse drag messages (typically one per frame in the *
-      * sim) as the mouse is  moved once you have accepted a mouse down message.    *
+      * sim) as the mouse is moved once you have accepted a mouse down message.     *
       * Parameter one points to a mouse-state structure describing the mouse        *
-      * location.  You will continue to receive these until the mouse button is     *
+      * location. You will continue to receive these until the mouse button is      *
       * released. You may receive multiple mouse state messages with the same mouse *
-      * position.  You will receive mouse drag events even if the mouse is dragged  *
+      * position. You will receive mouse drag events even if the mouse is dragged   *
       * out of your current or original bounds at the time of the mouse down.       *
       *                                                                             *
       * Dispatching: Direct                                                         *
@@ -342,8 +340,8 @@ enum {
     ,xpMsg_MouseDrag                          = 9
 
      /* The mouseup event is sent once when the mouse button is released after a    *
-      * drag or click.  You only receive this message if you accept the mouseDown   *
-      * message.  Parameter one points to a mouse state structure.                  *
+      * drag or click. You only receive this message if you accept the mouseDown    *
+      * message. Parameter one points to a mouse state structure.                   *
       *                                                                             *
       * Dispatching: Direct                                                         *
       *                                                                             *
@@ -365,32 +363,31 @@ enum {
       * Dispatching: Direct                                                         */
     ,xpMsg_ExposedChanged                     = 12
 
-     /* A child has been added to you.  The child's ID is passed in parameter one.  *
-      *                                                                             *
+     /* A child has been added to you. The child's ID is passed in parameter one.   *
       *                                                                             *
       * Dispatching: Direct                                                         *
       *                                                                             *
       * Param 1: The Widget ID of the child being added.                            */
     ,xpMsg_AcceptChild                        = 13
 
-     /* A child has been removed from to you.  The child's ID is passed in          *
-      * parameter one.                                                              *
+     /* A child has been removed from to you. The child's ID is passed in parameter *
+      * one.                                                                        *
       *                                                                             *
       * Dispatching: Direct                                                         *
       *                                                                             *
       * Param 1: The Widget ID of the child being removed.                          */
     ,xpMsg_LoseChild                          = 14
 
-     /* You now have a new parent, or have no parent.  The parent's ID is passed    *
-      * in, or 0 for no parent.                                                     *
+     /* You now have a new parent, or have no parent. The parent's ID is passed in, *
+      * or 0 for no parent.                                                         *
       *                                                                             *
       * Dispatching: Direct                                                         *
       *                                                                             *
       * Param 1: The Widget ID of your parent                                       */
     ,xpMsg_AcceptParent                       = 15
 
-     /* You or a child has been shown.  Note that this does not include you being   *
-      * shown because your parent was  shown, you were put in a new parent, your    *
+     /* You or a child has been shown. Note that this does not include you being    *
+      * shown because your parent was shown, you were put in a new parent, your     *
       * root was shown, etc.                                                        *
       *                                                                             *
       * Dispatching: Up chain                                                       *
@@ -398,7 +395,7 @@ enum {
       * Param 1: The widget ID of the shown widget.                                 */
     ,xpMsg_Shown                              = 16
 
-     /* You have been hidden.  See limitations above.                               *
+     /* You have been hidden. See limitations above.                                *
       *                                                                             *
       * Dispatching: Up chain                                                       *
       *                                                                             *
@@ -410,7 +407,7 @@ enum {
       * Dispatching: Direct                                                         */
     ,xpMsg_DescriptorChanged                  = 18
 
-     /* A property has changed.  Param 1 contains the property ID.                  *
+     /* A property has changed. Param 1 contains the property ID.                   *
       *                                                                             *
       * Dispatching: Direct                                                         *
       *                                                                             *
@@ -430,7 +427,7 @@ enum {
 
 #endif /* XPLM200 */
 #if defined(XPLM200)
-     /* The cursor is over your widget.  If you consume this message, change the    *
+     /* The cursor is over your widget. If you consume this message, change the     *
       * XPLMCursorStatus value to indicate the desired result, with the same rules  *
       * as in XPLMDisplay.h.                                                        *
       *                                                                             *
@@ -446,7 +443,7 @@ enum {
 #endif /* XPLM200 */
      /* NOTE: Message IDs 1000 - 9999 are allocated to the standard widget classes  *
       * provided with the library with 1000 - 1099 for widget class 0, 1100 - 1199  *
-      * for widget class 1, etc.  Message IDs 10,000 and beyond are for plugin use. */
+      * for widget class 1, etc. Message IDs 10,000 and beyond are for plugin use.  */
     ,xpMsg_UserStart                          = 10000
 
 
@@ -461,16 +458,15 @@ typedef int XPWidgetMessage;
  *
  */
 
-
 /*
  * XPWidgetFunc_t
  * 
- * This function defines your custom widget's behavior.  It will be called by 
- * the widgets library to send messages to your widget.  The message and 
- * widget ID are passed in, as well as two ptr-width signed parameters whose 
- * meaning varies with the message.  Return 1 to indicate that you have 
- * processed the message, 0 to indicate that you have not.  For any message 
- * that is not understood, return 0.                                           
+ * This function defines your custom widget's behavior. It will be called by 
+ * the widgets library to send messages to your widget. The message and widget 
+ * ID are passed in, as well as two ptr-width signed parameters whose meaning 
+ * varies with the message. Return 1 to indicate that you have processed the 
+ * message, 0 to indicate that you have not. For any message that is not 
+ * understood, return 0.                                                       
  *
  */
 typedef int (* XPWidgetFunc_t)(

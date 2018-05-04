@@ -28,7 +28,7 @@ const int toggle_button_width = 28;
 const int title_bar_height = 20;
 
 class ViewerWindow {
-	XPLMWindowID window = nullptr;
+	XPWidgetID window = nullptr;
 	XPWidgetID regex_toggle_button = nullptr;
 	XPWidgetID case_sensitive_button = nullptr;
 	XPWidgetID change_filter_button = nullptr;
@@ -444,12 +444,52 @@ public:
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMin, 0);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, 0);
 
-		resize();
+		// Clamp window bounds to screen size. This could happen if, e.g.,
+		// a window is closed in VR, and then re-opened in non-VR.
+		int screen_width, screen_height;
+		XPLMGetScreenSize(&screen_width, &screen_height);
+		if(l < 0 || r - l < 100 || r > screen_width || b < 0 || t - b < 100 || t > screen_height) {
+			setDefaultPosition();
+		} else {
+			resize();
+		}
 
 		params_changed = true;
 		int max_scroll = std::max<int>(0, int(refs.size() - displayed_lines));
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, max_scroll);
 		XPSetWidgetProperty(scroll_bar, xpProperty_ScrollBarSliderPosition, max_scroll);
+
+		//VR
+		XPLMDataRef vr_dref = XPLMFindDataRef("sim/graphics/VR/enabled");
+		bool vr_enabled = nullptr != vr_dref && XPLMGetDatai(vr_dref);
+		if(vr_enabled) {
+			setInVr(true);
+		}
+	}
+
+	void setDefaultPosition() {
+		int width, height;
+		XPLMGetScreenSize(&width, &height);
+		const int window_width = 500;
+		const int window_height = 400;
+		const int left = width/2 - window_width / 2;
+		const int top = height / 2 + window_height / 2;
+		const int right = width / 2 + window_width / 2;
+		const int bottom = height/2 - window_height / 2;
+		resize(left, top, right, bottom);
+	}
+
+	void setInVr(bool in_vr) {
+		XPLMWindowID window_id = XPGetWidgetUnderlyingWindow(window);
+		if(in_vr) {
+			XPLMSetWindowPositioningMode(window_id, xplm_WindowVR, -1);
+		} else {
+			XPLMSetWindowPositioningMode(window_id, xplm_WindowPositionFree, -1);
+			
+			//resize is needed to position the window onscreen. Unfortunately this puts
+			//all windows at the same place
+			setDefaultPosition();
+		}
 	}
 
 	~ViewerWindow() {
@@ -894,4 +934,11 @@ void showViewerWindow(bool show_dr, bool show_cr) {
 
 void showViewerWindow() { 
 	showViewerWindow(boost::property_tree::ptree());
+}
+
+
+void setAllWindowsInVr(bool in_vr) {
+	for(const std::unique_ptr<ViewerWindow> & window : viewer_windows) {
+        window->setInVr(in_vr);
+    }
 }

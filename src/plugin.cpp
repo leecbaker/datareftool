@@ -295,6 +295,7 @@ const char * dre_description = "A plugin that shows all data refs!.";
 PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 
 	XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
+	XPLMEnableFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS", 1);
 
     refs.emplace();
 
@@ -439,8 +440,14 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 			break;
 		}
 
-		case XPLM_MSG_WILL_WRITE_PREFS: {
+		case XPLM_MSG_WILL_WRITE_PREFS:
 			break;
-		}
+
+		case XPLM_MSG_ENTERED_VR:
+			setAllWindowsInVr(true);
+			break;
+		case XPLM_MSG_EXITING_VR:
+			setAllWindowsInVr(false);
+			break;
 	}
 }
