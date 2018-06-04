@@ -231,6 +231,17 @@ class ViewerWindow {
 							obj->setSearchSelection(start + pasted_text.size(), start + pasted_text.size());
 							return 1;
 						}
+
+						case XPLM_VK_W:	//close window 
+						{
+							closeViewerWindow(obj);
+							return 1;
+						}
+						case XPLM_VK_N: //new window
+						{
+							showViewerWindow();
+							return 1;
+						}
 					}
 				} else {
 					switch((uint8_t) keystruct->vkey) {
@@ -276,6 +287,16 @@ class ViewerWindow {
 							std::string search_text = obj->getEditText();
 							std::string cut_text = search_text.substr(start, stop - start);
 							setClipboard(cut_text);
+							return 1;
+						}
+						case XPLM_VK_W:	//close window 
+						{
+							closeViewerWindow(obj);
+							return 1;
+						}
+						case XPLM_VK_N: //new window
+						{
+							showViewerWindow();
 							return 1;
 						}
 					}
