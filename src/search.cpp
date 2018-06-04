@@ -115,8 +115,10 @@ void SearchParams::updateSearch(std::vector<RefRecord *> & results_in_out, const
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
     if(change_detection_) {
         //filter existing results by change date and not search term
+        /*
         auto new_end = std::remove_if(results_in_out.begin(), results_in_out.end(), [this, now](const RefRecord * r) -> bool { return false == filterByTime(r, now); });
         results_in_out.erase(new_end, results_in_out.end());
+        */
 
         //changed dr/cr filter by search term, and possibly filter out small changes.
         {
