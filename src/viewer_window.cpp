@@ -486,6 +486,7 @@ public:
 		if(vr_enabled) {
 			setInVr(true);
 		}
+		resize();
 	}
 
 	void setDefaultPosition() {
@@ -768,6 +769,15 @@ public:
 	}
 
 	void resize(int left, int top, int right, int bottom) {
+
+		int screen_width, screen_height;
+		const constexpr int menu_bar_height = 28;
+		XPLMGetScreenSize(&screen_width, &screen_height);
+		if(screen_height - top < menu_bar_height) { //xp11 title bar height
+			top = screen_height - menu_bar_height;
+			XPSetWidgetGeometry(window, left, top, right, bottom);
+		}
+
 		top -= title_bar_height;
 		left += mouse_drag_margin;
 		right -= mouse_drag_margin;
