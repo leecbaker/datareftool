@@ -40,13 +40,21 @@ bool SearchParams::filterByName(const RefRecord * record) {
     const auto string_search = [this](const std::string & haystack) -> bool {
         if(case_sensitive_) {
             const auto case_sensitive_single_search = [&haystack](const std::string & needle) -> bool {
-                return haystack.cend() != std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end());
+                if('-' == needle.front()) {
+                    return haystack.cend() == std::search(haystack.begin(), haystack.end(), needle.begin() + 1, needle.end());
+                } else {
+                    return haystack.cend() != std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end());
+                }
             };
             return std::all_of(search_terms_.cbegin(), search_terms_.cend(), case_sensitive_single_search);
         } else {
             const auto case_insensitive_comparator = [](const char ch1, const char ch2) -> bool { return ::toupper(ch1) == ::toupper(ch2); };
             const auto case_insensitive_single_search = [&case_insensitive_comparator, &haystack](const std::string & needle) -> bool {
-                return haystack.cend() != std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end(), case_insensitive_comparator);
+                if('-' == needle.front()) {
+                    return haystack.cend() == std::search(haystack.begin(), haystack.end(), needle.begin() + 1, needle.end(), case_insensitive_comparator);
+                } else {
+                    return haystack.cend() != std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end(), case_insensitive_comparator);
+                }
             };
             return std::all_of(search_terms_.cbegin(), search_terms_.cend(), case_insensitive_single_search);
         }
