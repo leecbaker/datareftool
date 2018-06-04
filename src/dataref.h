@@ -55,8 +55,8 @@ public:
     void setFloat(float f) { assert(isFloat()); XPLMSetDataf(ref, f); }
     void setInt(int i) { assert(isInt()); XPLMSetDatai(ref, i); }
     
-    void setIntArray(const std::vector<int> & i) { assert(isIntArray()); XPLMSetDatavi(ref, (int *) i.data(), 0, i.size()); }
-    void setFloatArray(const std::vector<float> & f) { assert(isFloatArray()); XPLMSetDatavf(ref, (float *) f.data(), 0, f.size()); }
+    void setIntArray(const std::vector<int> & i) { assert(isIntArray()); XPLMSetDatavi(ref, (int *) i.data(), 0, static_cast<int>(i.size())); }
+    void setFloatArray(const std::vector<float> & f) { assert(isFloatArray()); XPLMSetDatavf(ref, (float *) f.data(), 0, static_cast<int>(f.size())); }
 };
 
 class DataRefUpdater : public boost::static_visitor<bool> {

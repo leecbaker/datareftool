@@ -64,6 +64,7 @@
         "list": "cpp",
         "map": "cpp",
         "string_view": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "variant": "cpp"
     }
 }

@@ -39,7 +39,7 @@ bool SearchParams::filterByName(const RefRecord * record) {
     // Feels a bit messy using all these lambdas, and also I'm a bit skeptical if it all getting optimized well
     const auto string_search = [this](const std::string & haystack) -> bool {
         if(case_sensitive_) {
-            const auto case_sensitive_single_search = [&haystack, this](const std::string & needle) -> bool {
+            const auto case_sensitive_single_search = [&haystack](const std::string & needle) -> bool {
                 return haystack.cend() != std::search(haystack.begin(), haystack.end(), needle.begin(), needle.end());
             };
             return std::all_of(search_terms_.cbegin(), search_terms_.cend(), case_sensitive_single_search);
