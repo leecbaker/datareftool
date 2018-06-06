@@ -5,7 +5,7 @@
 #include "XPStandardWidgets.h"
 #include "XPLMDataAccess.h"
 
-#include <iostream>
+#include "logging.h"
 
 XPLMWindowID about_window = nullptr;
 
@@ -34,7 +34,7 @@ void showAboutWindow() {
 		XPLMDataRef window_height_ref = XPLMFindDataRef("sim/graphics/view/window_height");
 
 		if(nullptr == window_width_ref || nullptr == window_height_ref) {
-			std::cerr << "Couldn't open datarefs for window width and height" << std::endl;
+			LOG("Couldn't open datarefs for window width and height");
 			return;
 		}
 		int width = XPLMGetDatai(window_width_ref);

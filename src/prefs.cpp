@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "prefs.h"
 
 #include "logging.h"
@@ -32,7 +30,7 @@ bool loadPrefs(const boost::filesystem::path & path) {
 	std::ifstream f(path.string());
 
 	if(f.fail()) {
-		std::cerr << "Couldn't open properties file: " << path.string() << std::endl;
+		LOG("Couldn't open properties file: " + path.string());
 		return false;
 	}
 

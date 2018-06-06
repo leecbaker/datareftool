@@ -66,6 +66,8 @@
         "string_view": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "hash_map": "cpp"
+        "hash_map": "cpp",
+        "bitset": "cpp",
+        "__locale": "cpp"
     }
 }

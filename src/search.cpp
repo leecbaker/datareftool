@@ -4,8 +4,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <iostream>
-
 void SearchParams::setSearchTerms(const std::string & terms) {
     search_field_ = terms;
     //split search terms, and remove empty ones

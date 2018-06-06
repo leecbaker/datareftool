@@ -1,6 +1,5 @@
 #include <cstring>
 #include <unordered_map>
-#include <iostream>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
@@ -55,7 +54,6 @@ void loadAircraftDatarefs() {
 
 //callback so we can load new aircraft datarefs when the aircraft is reloaded
 float load_acf_dr_callback(float, float, int, void *) {
-	std::cerr << "load acf callback running" << std::endl;
 	{ // re-add the blacklisted datarefs in case a new plugin was loaded. needed for, eg, x737
 		std::vector<RefRecord *> bl_refs = refs->add(blacklisted_datarefs, ref_src_t::BLACKLIST);
 		std::string success_message = std::to_string(bl_refs.size()) + " datarefs from blacklist opened successfully.";
