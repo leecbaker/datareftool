@@ -19,8 +19,6 @@
 #include <set>
 #include <string>
 
-#include <iostream>
-
 const XPLMFontID font = xplmFont_Basic;
 
 const int bottom_row_height = 20;
@@ -134,14 +132,12 @@ class ViewerWindow {
 					if(inWidget == row->command_button_press) {
 						row->command_->commandBegin();
 						XPSetWidgetProperty(row->command_button_press, xpProperty_ButtonState, 1);
-						std::cerr << "Mouse down\n";
 						return 1;
 					}
 				case xpMsg_MouseUp:
 					if(inWidget == row->command_button_press) {
 						row->command_->commandEnd();
 						XPSetWidgetProperty(row->command_button_press, xpProperty_ButtonState, 0);
-						std::cerr << "Mouse up\n";
 						return 0;
 					}
 			}
