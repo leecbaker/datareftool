@@ -585,7 +585,7 @@ public:
 			int result_index = list_start_index + line;
 			CommandRefRecord * crr = dynamic_cast<CommandRefRecord *>(refs[result_index]);
 			if(nullptr != crr) {
-				float command_name_width = XPLMMeasureString(font, crr->getName().c_str(), int(crr->getName().size()) + 1);
+				float command_name_width = XPLMMeasureString(font, crr->getName().c_str(), int(crr->getName().size()));
 				command_buttons[line]->showAtPosition(list_left + ceil(command_name_width), list_top - line * fontheight, list_right, list_top - (line + 1) * fontheight);
 				command_buttons[line]->setCommand(crr);
 			} else {
