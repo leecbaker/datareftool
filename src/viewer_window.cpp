@@ -6,6 +6,8 @@
 #include "string_util.h"
 #include "viewer_window.h"
 
+#include "viewer_window_command_button.h"
+
 #include "XPLMDisplay.h"
 #include "XPCWidget.h"
 #include "XPStandardWidgets.h"
@@ -64,85 +66,43 @@ class ViewerWindow {
 
 	// These are the Once/Begin/End buttons for a single row of results.
 	class CommandButtonRow {
-		XPWidgetID command_button_begin = nullptr;
-		XPWidgetID command_button_end = nullptr;
-		XPWidgetID command_button_press = nullptr;
+		XPWidgetID command_press_button = nullptr;
+		XPWidgetID command_begin_button = nullptr;
 		CommandRefRecord * command_ = nullptr;
 	public:
 		CommandButtonRow(XPWidgetID window) {
-			command_button_begin = XPCreateWidget(0, 0, 1, 1, 1,"Beg", 0, window, xpWidgetClass_Button);
-			command_button_end = XPCreateWidget(0, 0, 1, 1, 1,"End", 0, window, xpWidgetClass_Button);
-			command_button_press = XPCreateWidget(0, 0, 1, 1, 1,"Press", 0, window, xpWidgetClass_Button);
-			for(XPWidgetID button : {command_button_begin, command_button_end, command_button_press}) {
-				XPSetWidgetProperty(button, xpProperty_ButtonType, xpPushButton);
-				XPSetWidgetProperty(button, xpProperty_ButtonBehavior, xpButtonBehaviorPushButton);
-				XPAddWidgetCallback(button, commandButtonCallback);
-				XPSetWidgetProperty(button, xpProperty_Object, (intptr_t)this);
-			}
+			assert(nullptr != window);
+			command_press_button = XPCreateCustomWidget(0, 0, 1, 1, 1,"Press", 0, window, commandPressButtonCallback);
+			command_begin_button = XPCreateCustomWidget(0, 0, 1, 1, 1,"Begin", 0, window, commandHoldButtonCallback);
+			XPSetWidgetProperty(command_press_button, xpProperty_Object, reinterpret_cast<intptr_t>(nullptr));
+			XPSetWidgetProperty(command_begin_button, xpProperty_Object, reinterpret_cast<intptr_t>(nullptr));
+		}
+
+		~CommandButtonRow() {
+			XPDestroyWidget(command_press_button, 1);
+			XPDestroyWidget(command_begin_button, 1);
 		}
 
 		void showAtPosition(int left, int top, int right, int bottom) {
-			const int available_width = right - left;
-			const int small_button_width = 40;
-			const int big_button_width = 60;
+			const int press_button_width = 50;
+			const int begin_button_width = 40;
 			const int gap = 5;
 
-			//cases, from widest to narrowest
-			const int min_width_wide = big_button_width + 2 * small_button_width + 2 * gap;
+			XPSetWidgetGeometry(command_begin_button, right - begin_button_width, top, right, bottom);
+			XPSetWidgetGeometry(command_press_button, right - begin_button_width - press_button_width - gap, top, right - begin_button_width - gap, bottom);
 
-			if(available_width >= min_width_wide) {
-				XPSetWidgetGeometry(command_button_press, right - big_button_width - 2 * small_button_width - gap, top, right - 2 * small_button_width - gap, bottom);
-				XPSetWidgetGeometry(command_button_begin, right - 2 * small_button_width, top, right - 1 * small_button_width, bottom);
-				XPSetWidgetGeometry(command_button_end, right - small_button_width, top, right, bottom);
-
-				XPShowWidget(command_button_press);
-				XPShowWidget(command_button_begin);
-				XPShowWidget(command_button_end);
-			} else {
-				XPSetWidgetGeometry(command_button_press, right - big_button_width, top, right, bottom);
-
-				XPShowWidget(command_button_press);
-				XPHideWidget(command_button_begin);
-				XPHideWidget(command_button_end);
-			}
+			XPShowWidget(command_press_button);
+			XPShowWidget(command_begin_button);
 		}
 
-		void setCommand(CommandRefRecord * new_command) { command_ = new_command; }
+		void setCommand(CommandRefRecord * new_command) {
+			XPSetWidgetProperty(command_press_button, xpProperty_Object, reinterpret_cast<intptr_t>(new_command));
+			XPSetWidgetProperty(command_begin_button, xpProperty_Object, reinterpret_cast<intptr_t>(new_command));
+		}
 
 		void hide() {
-			XPHideWidget(command_button_press);
-			XPHideWidget(command_button_begin);
-			XPHideWidget(command_button_end);
-		}
-
-		static int commandButtonCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t, intptr_t) {
-			CommandButtonRow * row = (CommandButtonRow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
-			switch(inMessage) {
-				case xpMsg_PushButtonPressed:
-					row->command_->touch();
-					if(inWidget == row->command_button_begin) {
-						row->command_->commandBegin();
-						return 1;
-					} else if(inWidget == row->command_button_end) {
-						row->command_->commandEnd();
-						return 1;
-					}
-					return 0;
-
-				case xpMsg_MouseDown:
-					if(inWidget == row->command_button_press) {
-						row->command_->commandBegin();
-						XPSetWidgetProperty(row->command_button_press, xpProperty_ButtonState, 1);
-						return 1;
-					}
-				case xpMsg_MouseUp:
-					if(inWidget == row->command_button_press) {
-						row->command_->commandEnd();
-						XPSetWidgetProperty(row->command_button_press, xpProperty_ButtonState, 0);
-						return 0;
-					}
-			}
-			return 0;
+			XPHideWidget(command_press_button);
+			XPHideWidget(command_begin_button);
 		}
 	};
 

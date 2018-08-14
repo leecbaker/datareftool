@@ -6,6 +6,7 @@
 class CommandRefRecord : public RefRecord {
     XPLMCommandRef ref = nullptr;
     static int cr_callback(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
+    bool activated = false;
 public:
     CommandRefRecord(const std::string & name, XPLMCommandRef ref, ref_src_t source) 
     : RefRecord(name, source), ref(ref) {
@@ -24,4 +25,5 @@ public:
     void commandBegin() const { XPLMCommandBegin(ref); }
     void commandEnd() const { XPLMCommandEnd(ref); }
     void touch() { last_updated_big = last_updated = std::chrono::system_clock::now(); }
+    bool isActivated() const { return activated; }
 };

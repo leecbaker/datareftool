@@ -68,6 +68,7 @@
         "variant": "cpp",
         "hash_map": "cpp",
         "bitset": "cpp",
-        "__locale": "cpp"
+        "__locale": "cpp",
+        "cfenv": "cpp"
     }
 }
