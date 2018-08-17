@@ -1,7 +1,7 @@
 project(datareftool CXX)
 
-SET(SRC about_window.cpp plugin.cpp viewer_window.cpp viewer_window_command_button.cpp allrefs.cpp dataref.cpp commandref.cpp dataref_files.cpp string_util.cpp find_datarefs_in_files.cpp prefs.cpp logging.cpp search.cpp)
-SET(HDR about_window.h plugin.h viewer_window.h viewer_window_command_button.h allrefs.h dataref.h commandref.h ref.h dataref_files.h string_util.h clipboard.h find_datarefs_in_files.h prefs.h logging.h search.h)
+SET(SRC about_window.cpp plugin.cpp viewer_window.cpp viewer_window_command_button.cpp allrefs.cpp dataref.cpp commandref.cpp dataref_files.cpp string_util.cpp find_datarefs_in_files.cpp prefs.cpp logging.cpp search.cpp ../lib/glew/glew.c)
+SET(HDR about_window.h plugin.h viewer_window.h viewer_window_command_button.h allrefs.h dataref.h commandref.h ref.h dataref_files.h string_util.h clipboard.h find_datarefs_in_files.h prefs.h logging.h search.h ../lib/glew/glew.h)
 
 SET(SRC_PLUGIN_EXAMPLE plugin_custom_dataref.cpp)
 
@@ -56,7 +56,7 @@ endif()
 
 find_package(Boost 1.54.0 REQUIRED COMPONENTS filesystem system iostreams)
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-target_link_libraries(plugin ${Boost_LIBRARIES})
+target_link_libraries(plugin PUBLIC ${Boost_LIBRARIES})
 
 if(UNIX)
 	include_directories(SYSTEM "../lib/xplane_sdk/CHeaders/XPLM/" "../lib/xplane_sdk/CHeaders/Widgets/" "../lib/xplane_sdk/CHeaders/Wrappers/")
@@ -84,8 +84,8 @@ if(APPLE)
 	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ../lib/xplane_sdk/Libraries/Mac/)
 	FIND_LIBRARY(XPLM_LIBRARY XPLM ../lib/xplane_sdk/Libraries/Mac/)
 	FIND_LIBRARY(XPWIDGETS_LIBRARY XPWidgets ../lib/xplane_sdk/Libraries/Mac/)
-	target_link_libraries(plugin ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
-	target_link_libraries(plugin_custom_dataref ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
+	target_link_libraries(plugin PUBLIC ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
+	target_link_libraries(plugin_custom_dataref PUBLIC ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
 	target_link_libraries(plugin PUBLIC m)
 elseif(UNIX)
 	target_link_libraries(plugin PUBLIC m)
@@ -97,10 +97,6 @@ elseif(WIN32)
 	target_link_libraries(plugin ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY} OpenGL32.lib)
 	target_link_libraries(plugin_custom_dataref ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
 endif()
-
-#libraries we are building
-add_library(glew STATIC ../lib/glew/glew.c ../lib/glew/glew.h)
-target_link_libraries(plugin PUBLIC glew)
 
 #output
 SET_TARGET_PROPERTIES(plugin PROPERTIES PREFIX "")
