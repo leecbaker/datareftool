@@ -9,6 +9,8 @@
 #include "viewer_window.h"
 #include "find_datarefs_in_files.h"
 
+#include "../lib/glew/glew.h"
+
 #include "allrefs.h"
 #include "dataref_files.h"
 #include "logging.h"
@@ -294,6 +296,8 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 
 	XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
 	XPLMEnableFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS", 1);
+
+	glewInit();
 
     refs.emplace();
 

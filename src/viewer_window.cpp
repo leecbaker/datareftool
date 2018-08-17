@@ -68,7 +68,6 @@ class ViewerWindow {
 	class CommandButtonRow {
 		XPWidgetID command_press_button = nullptr;
 		XPWidgetID command_begin_button = nullptr;
-		CommandRefRecord * command_ = nullptr;
 	public:
 		CommandButtonRow(XPWidgetID window) {
 			assert(nullptr != window);

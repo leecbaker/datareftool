@@ -93,9 +93,13 @@ elseif(WIN32)
 	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "..\\lib\\xplane_sdk\\Libraries\\Win\\")
 	FIND_LIBRARY(XPLM_LIBRARY XPLM_64 "..\\lib\\xplane_sdk\\Libraries\\Win\\")
 	FIND_LIBRARY(XPWIDGETS_LIBRARY XPWidgets_64 "..\\lib\\xplane_sdk\\Libraries\\Win\\")
-	target_link_libraries(plugin ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
+	target_link_libraries(plugin ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY} OpenGL32.lib)
 	target_link_libraries(plugin_custom_dataref ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
 endif()
+
+#libraries we are building
+add_library(glew STATIC ../lib/glew/glew.c ../lib/glew/glew.h)
+target_link_libraries(plugin PUBLIC glew)
 
 #output
 SET_TARGET_PROPERTIES(plugin PROPERTIES PREFIX "")

@@ -69,6 +69,7 @@
         "hash_map": "cpp",
         "bitset": "cpp",
         "__locale": "cpp",
-        "cfenv": "cpp"
+        "cfenv": "cpp",
+        "glew.h": "c"
     }
 }

@@ -7,10 +7,9 @@
 
 #include <array>
 
-#if IBM
 #define GLEW_STATIC
-#include <GL/glew.h>
-#endif
+#include "../lib/glew/glew.h"
+
 #if APL
 #include <OpenGL/gl.h>
 #endif
@@ -33,18 +32,16 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
 
                 glColor4f(color[0], color[1], color[2], 1.f);
 
-                glBegin(GL_LINES);
-                glVertex3f(left+1, top, 0);
-                glVertex3f(right, top, 0);
-
-                glVertex3f(right, top, 0);
-                glVertex3f(right, bottom+1, 0);
-
-                glVertex3f(right, bottom, 0);
-                glVertex3f(left+1, bottom, 0);
-
-                glVertex3f(left, bottom+1, 0);
-                glVertex3f(left, top, 0);
+                glBegin(GL_LINE_STRIP);
+                glVertex3i(left+2, top, 0);
+                glVertex3i(right - 2, top, 0);
+                glVertex3i(right, top - 2, 0);
+                glVertex3i(right, bottom+2, 0);
+                glVertex3i(right - 2, bottom, 0);
+                glVertex3i(left+2, bottom, 0);
+                glVertex3i(left, bottom+2, 0);
+                glVertex3i(left, top - 2, 0);
+                glVertex3i(left+2, top, 0);
                 glEnd();
                 glEnable(GL_TEXTURE_2D);
 
