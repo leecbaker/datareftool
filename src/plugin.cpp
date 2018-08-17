@@ -9,6 +9,7 @@
 #include "viewer_window.h"
 #include "find_datarefs_in_files.h"
 
+#define GLEW_STATIC
 #include "../lib/glew/glew.h"
 
 #include "allrefs.h"
