@@ -18,6 +18,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 
+#include <signal.h>
+
 void RefRecords::saveToFile(const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const {
 	std::vector<const std::string *> dataref_names, commandref_names;
 	dataref_names.reserve(datarefs.size());
@@ -84,16 +86,44 @@ std::vector<RefRecord *> RefRecords::add(const std::vector<std::string> & names,
 	return new_records;
 }
 
+#if defined(APL) || defined(LIN)
+const char * current_dr_name = nullptr;
+
+void sig_handler(int) {
+	XPLMDebugString("DRT: Crash detected while reading dataref ");
+	XPLMDebugString(current_dr_name);
+	XPLMDebugString("\n");
+	XPLMDebugString("Please add this dataref to X-Plane 11/Resources/plugins/drt_blacklist.txt to prevent this happening again.\n");
+	exit(-1);
+}
+#endif
+
 std::vector<RefRecord *> RefRecords::update() {
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 	updater.updateTime(now);
 	std::vector<RefRecord *> changed_drs;
+
+#if defined(APL) || defined(LIN)
+	sig_t previous_sigsegv = signal(SIGSEGV, sig_handler);
+	sig_t previous_sigfpe = signal(SIGFPE, sig_handler);
+#endif
+
 	for(DataRefRecord & dr : datarefs) {
         if(false == dr.isBlacklisted()) {
+#if defined(APL) || defined(LIN)
+			current_dr_name = dr.getName().c_str();
+#endif
             if(dr.update(updater)) { //if updated
 				changed_drs.push_back(&dr);
 			}
         }
 	}
+
+#if defined(APL) || defined(LIN)
+	signal(SIGSEGV, previous_sigsegv);
+	signal(SIGFPE, previous_sigfpe);
+	current_dr_name = nullptr;
+#endif
+
 	return changed_drs;
 }
