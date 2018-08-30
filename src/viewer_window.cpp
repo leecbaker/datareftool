@@ -618,19 +618,19 @@ public:
 				} catch(std::exception &) {
 					return false;
 				}
-			} else if(select_edit_dataref->isIntArray()) {
-				std::vector<int> array;
-				if(false == parseArray<int>(edit_txt, array, select_edit_dataref->getArrayLength())) {
-					return false;
-				}
-				select_edit_dataref->setIntArray(array);
 			} else if(select_edit_dataref->isFloatArray()) {
 				std::vector<float> array;
 				if(false == parseArray<float>(edit_txt, array, select_edit_dataref->getArrayLength())) {
 					return false;
 				}
 				select_edit_dataref->setFloatArray(array);
-			}
+			} else if(select_edit_dataref->isIntArray()) {
+				std::vector<int> array;
+				if(false == parseArray<int>(edit_txt, array, select_edit_dataref->getArrayLength())) {
+					return false;
+				}
+				select_edit_dataref->setIntArray(array);
+            }
 		}
 
 		edit_modified = false;
