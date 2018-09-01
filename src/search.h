@@ -37,9 +37,10 @@ public:
     /// @precondition: both inputs are sorted
     void inplace_union(std::vector<RefRecord *> & results_in_out, const std::vector<RefRecord *> & a) {
         results_in_out.reserve(results_in_out.size() + a.size());   //< ensure no iterators invalidated
-        auto midpoint = results_in_out.end();
+		size_t old_size = results_in_out.size();
 
         std::set_difference(a.cbegin(), a.cend(), results_in_out.begin(), results_in_out.end(), std::back_inserter(results_in_out), nameComparator);
+		std::vector<RefRecord *>::iterator midpoint = results_in_out.begin() + old_size;
         std::inplace_merge(results_in_out.begin(), midpoint, results_in_out.end(), nameComparator);
     }
 
