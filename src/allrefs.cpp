@@ -102,7 +102,7 @@ std::vector<RefRecord *> RefRecords::update() {
 	std::vector<RefRecord *> changed_drs;
 
 #if IBM
-	typedef SignalHandlerPointer sig_t;
+    typedef void (*sig_t)(int);
 #endif
 
 	sig_t previous_sigsegv = signal(SIGSEGV, sig_handler);
