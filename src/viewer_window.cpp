@@ -797,6 +797,7 @@ public:
 		XPLMGetScreenSize(&screen_width, &screen_height);
 		if(screen_height - top < menu_bar_height) { //xp11 title bar height
 			top = screen_height - menu_bar_height;
+			bottom = top - 100; //min window height?
 			XPSetWidgetGeometry(window, left, top, right, bottom);
 		}
 
@@ -814,6 +815,7 @@ public:
 
 		XPSetWidgetGeometry(scroll_bar, right - right_col_width, top, right, bottom + bottom_row_height);
 		displayed_lines = (top - bottom - bottom_row_height - mouse_drag_margin) / fontheight;
+		assert(displayed_lines >= 0);
 
 		XPSetWidgetGeometry(custom_list, left, top, right - right_col_width, bottom + bottom_row_height);
 		deselectEditField();
