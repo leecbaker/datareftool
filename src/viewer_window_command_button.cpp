@@ -7,7 +7,6 @@
 
 #include <array>
 
-#define GLEW_STATIC
 #include "../lib/glew/glew.h"
 
 #if APL
