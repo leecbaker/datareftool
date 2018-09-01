@@ -101,6 +101,10 @@ std::vector<RefRecord *> RefRecords::update() {
 	updater.updateTime(now);
 	std::vector<RefRecord *> changed_drs;
 
+#if IBM
+	typedef SignalHandlerPointer sig_t;
+#endif
+
 	sig_t previous_sigsegv = signal(SIGSEGV, sig_handler);
 	sig_t previous_sigfpe = signal(SIGFPE, sig_handler);
 
