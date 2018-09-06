@@ -186,29 +186,31 @@ float plugin_changed_check_callback(float, float, int, void *) {
 		XPLMPluginID plugin = XPLMGetNthPlugin(plugin_ix);
 		XPLMGetPluginInfo(plugin, nullptr, plugin_path_array, nullptr, nullptr);
 
-		std::string plugin_path(plugin_path_array);
+		boost::filesystem::path plugin_path(plugin_path_array);
 		if(xplane_plugin_path == plugin_path) {
 			continue;
 		}
+
 		std::time_t modification_date;
-		boost::filesystem::path plugin_path_canonical;
 		try {
-			plugin_path_canonical = boost::filesystem::canonical(plugin_path);
-			modification_date = boost::filesystem::last_write_time(plugin_path_canonical);
+			// We can't use boost::filesystem::canonical because it will make the path invalid. It doesn't seem to work properly
+			// with windows paths.
+			plugin_path = plugin_path.make_preferred();
+			modification_date = boost::filesystem::last_write_time(plugin_path);
 		} catch (boost::filesystem::filesystem_error & ec) {
-			std::string message = "Error reading modification date. Msg: " + std::string(ec.what()) + " file:" + plugin_path_canonical.string();
+			std::string message = "Error reading modification date. Msg: " + std::string(ec.what()) + " file:" + plugin_path.string();
 			LOG(message);
 			continue;
 		}
-		plugin_last_modified_t::iterator plugin_entry_it = plugin_last_modified.find(plugin_path_canonical);
+		plugin_last_modified_t::iterator plugin_entry_it = plugin_last_modified.find(plugin_path);
 		if(plugin_last_modified.end() == plugin_entry_it) {	// First sighting of this plugin; 
-			plugin_last_modified.insert(std::make_pair<boost::filesystem::path, std::time_t>(std::move(plugin_path_canonical), std::move(modification_date)));
+			plugin_last_modified.insert(std::make_pair<boost::filesystem::path, std::time_t>(std::move(plugin_path), std::move(modification_date)));
 		} else {
 			if(plugin_entry_it->second != modification_date) {
 				plugin_entry_it->second = modification_date;
 				if(getAutoReloadPlugins()) {
 					std::stringstream message_ss;
-					message_ss << "Observed plugin with new modification (reloading):" << plugin_path_canonical;
+					message_ss << "Observed plugin with new modification (reloading):" << plugin_path;
 					LOG(message_ss.str());
 					XPLMReloadPlugins();
 				}
