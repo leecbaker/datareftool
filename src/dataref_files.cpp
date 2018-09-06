@@ -15,8 +15,13 @@ std::vector<std::string> loadBlacklistFile(const boost::filesystem::path & filen
     std::string line;
     while(std::getline(f, line)) {
         size_t first_hash = line.find("#");
-        line = line.substr(0, first_hash);
+		if (first_hash != std::string::npos) {
+			line = line.substr(0, first_hash);
+		}
         boost::algorithm::trim(line);
+		if (line.empty()) {
+			continue;
+		}
         
         entries.emplace_back(std::move(line));
     }
