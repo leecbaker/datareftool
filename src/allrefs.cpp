@@ -61,7 +61,7 @@ std::vector<RefRecord *> RefRecords::add(const std::vector<std::string> & names,
 		boost::algorithm::trim(name);
 
 		//check for duplicates:
-        NameMapType::iterator existing_location = ref_names_loaded.find(name);
+        NameMapType::const_iterator existing_location = ref_names_loaded.find(name);
         if(ref_names_loaded.cend() != existing_location) {
 			continue;
 		}
