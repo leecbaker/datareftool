@@ -137,7 +137,7 @@ float load_dr_callback(float, float, int, void *) {
 
 	for(int i = 0; i < num_plugins; i++) {
 		XPLMPluginID id = XPLMGetNthPlugin(i);
-		if(id == my_id) {
+		if(id == my_id || 0 == id) {
 			continue;
 		}
 
