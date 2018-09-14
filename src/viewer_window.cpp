@@ -27,7 +27,7 @@ const XPLMFontID font = xplmFont_Basic;
 const int bottom_row_height = 20;
 const int right_col_width = 20;
 const int toggle_button_width = 28;
-const int title_bar_height = 20;
+const int title_bar_height = 16;
 
 class ViewerWindow {
 	XPWidgetID window = nullptr;
@@ -66,40 +66,56 @@ class ViewerWindow {
 
 	// These are the Once/Begin/End buttons for a single row of results.
 	class CommandButtonRow {
+		XPWidgetID command_once_button = nullptr;
 		XPWidgetID command_press_button = nullptr;
 		XPWidgetID command_begin_button = nullptr;
 	public:
 		CommandButtonRow(XPWidgetID window) {
 			assert(nullptr != window);
+			command_once_button = XPCreateCustomWidget(0, 0, 1, 1, 1,"Once", 0, window, commandOnceButtonCallback);
 			command_press_button = XPCreateCustomWidget(0, 0, 1, 1, 1,"Press", 0, window, commandPressButtonCallback);
 			command_begin_button = XPCreateCustomWidget(0, 0, 1, 1, 1,"Begin", 0, window, commandHoldButtonCallback);
+			XPSetWidgetProperty(command_once_button, xpProperty_Object, reinterpret_cast<intptr_t>(nullptr));
 			XPSetWidgetProperty(command_press_button, xpProperty_Object, reinterpret_cast<intptr_t>(nullptr));
 			XPSetWidgetProperty(command_begin_button, xpProperty_Object, reinterpret_cast<intptr_t>(nullptr));
 		}
 
 		~CommandButtonRow() {
+			XPDestroyWidget(command_once_button, 1);
 			XPDestroyWidget(command_press_button, 1);
 			XPDestroyWidget(command_begin_button, 1);
 		}
 
 		void showAtPosition(int left, int top, int right, int bottom) {
-			const int press_button_width = 50;
-			const int begin_button_width = 40;
 			const int gap = 5;
 
-			XPSetWidgetGeometry(command_begin_button, right - begin_button_width, top, right, bottom);
-			XPSetWidgetGeometry(command_press_button, right - begin_button_width - press_button_width - gap, top, right - begin_button_width - gap, bottom);
+			auto position_and_show_widget = [&](XPWidgetID widget, int width, int & right_bound) -> void {
+				int widget_right = right_bound;
+				int widget_left = right_bound - width;
+				right_bound -= width + gap;
+				XPSetWidgetGeometry(widget, widget_left, top, widget_right, bottom);
+				if(widget_left >= left) {
+					XPShowWidget(widget);
+				} else {
+					XPHideWidget(widget);
+				}
+			};
 
-			XPShowWidget(command_press_button);
-			XPShowWidget(command_begin_button);
+			int button_right_bound = right;
+
+			position_and_show_widget(command_once_button, 33, button_right_bound);
+			position_and_show_widget(command_begin_button, 40, button_right_bound);
+			position_and_show_widget(command_press_button, 51, button_right_bound);
 		}
 
 		void setCommand(CommandRefRecord * new_command) {
+			XPSetWidgetProperty(command_once_button, xpProperty_Object, reinterpret_cast<intptr_t>(new_command));
 			XPSetWidgetProperty(command_press_button, xpProperty_Object, reinterpret_cast<intptr_t>(new_command));
 			XPSetWidgetProperty(command_begin_button, xpProperty_Object, reinterpret_cast<intptr_t>(new_command));
 		}
 
 		void hide() {
+			XPHideWidget(command_once_button);
 			XPHideWidget(command_press_button);
 			XPHideWidget(command_begin_button);
 		}
@@ -545,7 +561,7 @@ public:
 			CommandRefRecord * crr = dynamic_cast<CommandRefRecord *>(refs[result_index]);
 			if(nullptr != crr) {
 				float command_name_width = XPLMMeasureString(font, crr->getName().c_str(), int(crr->getName().size()));
-				command_buttons[line]->showAtPosition(list_left + ceil(command_name_width), list_top - line * fontheight, list_right, list_top - (line + 1) * fontheight);
+				command_buttons[line]->showAtPosition(list_left + ceil(command_name_width), list_top - line * fontheight - 2, list_right, list_top - (line + 1) * fontheight - 2);
 				command_buttons[line]->setCommand(crr);
 			} else {
 				command_buttons[line]->hide();

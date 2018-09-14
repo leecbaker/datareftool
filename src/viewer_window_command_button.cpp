@@ -13,7 +13,13 @@
 #include <OpenGL/gl.h>
 #endif
 
-int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t /*inParam1*/, intptr_t /*inParam2*/, bool isPress) {
+enum class CommandButtonType {
+    PRESS,
+    HOLD,
+    ONCE,
+};
+
+int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t /*inParam1*/, intptr_t /*inParam2*/, CommandButtonType button_type) {
 
     switch(inMessage) {
         case xpMsg_Draw:
@@ -44,10 +50,16 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
                 glEnd();
                 glEnable(GL_TEXTURE_2D);
 
-                if(isPress) {
-                    XPLMDrawString(const_cast<float *>(color.data()), left + 5, bottom + 3, const_cast<char *>(crr->isActivated() ? "Holding" : "Press"), nullptr, xplmFont_Basic);
-                } else {
-                    XPLMDrawString(const_cast<float *>(color.data()), left + 5, bottom + 3, const_cast<char *>(crr->isActivated() ? "End" : "Begin"), nullptr, xplmFont_Basic);
+                switch(button_type) {
+                    case CommandButtonType::ONCE:
+                        XPLMDrawString(const_cast<float *>(color.data()), left + 5, bottom + 2, const_cast<char *>("Once"), nullptr, xplmFont_Basic);
+                        break;
+                    case CommandButtonType::PRESS:
+                        XPLMDrawString(const_cast<float *>(color.data()), left + 5, bottom + 2, const_cast<char *>(crr->isActivated() ? "Holding" : "Press"), nullptr, xplmFont_Basic);
+                        break;
+                    case CommandButtonType::HOLD:
+                        XPLMDrawString(const_cast<float *>(color.data()), left + 5, bottom + 2, const_cast<char *>(crr->isActivated() ? "End" : "Begin"), nullptr, xplmFont_Basic);
+                        break;
                 }
             }
             return 1;
@@ -57,14 +69,20 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
 			    CommandRefRecord * crr = (CommandRefRecord *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
                 if(nullptr != crr) {
 
-                    if(isPress) {
+                switch(button_type) {
+                    case CommandButtonType::ONCE:
+                        crr->commandOnce();
+                        break;
+                    case CommandButtonType::PRESS:
                         crr->commandBegin();
-                    } else {
+                        break;
+                    case CommandButtonType::HOLD:
                         if(crr->isActivated()) {
                             crr->commandEnd();
                         } else {
                             crr->commandBegin();
                         }
+                        break;
                     }
                 }
             }
@@ -74,8 +92,15 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
             {
 			    CommandRefRecord * crr = (CommandRefRecord *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
                 if(nullptr != crr) {
-                    if(isPress) {
-                        crr->commandEnd();
+
+                    switch(button_type) {
+                        case CommandButtonType::PRESS:
+                            crr->commandEnd();
+                            break;
+                        case CommandButtonType::HOLD:
+                            break; //do nothing
+                        case CommandButtonType::ONCE:
+                            break; //do nothing
                     }
                 }
             }
@@ -88,11 +113,14 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
     return 0;
 }
 
+int commandOnceButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t inParam2) {
+    return commandButtonCallback(inMessage, inWidget, inParam1, inParam2, CommandButtonType::ONCE);
+}
 
 int commandPressButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t inParam2) {
-    return commandButtonCallback(inMessage, inWidget, inParam1, inParam2, true);
+    return commandButtonCallback(inMessage, inWidget, inParam1, inParam2, CommandButtonType::PRESS);
 }
 
 int commandHoldButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t inParam2) {
-    return commandButtonCallback(inMessage, inWidget, inParam1, inParam2, false);
+    return commandButtonCallback(inMessage, inWidget, inParam1, inParam2, CommandButtonType::HOLD);
 }
