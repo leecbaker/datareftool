@@ -741,11 +741,20 @@ public:
         }
 		updateScroll();
 
-		std::string window_title = std::string("DataRef Tool (") + std::to_string(this->refs.size()) + ")"; 
-		if(params.invalidRegex()) {
-			window_title += " (Invalid regex)";
+		{ //update title
+			const std::string & search_term_text = params.getSearchField();
+			std::string window_title;
+			if(search_term_text.empty()) {
+				window_title = std::string("DataRefTool (") + std::to_string(this->refs.size()) + ")"; 
+			} else {
+				window_title = std::string("DataRefTool: " + search_term_text + " (") + std::to_string(this->refs.size()) + ")"; 
+
+			}
+			if(params.invalidRegex()) {
+				window_title += " (Invalid regex)";
+			}
+			XPSetWidgetDescriptor(window, window_title.c_str());
 		}
-		XPSetWidgetDescriptor(window, window_title.c_str());
 	}
 
 	void draw() {
