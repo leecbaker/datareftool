@@ -30,7 +30,7 @@ bool loadPrefs(const boost::filesystem::path & path) {
 	std::ifstream f(path.string());
 
 	if(f.fail()) {
-		LOG("Couldn't open properties file: " + path.string());
+		xplog << "Couldn't open properties file: " << path << "\n";
 		return false;
 	}
 
@@ -38,9 +38,9 @@ bool loadPrefs(const boost::filesystem::path & path) {
 	try {
 		read_json(f, prefs);
 	} catch (const boost::property_tree::json_parser_error & e) {
-		LOG(std::string("Error parsing preferences file at ") + path.string());
-		LOG(std::string("Error: ") + e.what());
-		LOG("Preferences going back to default.");
+		xplog << "Error parsing preferences file at " << path << "\n";
+		xplog << "Error: " << e.what() << "\n";
+		xplog << "Preferences going back to default.\n";
 		return false;
 	}
 
@@ -53,9 +53,9 @@ bool loadPrefs(const boost::filesystem::path & path) {
 	bool logging_enabled_loaded = prefs.get<bool>(logging_enabled_key, true);
 
 	if(false == logging_enabled_loaded) {
-		LOG("Logging disabled via prefs file");
+		xplog << "Logging disabled via prefs file\n";
 	}
-	LOG("Loaded prefs from " + path.string());
+	xplog << "Loaded prefs from " << path << "\n";
 	logging_enabled = logging_enabled_loaded;
 
 	return true;
@@ -81,9 +81,9 @@ bool savePrefs(const boost::filesystem::path & path) {
     try {
 		write_json(f, prefs);
     } catch(boost::property_tree::json_parser_error & e) {
-		LOG(std::string("Error writing preferences file at ") + path.string());
-		LOG(e.filename() + ":" + std::to_string(e.line()));
-		LOG(e.message());
+		xplog << "Error writing preferences file at " << path << "\n";
+		xplog << e.filename() << ":" << e.line() << "\n";
+		xplog << e.message() << "\n";
     	return false;
     }
 

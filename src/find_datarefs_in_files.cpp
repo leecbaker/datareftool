@@ -55,8 +55,7 @@ std::vector<std::string> getDatarefsFromFile(const boost::filesystem::path & fil
 	
 	removeVectorUniques(all_refs);
 
-	const std::string message = std::string("Found ") + std::to_string(all_refs.size()) + std::string(" unique possible datarefs in file ") + filename.string();
-	LOG(message);
+	xplog << "Found " << all_refs.size() << " unique possible datarefs in file " << filename << "\n";
 
 	return all_refs;
 }
@@ -93,8 +92,7 @@ std::vector<std::string> getDatarefsFromAircraft(const boost::filesystem::path &
 
 		all_refs.insert(all_refs.begin(), cdataref_entries.begin(), cdataref_entries.end());
 
-		const std::string message = std::string("Found ") + std::to_string(cdataref_entries.size()) + std::string(" unique possible datarefs in ") + cdataref_path.string();
-		LOG(message);
+		xplog << "Found " << cdataref_entries.size() << " unique possible datarefs in " << cdataref_path << "\n";
 	}
 
 	//plugins
@@ -152,8 +150,7 @@ std::vector<std::string> getDatarefsFromAircraft(const boost::filesystem::path &
 		}
 	}
 	removeVectorUniques(all_refs);
-	const std::string message = std::string("Found ") + std::to_string(all_refs.size()) + std::string(" unique possible datarefs for aircraft ") + acf_path.string();
-	LOG(message);
+	xplog << "Found " << all_refs.size() << " unique possible datarefs for aircraft " << acf_path << "\n";
 
 	return all_refs;
 }

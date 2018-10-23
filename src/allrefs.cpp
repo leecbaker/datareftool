@@ -9,7 +9,6 @@
 #include <fstream>
 #include <locale>
 #include <regex>
-#include <sstream>
 #include <unordered_set>
 #include <vector>
 
@@ -44,7 +43,7 @@ void RefRecords::saveToFile(const boost::filesystem::path & dataref_filename, co
 		}
 		f.close();
 		if(f.fail()) {
-			LOG("Error writing file " + filename.string());
+			xplog << "Error writing file " << filename << "\n";
 		}
 		return f.fail();
 	};
@@ -89,7 +88,7 @@ std::vector<RefRecord *> RefRecords::add(const std::vector<std::string> & names,
 const char * current_dr_name = nullptr;
 
 void sig_handler(int) {
-	XPLMDebugString("DRT: Crash detected while reading dataref ");
+	XPLMDebugString("DataRefTool: Crash detected while reading dataref ");
 	XPLMDebugString(current_dr_name);
 	XPLMDebugString("\n");
 	XPLMDebugString("Please add this dataref to X-Plane 11/Resources/plugins/drt_blacklist.txt to prevent this happening again.\n");

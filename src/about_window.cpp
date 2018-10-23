@@ -34,7 +34,7 @@ void showAboutWindow() {
 		XPLMDataRef window_height_ref = XPLMFindDataRef("sim/graphics/view/window_height");
 
 		if(nullptr == window_width_ref || nullptr == window_height_ref) {
-			LOG("Couldn't open datarefs for window width and height");
+			xplog << "Couldn't open datarefs for window width and height\n";
 			return;
 		}
 		int width = XPLMGetDatai(window_width_ref);

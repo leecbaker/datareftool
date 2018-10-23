@@ -25,8 +25,6 @@
 #include "XPLMProcessing.h"
 #include "XPLMPlanes.h"
 
-using namespace std::string_literals;
-
 boost::filesystem::path prefs_path;
 
 XPLMMenuID plugin_menu = nullptr;
@@ -49,8 +47,7 @@ void loadAircraftDatarefs() {
 	std::vector<std::string> aircraft_datarefs = getDatarefsFromAircraft(path);
 
 	std::vector<RefRecord *> acf_refs = refs->add(aircraft_datarefs, ref_src_t::AIRCRAFT);
-	const std::string message = std::string("Found ") + std::to_string(aircraft_datarefs.size()) + std::string(" possible datarefs from aircraft files; " + std::to_string(acf_refs.size()) + " commandrefs and datarefs OK.");
-	LOG(message);
+	xplog << "Found " << aircraft_datarefs.size() << " possible datarefs from aircraft files; " << acf_refs.size() << " commandrefs and datarefs OK.\n";
 
 	new_refs_this_frame.insert(new_refs_this_frame.cend(), acf_refs.cbegin(), acf_refs.cend());
 }
@@ -73,8 +70,7 @@ float update_dr_callback(float, float, int, void *) {
 		if(false == new_datarefs_from_messages_this_frame.empty()) {
 			std::vector<RefRecord *> refs_from_msg = refs->add(new_datarefs_from_messages_this_frame, ref_src_t::USER_MSG);
 
-			const std::string message = std::string("Loaded : ") + std::to_string(new_datarefs_from_messages_this_frame.size()) + std::string(" commands/datarefs from messages; ") + std::to_string(refs_from_msg.size()) + std::string(" are ok");
-			LOG(message);
+			xplog << "Loaded : " << new_datarefs_from_messages_this_frame.size() << " commands/datarefs from messages; " << refs_from_msg.size() << " are ok\n";
 			new_datarefs_from_messages_this_frame.clear();
 		}
 
@@ -115,15 +111,13 @@ float load_dr_callback(float, float, int, void *) {
     {
         std::vector<std::string> dr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "DataRefs.txt");
         dr_file_refs = refs->add(dr_file, ref_src_t::FILE);
-        std::string success_message = std::to_string(dr_file_refs.size()) + " datarefs from DataRefs.txt opened successfully.";
-        LOG(success_message);
+        xplog << dr_file_refs.size() << " datarefs from DataRefs.txt opened successfully.\n";
     }
 
 	{
         std::vector<std::string> cr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "Commands.txt");
         cr_file_refs = refs->add(cr_file, ref_src_t::FILE);
-        std::string success_message = std::to_string(cr_file_refs.size()) + " datarefs from Commands.txt opened successfully.";
-        LOG(success_message);
+        xplog << cr_file_refs.size() << " datarefs from Commands.txt opened successfully.\n";
     }
 
 	loadAircraftDatarefs();
@@ -133,8 +127,6 @@ float load_dr_callback(float, float, int, void *) {
 	XPLMPluginID my_id = XPLMGetMyID();
 
 	std::vector<std::string> all_plugin_datarefs;
-
-	std::stringstream msg;
 
 	for(int i = 0; i < num_plugins; i++) {
 		XPLMPluginID id = XPLMGetNthPlugin(i);
@@ -151,7 +143,7 @@ float load_dr_callback(float, float, int, void *) {
 		std::vector<std::string> this_plugin_datarefs = getDatarefsFromFile(path);
 		all_plugin_datarefs.insert(all_plugin_datarefs.end(), this_plugin_datarefs.begin(), this_plugin_datarefs.end());
 
-		LOG("Found plugin with name=\""s + name + "\" desc=\""s + description + "\" signature=\""s + signature + "\""s);
+		xplog << "Found plugin with name=\"" << name << "\" desc=\"" << description << "\" signature=\"" << signature << "\"";
 	}
 
 	{ //FWL directory
@@ -170,13 +162,10 @@ float load_dr_callback(float, float, int, void *) {
 		}
 	}
 
-	LOG(msg.str());
-
 	removeVectorUniques(all_plugin_datarefs);
 
 	std::vector<RefRecord *> plugin_refs = refs->add(all_plugin_datarefs, ref_src_t::PLUGIN);
-	const std::string message = std::string("Found ") + std::to_string(all_plugin_datarefs.size()) + std::string(" possible datarefs from plugin files; " + std::to_string(plugin_refs.size()) + " datarefs and commands loaded OK.");
-	LOG(message);
+	xplog << "Found " << all_plugin_datarefs.size() << " possible datarefs from plugin files; " << plugin_refs.size() << " datarefs and commands loaded OK.\n";
 	
 	new_refs_this_frame.insert(new_refs_this_frame.cend(), cr_file_refs.cbegin(), cr_file_refs.cend());
 	new_refs_this_frame.insert(new_refs_this_frame.cend(), dr_file_refs.cbegin(), dr_file_refs.cend());
@@ -215,8 +204,7 @@ float plugin_changed_check_callback(float, float, int, void *) {
 			plugin_path = plugin_path.make_preferred();
 			modification_date = boost::filesystem::last_write_time(plugin_path);
 		} catch (boost::filesystem::filesystem_error & ec) {
-			std::string message = "Error reading modification date. Msg: " + std::string(ec.what()) + " file:" + plugin_path.string();
-			LOG(message);
+			xplog << "Error reading modification date. Msg: " << ec.what() << " file:" << plugin_path << "\n";
 			continue;
 		}
 		plugin_last_modified_t::iterator plugin_entry_it = plugin_last_modified.find(plugin_path);
@@ -226,9 +214,7 @@ float plugin_changed_check_callback(float, float, int, void *) {
 			if(plugin_entry_it->second != modification_date) {
 				plugin_entry_it->second = modification_date;
 				if(getAutoReloadPlugins()) {
-					std::stringstream message_ss;
-					message_ss << "Observed plugin with new modification (reloading):" << plugin_path;
-					LOG(message_ss.str());
+					xplog << "Observed plugin with new modification (reloading):" << plugin_path << "\n";
 					XPLMReloadPlugins();
 				}
 			}
@@ -260,15 +246,15 @@ void plugin_menu_handler(void *, void * inItemRef)
 			XPLMSetFlightLoopCallbackInterval(load_dr_callback, -1, 1, nullptr);
 			break;
 		case 3: 
-			LOG("Reloaded aircraft");
+			xplog << "Reloaded aircraft\n";
 			reloadAircraft();
 			break;
 		case 4: 
-			LOG("Reloading plugins");
+			xplog << "Reloading plugins\n";
 			XPLMReloadPlugins(); 
 			break;
 		case 5: 
-			LOG("Reloading scenery");
+			xplog << "Reloading scenery\n";
 			XPLMReloadScenery(); 
 			break;
 		case 6: 
@@ -313,6 +299,8 @@ const char * dre_description = "A plugin that shows all data refs!.";
 
 PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 
+	xplog.setPrefix("DataRefTool: ");
+
 	XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
 	XPLMEnableFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS", 1);
 
@@ -324,21 +312,19 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	XPLMGetPrefsPath(prefs_dir_c);
 	prefs_path = boost::filesystem::path(prefs_dir_c).parent_path() / "datareftool.json";
     if(loadPrefs(prefs_path)) {
-        std::stringstream ss;
-        ss << "prefs loaded from " << prefs_path.string();
-        LOG(ss.str());
+        xplog << "prefs loaded from " << prefs_path << "\n";
     }
 
 	// let's try to find DRE before we register the plugin. If it's already here, we shouldnt register with the same signature!
 	bool found_dre_early = XPLM_NO_PLUGIN_ID != XPLMFindPluginBySignature(dre_signature);
 	if(found_dre_early && getImpersonateDRE()) {
-		LOG("Impersonating DataRefEditor failed, because DataRefEditor is currently running.");
+		xplog << "Impersonating DataRefEditor failed, because DataRefEditor is currently running.\n";
 	}
 	if(false == found_dre_early && getImpersonateDRE()) {
 		strcpy(outName, dre_name);
 		strcpy(outSig, dre_signature);
 		strcpy(outDesc, dre_description);
-		LOG("Impersonating DataRefEditor");
+		xplog << "Impersonating DataRefEditor\n";
 	} else {
 		strcpy(outName, "DataRefTool");
 		strcpy(outSig, "com.leecbaker.datareftool");
@@ -409,7 +395,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 
 PLUGIN_API void	XPluginStop(void) {
     if(savePrefs(prefs_path)) {
-        LOG("Prefs saved to " + prefs_path.string());
+        xplog << "Prefs saved to " << prefs_path << "\n";
     }
 
 	closeAboutWindow();
@@ -453,8 +439,7 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
 			break;
 		case XPLM_MSG_PLANE_LOADED: {
 			int64_t plane_num = int64_t(inParam);
-			const std::string message = std::string("Plane loaded #: ") + std::to_string(plane_num);
-			LOG(message);
+			xplog << "Plane loaded #: " << plane_num << "\n";
 			if(0 == plane_num) {	//user's plane
 				XPLMRegisterFlightLoopCallback(load_acf_dr_callback, -1, nullptr);
 			}
