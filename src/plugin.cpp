@@ -4,6 +4,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/functional/hash.hpp> 
+#include <boost/range/iterator_range.hpp>
 
 #include "about_window.h"
 #include "viewer_window.h"
@@ -151,6 +152,22 @@ float load_dr_callback(float, float, int, void *) {
 		all_plugin_datarefs.insert(all_plugin_datarefs.end(), this_plugin_datarefs.begin(), this_plugin_datarefs.end());
 
 		LOG("Found plugin with name=\""s + name + "\" desc=\""s + description + "\" signature=\""s + signature + "\""s);
+	}
+
+	{ //FWL directory
+		char xplane_dir[1024];
+		XPLMGetSystemPath(xplane_dir);
+
+		boost::filesystem::path fwl_scripts_dir = boost::filesystem::path(xplane_dir) / "Resources" / "plugins" / "FlyWithLua" / "Scripts";
+
+		if(boost::filesystem::is_directory(fwl_scripts_dir)) { // if this is true, it also exists
+			for(auto& file_de : boost::make_iterator_range(boost::filesystem::directory_iterator(fwl_scripts_dir), {})) {
+				if(file_de.path().extension() == ".lua") {
+					std::vector<std::string> this_script_datarefs = getDatarefsFromFile(file_de.path());
+					all_plugin_datarefs.insert(all_plugin_datarefs.cend(), this_script_datarefs.begin(), this_script_datarefs.end());
+				}
+			}
+		}
 	}
 
 	LOG(msg.str());
@@ -339,7 +356,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 	XPLMAppendMenuItem(plugin_menu, "View Datarefs", (void *)0, 1);
 	XPLMAppendMenuItem(plugin_menu, "View Commands", (void *)1, 1);
 	XPLMAppendMenuSeparator(plugin_menu);
-	XPLMAppendMenuItem(plugin_menu, "Rescan for datarefs", (void *)2, 1);
+	XPLMAppendMenuItem(plugin_menu, "Rescan for datarefs and commands", (void *)2, 1);
 	XPLMAppendMenuSeparator(plugin_menu);
 	XPLMAppendMenuItem(plugin_menu, "Reload aircraft", (void *)3, 1);
 	XPLMAppendMenuItem(plugin_menu, "Reload plugins", (void *)4, 1);

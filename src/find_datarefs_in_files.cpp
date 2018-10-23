@@ -19,7 +19,7 @@ inline char isValidDatarefChar(char c) {
 
 const size_t min_dataref_length = 8;
 
-std::vector<std::string> getDatarefsFromFile(const std::string & filename) {
+std::vector<std::string> getDatarefsFromFile(const boost::filesystem::path & filename) {
     boost::iostreams::mapped_file_source file;
     
     try {
@@ -55,13 +55,13 @@ std::vector<std::string> getDatarefsFromFile(const std::string & filename) {
 	
 	removeVectorUniques(all_refs);
 
-	const std::string message = std::string("Found ") + std::to_string(all_refs.size()) + std::string(" unique possible datarefs in file ") + filename;
+	const std::string message = std::string("Found ") + std::to_string(all_refs.size()) + std::string(" unique possible datarefs in file ") + filename.string();
 	LOG(message);
 
 	return all_refs;
 }
 
-std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
+std::vector<std::string> getDatarefsFromAircraft(const boost::filesystem::path & acf_path) {
 	boost::filesystem::path aircraft_dir = boost::filesystem::path(acf_path).parent_path();
 
 	std::vector<std::string> all_refs;
@@ -69,7 +69,7 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 	// list file
 	boost::filesystem::path list_file_path = aircraft_dir / "dataref.txt";
 	if(boost::filesystem::exists(list_file_path)) {
-		std::vector<std::string> refs = getDatarefsFromFile(list_file_path.string());
+		std::vector<std::string> refs = getDatarefsFromFile(list_file_path);
 		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 	}
 
@@ -104,7 +104,7 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
 	if(boost::filesystem::exists(plugin_dir_path)) {
 		boost::filesystem::directory_iterator dir_end_it;
 		for(boost::filesystem::directory_iterator dir_it(plugin_dir_path); dir_it != dir_end_it; dir_it++) {
-			std::vector<std::string> refs = getDatarefsFromPluginFolder(dir_it->path().string());
+			std::vector<std::string> refs = getDatarefsFromPluginFolder(dir_it->path());
 			all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 		}
 	}
@@ -146,23 +146,23 @@ std::vector<std::string> getDatarefsFromAircraft(const std::string & acf_path) {
             boost::algorithm::to_lower(extension);
             
 			if(extensions_to_scan.cend() != extensions_to_scan.find(extension)) {
-				std::vector<std::string> refs = getDatarefsFromFile(path.string());
+				std::vector<std::string> refs = getDatarefsFromFile(path);
 				all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 			}
 		}
 	}
 	removeVectorUniques(all_refs);
-	const std::string message = std::string("Found ") + std::to_string(all_refs.size()) + std::string(" unique possible datarefs for aircraft ") + acf_path;
+	const std::string message = std::string("Found ") + std::to_string(all_refs.size()) + std::string(" unique possible datarefs for aircraft ") + acf_path.string();
 	LOG(message);
 
 	return all_refs;
 }
 
-std::vector<std::string> getDatarefsFromListFile(const std::string & filename) {
+std::vector<std::string> getDatarefsFromListFile(const boost::filesystem::path & filename) {
 	return getDatarefsFromFile(filename);
 }
 
-std::vector<std::string> getDatarefsFromPluginFolder(const std::string & plugin_dir_path) {
+std::vector<std::string> getDatarefsFromPluginFolder(const boost::filesystem::path & plugin_dir_path) {
 #ifdef __APPLE__
 	static const std::string plugin_name = "mac.xpl";
 #elif defined _WIN32 || defined _WIN64
@@ -177,11 +177,11 @@ std::vector<std::string> getDatarefsFromPluginFolder(const std::string & plugin_
 	boost::filesystem::path plugin_new_path = plugin_dir / "64" / plugin_name;
 
 	if(boost::filesystem::exists(plugin_old_path)) {
-		std::vector<std::string> refs = getDatarefsFromFile(plugin_old_path.string());
+		std::vector<std::string> refs = getDatarefsFromFile(plugin_old_path);
 		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 	}
 	if(boost::filesystem::exists(plugin_new_path)) {
-		std::vector<std::string> refs = getDatarefsFromFile(plugin_new_path.string());
+		std::vector<std::string> refs = getDatarefsFromFile(plugin_new_path);
 		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 	}
 
