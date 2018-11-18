@@ -545,7 +545,7 @@ public:
 		const int scroll_pos_max = (int)XPGetWidgetProperty(scroll_bar, xpProperty_ScrollBarMax, nullptr);
 
 		//high scroll_pos is the top of the scroll bar, opposite how we expect
-		const int lines_to_render = std::min<int>(displayed_lines, int(refs.size()));
+		const int lines_to_render = std::max<int>(0, std::min<int>(displayed_lines, int(refs.size())));
 
 		list_start_index = scroll_pos_max - scroll_pos;
 
@@ -826,6 +826,20 @@ public:
 			XPSetWidgetGeometry(window, left, top, right, bottom);
 		}
 
+		//handle minimum window size
+		int min_width = 140;
+		int min_height = 60;
+
+		if(top - bottom < min_height) {
+			bottom = top - min_height;
+			XPSetWidgetGeometry(window, left, top, right, bottom);
+		}
+
+		if(right - left < min_width) {
+			right = left + min_width;
+			XPSetWidgetGeometry(window, left, top, right, bottom);
+		}
+
 		top -= title_bar_height;
 		left += mouse_drag_margin;
 		right -= mouse_drag_margin;
@@ -840,7 +854,7 @@ public:
 
 		XPSetWidgetGeometry(scroll_bar, right - right_col_width, top, right, bottom + bottom_row_height);
 		displayed_lines = (top - bottom - bottom_row_height - mouse_drag_margin) / fontheight;
-		assert(displayed_lines >= 0);
+		displayed_lines = std::max(0, displayed_lines);
 
 		XPSetWidgetGeometry(custom_list, left, top, right - right_col_width, bottom + bottom_row_height);
 		deselectEditField();
