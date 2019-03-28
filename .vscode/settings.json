@@ -70,6 +70,7 @@
         "bitset": "cpp",
         "__locale": "cpp",
         "cfenv": "cpp",
-        "glew.h": "c"
+        "glew.h": "c",
+        "optional": "cpp"
     }
 }
