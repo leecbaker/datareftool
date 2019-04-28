@@ -741,20 +741,56 @@ public:
         }
 		updateScroll();
 
-		{ //update title
-			const std::string & search_term_text = params.getSearchField();
-			std::string window_title;
-			if(search_term_text.empty()) {
-				window_title = std::string("DataRefTool (") + std::to_string(this->refs.size()) + ")"; 
-			} else {
-				window_title = std::string("DataRefTool: " + search_term_text + " (") + std::to_string(this->refs.size()) + ")"; 
+		updateTitle();
+	}
 
+	void updateTitle() { //update title
+		std::stringstream window_title;
+		window_title << "DataRefTool";
+
+		if(select_edit_dataref) {
+			window_title << ": edit dataref (";
+
+			if(select_edit_dataref->isInt()) {
+				window_title << "int/";
 			}
+			if(select_edit_dataref->isFloat()) {
+				window_title << "float/";
+			}
+			if(select_edit_dataref->isDouble()) {
+				window_title << "double/";
+			}
+			if(select_edit_dataref->isIntArray()) {
+				window_title << "int_arr/";
+			}
+			if(select_edit_dataref->isFloatArray()) {
+				window_title << "float_arr/";
+			}
+
+			if(select_edit_dataref->writable()) {
+				window_title << "rw";
+			} else {
+				window_title << "ro";
+			}
+			window_title << ")";
+		} else if(selected_command) {
+			window_title << ": edit command";
+
+			/* selected_command */
+
+		} else {
+			const std::string & search_term_text = params.getSearchField();
+			if(false == search_term_text.empty()) {
+				window_title << ": " << search_term_text;
+			}
+
+			window_title << " (" << this->refs.size() << ")";
+
 			if(params.invalidRegex()) {
-				window_title += " (Invalid regex)";
+				window_title << " (Invalid regex)";
 			}
-			XPSetWidgetDescriptor(window, window_title.c_str());
 		}
+		XPSetWidgetDescriptor(window, window_title.str().c_str());
 	}
 
 	void draw() {
