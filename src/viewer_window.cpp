@@ -659,6 +659,7 @@ public:
 		select_edit_dataref = nullptr;
 		XPLoseKeyboardFocus(edit_field);
 		XPHideWidget(edit_field);
+		updateTitle();
 	}
 
 	std::string getEditText() const {
