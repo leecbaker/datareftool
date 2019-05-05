@@ -24,7 +24,7 @@ std::vector<std::string> getDatarefsFromFile(const boost::filesystem::path & fil
     boost::iostreams::mapped_file_source file;
     
     try {
-        file.open(filename);
+        file.open(filename, std::ios::in | std::ios::binary);
     } catch(std::exception &) {
 		return {};
     }
