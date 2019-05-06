@@ -146,6 +146,7 @@ class ViewerWindow {
 				} else {
 					int click_y_offset_from_list_top = obj->drag_start_window_top - mouse_info->y - title_bar_height;
 					if(click_y_offset_from_list_top < 0) {	//click in title bar
+						obj->updateTitle();
 						return 0;
 					}
 					int click_y_offset_index = click_y_offset_from_list_top / obj->fontheight;
@@ -190,12 +191,15 @@ class ViewerWindow {
 								obj->setEditSelection(0, value_str.size());
 								XPShowWidget(obj->edit_field);
 								obj->edit_modified = false;
-							}
-							if(nullptr != cr_record) {
+							} else  if(nullptr != cr_record) {
 								obj->selected_command = cr_record;
 								XPHideWidget(obj->edit_field);
+							} else {
+								obj->selected_command = nullptr;
+								obj->select_edit_dataref = nullptr;
 							}
 						}
+						obj->updateTitle();
 						return 1;
 					}
 				}
@@ -654,9 +658,9 @@ public:
 	}
 
 	void deselectEditField() {
-
 		edit_modified = false;
 		select_edit_dataref = nullptr;
+		selected_command = nullptr;
 		XPLoseKeyboardFocus(edit_field);
 		XPHideWidget(edit_field);
 		updateTitle();
@@ -730,7 +734,7 @@ public:
 	void doSearch(const std::vector<RefRecord *> & new_refs, std::vector<RefRecord *> & changed_crs, std::vector<RefRecord *> & changed_drs) {
         if(params_changed) {
 			deselectEditField();
-            params.freshSearch(this->refs, ::refs->getAllCommandrefs(), ::refs->getAllDatarefs());
+            params.freshSearch(this->refs, plugin_data->refs.getAllCommandrefs(), plugin_data->refs.getAllDatarefs());
 			params_changed = false;
 			deselectEditField();
         } else {
@@ -776,9 +780,6 @@ public:
 			window_title << ")";
 		} else if(selected_command) {
 			window_title << ": edit command";
-
-			/* selected_command */
-
 		} else {
 			const std::string & search_term_text = params.getSearchField();
 			if(false == search_term_text.empty()) {
