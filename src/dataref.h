@@ -47,10 +47,11 @@ public:
     bool isInt() const { return 0 != (xplmType_Int & type); }
     bool isFloatArray() const { return 0 != (xplmType_FloatArray & type); }
     bool isIntArray() const { return 0 != (xplmType_IntArray & type); }
-    
+    bool isData() const { return 0 != (xplmType_Data & type); }
+
     bool isArray() const { return isFloatArray() || isIntArray(); }
     int getArrayLength() const { assert(isArray()); return boost::apply_visitor(GetArraySize(),value); }
-    
+
     void setDouble(double d) { assert(isDouble()); XPLMSetDatad(ref, d); }
     void setFloat(float f) { assert(isFloat()); XPLMSetDataf(ref, f); }
     void setInt(int i) { assert(isInt()); XPLMSetDatai(ref, i); }

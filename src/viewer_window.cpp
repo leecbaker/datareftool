@@ -771,6 +771,9 @@ public:
 			if(select_edit_dataref->isFloatArray()) {
 				window_title << "float_arr/";
 			}
+			if(select_edit_dataref->isData()) {
+				window_title << "data/";
+			}
 
 			if(select_edit_dataref->writable()) {
 				window_title << "rw";
