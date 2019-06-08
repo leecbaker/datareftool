@@ -1,5 +1,5 @@
 language: cpp
-dist: trusty
+dist: xenial
 sudo: false
 os:
 - linux
@@ -21,17 +21,10 @@ addons:
     packages:
     - cmake
     - libx11-dev
-    - gcc-4.9
-    - g++-4.9
     - libbz2-dev
-    - libstdc++-4.9-dev
     - sshpass
 before_install:
 - cmake --version
-- $CC --version
-- $CXX --version
-- if [ "$CXX" = "g++" ] && [ "$TRAVIS_OS_NAME" = "linux" ] ; then export CXX="g++-4.9"
-  CC="gcc-4.9"; fi
 - $CC --version
 - $CXX --version
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
