@@ -12,7 +12,7 @@ BOOTSTRAP_FLAGS=""
 B2_FLAGS=""
 else
 BOOTSTRAP_FLAGS="--with-toolset=gcc"
-B2_FLAGS="toolset=gcc-5.4"
+B2_FLAGS=""
 fi
 ./bootstrap.sh ${BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system --prefix=${INSTALL_DIR}
 ./b2 ${B2_FLAGS} link=static threading=multi runtime-link=shared cxxflags=-fPIC
