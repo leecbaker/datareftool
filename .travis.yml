@@ -23,6 +23,7 @@ addons:
     - libx11-dev
     - libbz2-dev
     - sshpass
+    - libglu1-mesa-dev
 before_install:
 - cmake --version
 - $CC --version
