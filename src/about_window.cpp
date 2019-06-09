@@ -1,7 +1,7 @@
 #include "about_window.h"
 
 #include "XPLMDisplay.h"
-#include "XPCWidget.h"
+#include "XPWidgets.h"
 #include "XPStandardWidgets.h"
 #include "XPLMDataAccess.h"
 

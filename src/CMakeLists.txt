@@ -1,5 +1,9 @@
 project(datareftool CXX)
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
+set(CMAKE_CXX_EXTENSIONS off)
+
 SET(SRC about_window.cpp plugin.cpp viewer_window.cpp viewer_window_command_button.cpp allrefs.cpp dataref.cpp commandref.cpp dataref_files.cpp string_util.cpp find_datarefs_in_files.cpp prefs.cpp logging.cpp search.cpp ../lib/glew/glew.c)
 SET(HDR about_window.h plugin.h viewer_window.h viewer_window_command_button.h allrefs.h dataref.h commandref.h ref.h dataref_files.h string_util.h clipboard.h find_datarefs_in_files.h prefs.h logging.h search.h ../lib/glew/glew.h)
 
@@ -42,7 +46,7 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHECK_RESULT_USED=_Check_return_")
 	add_definitions(-DNOMINMAX -DGLEW_STATIC -D_SCL_SECURE_NO_WARNINGS)
 else()
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra --std=c++14")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCHECK_RESULT_USED=\"__attribute__ ((warn_unused_result))\"")
 	if(APPLE)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmost")

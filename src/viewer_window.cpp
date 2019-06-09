@@ -1,6 +1,7 @@
 #include "clipboard.h"
 #include "allrefs.h"
 #include "commandref.h"
+#include "logging.h"
 #include "plugin.h"
 #include "search.h"
 #include "string_util.h"
@@ -9,7 +10,7 @@
 #include "viewer_window_command_button.h"
 
 #include "XPLMDisplay.h"
-#include "XPCWidget.h"
+#include "XPWidgets.h"
 #include "XPStandardWidgets.h"
 #include "XPLMDataAccess.h"
 #include "XPLMGraphics.h"
@@ -910,8 +911,7 @@ public:
     
     void setCaseSensitive(bool is_case_sensitive) {
 		params.setCaseSensitive(is_case_sensitive);
-        int i = is_case_sensitive ? 1 : 0;
-        XPSetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, i);
+        XPSetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, is_case_sensitive ? 1 : 0);
     }
     
     void setIsRegex(bool is_regex) {
