@@ -766,10 +766,10 @@ public:
 				window_title << "double/";
 			}
 			if(select_edit_dataref->isIntArray()) {
-				window_title << "int_arr/";
+				window_title << "int[" << select_edit_dataref->getArrayLength() << "]/";
 			}
 			if(select_edit_dataref->isFloatArray()) {
-				window_title << "float_arr/";
+				window_title << "float[" << select_edit_dataref->getArrayLength() << "]/";
 			}
 			if(select_edit_dataref->isData()) {
 				window_title << "data/";
