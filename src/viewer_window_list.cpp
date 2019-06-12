@@ -132,10 +132,16 @@ bool ViewerWindowList::leftClick(int x, int y) {
     } else  if(nullptr != cr_record) {
         selected_command = cr_record;
         select_edit_dataref = nullptr;
-        XPHideWidget(edit_field);
+
+        XPSetWidgetGeometry(edit_field, list_left, element_top + box_padding_y, list_left + dataref_name_width + box_padding_x, element_bottom - box_padding_y);
+        XPSetWidgetDescriptor(edit_field, name.c_str());
+        setEditSelection(0, name.size());
+        XPShowWidget(edit_field);
+        edit_modified = false;
     } else {
         selected_command = nullptr;
         select_edit_dataref = nullptr;
+        XPHideWidget(edit_field);
     }
     return 1;
 }
