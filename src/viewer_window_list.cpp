@@ -9,6 +9,7 @@
 
 #include "XPLMGraphics.h"
 
+#include <cctype>
 #include <chrono>
 #include <iterator>
 #include <string>
