@@ -4,8 +4,8 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(CMAKE_CXX_EXTENSIONS off)
 
-SET(SRC about_window.cpp plugin.cpp viewer_window.cpp viewer_window_command_button.cpp allrefs.cpp dataref.cpp commandref.cpp dataref_files.cpp string_util.cpp find_datarefs_in_files.cpp prefs.cpp logging.cpp search.cpp ../lib/glew/glew.c)
-SET(HDR about_window.h plugin.h viewer_window.h viewer_window_command_button.h allrefs.h dataref.h commandref.h ref.h dataref_files.h string_util.h clipboard.h find_datarefs_in_files.h prefs.h logging.h search.h ../lib/glew/glew.h)
+SET(SRC about_window.cpp plugin.cpp viewer_window.cpp viewer_window_list.cpp viewer_window_command_button.cpp allrefs.cpp dataref.cpp commandref.cpp dataref_files.cpp string_util.cpp find_datarefs_in_files.cpp prefs.cpp logging.cpp search.cpp ../lib/glew/glew.c)
+SET(HDR about_window.h plugin.h viewer_window.h viewer_window_list.h viewer_window_command_button.h allrefs.h dataref.h commandref.h ref.h dataref_files.h string_util.h clipboard.h find_datarefs_in_files.h prefs.h logging.h search.h ../lib/glew/glew.h)
 
 SET(SRC_PLUGIN_EXAMPLE plugin_custom_dataref.cpp)
 SET(SRC_PLUGIN_CRASHER plugin_crasher.cpp)

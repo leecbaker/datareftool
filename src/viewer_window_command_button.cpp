@@ -28,6 +28,10 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
                 int left, top, right, bottom;
                 XPGetWidgetGeometry(inWidget, &left, &top, &right, &bottom);
 
+                XPWidgetID list = XPGetParentWidget(inWidget);
+                int list_left, list_top, list_right, list_bottom;
+                XPGetWidgetGeometry(list, &list_left, &list_top, &list_right, &list_bottom);
+
                 XPLMSetGraphicsState(0, 0, 0, 0, 1, 0, 0);
                 glDisable(GL_TEXTURE_2D);
 
@@ -36,6 +40,8 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
                 const std::array<float,3> & color = crr->isActivated() ? color_active : color_inactive;
 
                 glColor4f(color[0], color[1], color[2], 1.f);
+                glScissor(list_left, list_bottom, list_right - list_left, list_top - list_bottom);
+                glEnable(GL_SCISSOR_TEST);
 
                 glBegin(GL_LINE_STRIP);
                 glVertex3i(left+2, top, 0);
@@ -61,6 +67,8 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
                         XPLMDrawString(const_cast<float *>(color.data()), left + 5, bottom + 2, const_cast<char *>(crr->isActivated() ? "End" : "Begin"), nullptr, xplmFont_Basic);
                         break;
                 }
+
+                glDisable(GL_SCISSOR_TEST);
             }
             return 1;
 
