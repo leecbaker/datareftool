@@ -24,12 +24,13 @@ addons:
     - libbz2-dev
     - sshpass
     - libglu1-mesa-dev
+    - g++-8
+  homebrew:
+    packages: hudochenkov/sshpass/sshpass
 before_install:
 - cmake --version
 - $CC --version
 - $CXX --version
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install hudochenkov/sshpass/sshpass ; fi
 - bash build_latest_boost.sh
 script:
 - mkdir build
