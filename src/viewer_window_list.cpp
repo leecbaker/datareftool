@@ -77,7 +77,10 @@ int ViewerWindowList::listCallback(XPWidgetMessage  inMessage, XPWidgetID  inWid
         case xpMsg_MouseDown: {
             XPMouseState_t * mouse_info = reinterpret_cast<XPMouseState_t *>(inParam1);
             if(mouse_info->button == 0) {
-                return obj->leftClick(mouse_info->x, mouse_info->y) ? 1 : 0;
+                return obj->leftClick(mouse_info->x, mouse_info->y, MouseButton::LEFT) ? 1 : 0;
+            }
+            if(mouse_info->button == 1) {
+                return obj->leftClick(mouse_info->x, mouse_info->y, MouseButton::RIGHT) ? 1 : 0;
             }
 
             return 0;
@@ -86,7 +89,7 @@ int ViewerWindowList::listCallback(XPWidgetMessage  inMessage, XPWidgetID  inWid
     return 0;
 }
 
-bool ViewerWindowList::leftClick(int x, int y) {
+bool ViewerWindowList::leftClick(int x, int y, MouseButton button) {
     int list_left, list_top, list_bottom, list_right;
     XPGetWidgetGeometry(list_widget, &list_left, &list_top, &list_right, &list_bottom);
 
@@ -115,34 +118,43 @@ bool ViewerWindowList::leftClick(int x, int y) {
 
     DataRefRecord * dr_record = dynamic_cast<DataRefRecord *>(record);
     CommandRefRecord * cr_record = dynamic_cast<CommandRefRecord *>(record);
-    if(nullptr != dr_record) {
-        if(x < dataref_name_width) {
-            XPSetWidgetGeometry(edit_field, list_left, element_top + box_padding_y, list_left + dataref_name_width + box_padding_x, element_bottom - box_padding_y);
-            XPSetWidgetDescriptor(edit_field, name.c_str());
-            setEditSelection(0, name.size());
-        } else {
-            const std::string value_str = dr_record->getEditString();
-            select_edit_dataref = dr_record;
-            selected_command = nullptr;
-            XPSetWidgetGeometry(edit_field, list_left + dataref_name_width_plus_eq - box_padding_x, element_top + box_padding_y, list_right, element_bottom - box_padding_y);
-            XPSetWidgetDescriptor(edit_field, value_str.c_str());
-            setEditSelection(0, value_str.size());
-        }
-        XPShowWidget(edit_field);
-        edit_modified = false;
-    } else  if(nullptr != cr_record) {
-        selected_command = cr_record;
-        select_edit_dataref = nullptr;
+    switch(button) {
+        case MouseButton::LEFT:
+            if(nullptr != dr_record) {
+                if(x < dataref_name_width) {
+                    XPSetWidgetGeometry(edit_field, list_left, element_top + box_padding_y, list_left + dataref_name_width + box_padding_x, element_bottom - box_padding_y);
+                    XPSetWidgetDescriptor(edit_field, name.c_str());
+                    setEditSelection(0, name.size());
+                } else {
+                    const std::string value_str = dr_record->getEditString();
+                    select_edit_dataref = dr_record;
+                    selected_command = nullptr;
+                    XPSetWidgetGeometry(edit_field, list_left + dataref_name_width_plus_eq - box_padding_x, element_top + box_padding_y, list_right, element_bottom - box_padding_y);
+                    XPSetWidgetDescriptor(edit_field, value_str.c_str());
+                    setEditSelection(0, value_str.size());
+                }
+                XPShowWidget(edit_field);
+                edit_modified = false;
+            } else  if(nullptr != cr_record) {
+                selected_command = cr_record;
+                select_edit_dataref = nullptr;
 
-        XPSetWidgetGeometry(edit_field, list_left, element_top + box_padding_y, list_left + dataref_name_width + box_padding_x, element_bottom - box_padding_y);
-        XPSetWidgetDescriptor(edit_field, name.c_str());
-        setEditSelection(0, name.size());
-        XPShowWidget(edit_field);
-        edit_modified = false;
-    } else {
-        selected_command = nullptr;
-        select_edit_dataref = nullptr;
-        XPHideWidget(edit_field);
+                XPSetWidgetGeometry(edit_field, list_left, element_top + box_padding_y, list_left + dataref_name_width + box_padding_x, element_bottom - box_padding_y);
+                XPSetWidgetDescriptor(edit_field, name.c_str());
+                setEditSelection(0, name.size());
+                XPShowWidget(edit_field);
+                edit_modified = false;
+            } else {
+                selected_command = nullptr;
+                select_edit_dataref = nullptr;
+                XPHideWidget(edit_field);
+            }
+            break;
+        case MouseButton::RIGHT:
+            if(nullptr != record) {
+                setClipboard(record->getName());
+            }
+            break;
     }
     return 1;
 }

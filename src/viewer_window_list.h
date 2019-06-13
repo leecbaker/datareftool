@@ -98,7 +98,12 @@ class ViewerWindowList {
 	void setEditSelection(intptr_t start, intptr_t stop);
     size_t getScrollPosition() const;
 
-    bool leftClick(int x, int y);
+    enum class MouseButton {
+        LEFT,
+        RIGHT,
+    };
+
+    bool leftClick(int x, int y, MouseButton button);
 
 public:
     ViewerWindowList(XPWidgetID window, std::vector<RefRecord *> & results);
