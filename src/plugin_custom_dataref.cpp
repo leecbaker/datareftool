@@ -12,9 +12,9 @@ float register_dr_callback(float, float, int, void *)
 {
 	XPLMPluginID plugin_id = XPLMFindPluginBySignature("com.leecbaker.datareftool");
 	if(XPLM_NO_PLUGIN_ID != plugin_id) {
-		XPLMSendMessageToPlugin(plugin_id, MSG_ADD_DATAREF, (void*)"datareftool/good_int");
-		XPLMSendMessageToPlugin(plugin_id, MSG_ADD_DATAREF, (void*)"datareftool/good_int");	//check duplicates
-		XPLMSendMessageToPlugin(plugin_id, MSG_ADD_DATAREF, (void*)"datareftool/bad_int");   
+		XPLMSendMessageToPlugin(plugin_id, MSG_ADD_DATAREF, const_cast<char *>("datareftool/good_int"));
+		XPLMSendMessageToPlugin(plugin_id, MSG_ADD_DATAREF, const_cast<char *>("datareftool/good_int"));	//check duplicates
+		XPLMSendMessageToPlugin(plugin_id, MSG_ADD_DATAREF, const_cast<char *>("datareftool/bad_int"));   
 	}
 
 	return 0; 

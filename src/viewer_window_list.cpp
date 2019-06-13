@@ -27,7 +27,7 @@ ViewerWindowList::ViewerWindowList(XPWidgetID window, std::vector<RefRecord *> &
 
     XPLMGetFontDimensions(font, &fontwidth, &fontheight, nullptr);
     list_widget = XPCreateCustomWidget(0, 0, 1, 1, 1,"", 0, window, listCallback);
-    XPSetWidgetProperty(list_widget, xpProperty_Object, (intptr_t)this);
+    XPSetWidgetProperty(list_widget, xpProperty_Object, reinterpret_cast<intptr_t>(this));
 
     scroll_bar_widget = XPCreateWidget(0, 0, 1, 1, 1,"", 0, window, xpWidgetClass_ScrollBar);
     XPSetWidgetProperty(scroll_bar_widget, xpProperty_ScrollBarType, xpScrollBarTypeScrollBar);	//might need changing
@@ -36,7 +36,7 @@ ViewerWindowList::ViewerWindowList(XPWidgetID window, std::vector<RefRecord *> &
     edit_field = XPCreateWidget(0, 0, 1, 1, 1,"", 0, window, xpWidgetClass_TextField);
     XPSetWidgetProperty(edit_field, xpProperty_TextFieldType, xpTextEntryField);
     XPAddWidgetCallback(edit_field, editFieldCallback);
-    XPSetWidgetProperty(edit_field, xpProperty_Object, (intptr_t)this);
+    XPSetWidgetProperty(edit_field, xpProperty_Object, reinterpret_cast<intptr_t>(this));
     XPHideWidget(edit_field);
 }
 
@@ -69,13 +69,13 @@ void ViewerWindowList::deselectEditField() {
 }
 
 int ViewerWindowList::listCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t inParam1, intptr_t) {
-    ViewerWindowList * obj = (ViewerWindowList *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
+    ViewerWindowList * obj = reinterpret_cast<ViewerWindowList *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
     switch(inMessage) {
         case xpMsg_Draw:
             obj->draw();
             return 1;
         case xpMsg_MouseDown: {
-            XPMouseState_t * mouse_info = (XPMouseState_t *) inParam1;
+            XPMouseState_t * mouse_info = reinterpret_cast<XPMouseState_t *>(inParam1);
             if(mouse_info->button == 0) {
                 return obj->leftClick(mouse_info->x, mouse_info->y) ? 1 : 0;
             }
@@ -148,8 +148,8 @@ bool ViewerWindowList::leftClick(int x, int y) {
 }
 
 size_t ViewerWindowList::getScrollPosition() const {
-    const int scroll_pos = (int)XPGetWidgetProperty(scroll_bar_widget, xpProperty_ScrollBarSliderPosition, nullptr);
-    const int scroll_pos_max = (int)XPGetWidgetProperty(scroll_bar_widget, xpProperty_ScrollBarMax, nullptr);
+    const int scroll_pos = static_cast<int>(XPGetWidgetProperty(scroll_bar_widget, xpProperty_ScrollBarSliderPosition, nullptr));
+    const int scroll_pos_max = static_cast<int>(XPGetWidgetProperty(scroll_bar_widget, xpProperty_ScrollBarMax, nullptr));
     return scroll_pos_max - scroll_pos;
 }
 
@@ -194,7 +194,7 @@ void ViewerWindowList::draw() {
             linetext = pcr->getName();
         }
 
-        XPLMDrawString(colors.data(), list_left, bottom + 2, (char *)linetext.c_str(), nullptr, font);
+        XPLMDrawString(colors.data(), list_left, bottom + 2, const_cast<char *>(linetext.c_str()), nullptr, font);
         linetext.clear();
         top -= fontheight;
     }
@@ -211,14 +211,14 @@ void ViewerWindowList::resize(int left, int top, int right, int bottom) {
 }
 
 
-void ViewerWindowList::updateScroll(int left, int top, int right, int bottom) {
+void ViewerWindowList::updateScroll(int /* left */, int top, int /* right */, int bottom) {
 
     int results_height = results.size() * fontheight;
     int window_height = top - bottom;
     int scroll_pixels = std::max<int>(0, results_height - window_height);
 
     //update the scrollbar
-    int scroll_pos = (int)XPGetWidgetProperty(scroll_bar_widget, xpProperty_ScrollBarSliderPosition, nullptr);
+    int scroll_pos = static_cast<int>(XPGetWidgetProperty(scroll_bar_widget, xpProperty_ScrollBarSliderPosition, nullptr));
 
     scroll_pos = std::max<int>(0, std::min(scroll_pixels, scroll_pos));
 
@@ -325,8 +325,8 @@ bool ViewerWindowList::saveEditField() {
 }
 
 int ViewerWindowList::editFieldCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t  inParam1, intptr_t) {
-    ViewerWindowList * obj = (ViewerWindowList *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
-    XPKeyState_t * keystruct = (XPKeyState_t *) inParam1;
+    ViewerWindowList * obj = reinterpret_cast<ViewerWindowList *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
+    XPKeyState_t * keystruct = reinterpret_cast<XPKeyState_t *>(inParam1);
     switch(inMessage) {
         case xpMsg_DescriptorChanged:
             return 1;

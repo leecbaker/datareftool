@@ -24,7 +24,7 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
     switch(inMessage) {
         case xpMsg_Draw:
             {
-			    CommandRefRecord * crr = (CommandRefRecord *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
+			    CommandRefRecord * crr = reinterpret_cast<CommandRefRecord *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
                 int left, top, right, bottom;
                 XPGetWidgetGeometry(inWidget, &left, &top, &right, &bottom);
 
@@ -74,7 +74,7 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
 
         case xpMsg_MouseDown:
             {
-			    CommandRefRecord * crr = (CommandRefRecord *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
+			    CommandRefRecord * crr = reinterpret_cast<CommandRefRecord *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
                 if(nullptr != crr) {
 
                 switch(button_type) {
@@ -98,7 +98,7 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
 
         case xpMsg_MouseUp:
             {
-			    CommandRefRecord * crr = (CommandRefRecord *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
+			    CommandRefRecord * crr = reinterpret_cast<CommandRefRecord *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
                 if(nullptr != crr) {
 
                     switch(button_type) {

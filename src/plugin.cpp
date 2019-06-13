@@ -372,20 +372,20 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
     int plugin_submenu = XPLMAppendMenuItem(XPLMFindPluginsMenu(), "DataRefTool", nullptr, 1);
     plugin_menu = XPLMCreateMenu("DataRefTool", XPLMFindPluginsMenu(), plugin_submenu, plugin_menu_handler, nullptr);
 
-    XPLMAppendMenuItem(plugin_menu, "View Datarefs", (void *)0, 1);
-    XPLMAppendMenuItem(plugin_menu, "View Commands", (void *)1, 1);
+    XPLMAppendMenuItem(plugin_menu, "View Datarefs", reinterpret_cast<void *>(0), 1);
+    XPLMAppendMenuItem(plugin_menu, "View Commands", reinterpret_cast<void *>(1), 1);
     XPLMAppendMenuSeparator(plugin_menu);
-    XPLMAppendMenuItem(plugin_menu, "Rescan for datarefs and commands", (void *)2, 1);
+    XPLMAppendMenuItem(plugin_menu, "Rescan for datarefs and commands", reinterpret_cast<void *>(2), 1);
     XPLMAppendMenuSeparator(plugin_menu);
-    XPLMAppendMenuItem(plugin_menu, "Reload aircraft", (void *)3, 1);
-    XPLMAppendMenuItem(plugin_menu, "Reload plugins", (void *)4, 1);
-    XPLMAppendMenuItem(plugin_menu, "Reload scenery", (void *)5, 1);
+    XPLMAppendMenuItem(plugin_menu, "Reload aircraft", reinterpret_cast<void *>(3), 1);
+    XPLMAppendMenuItem(plugin_menu, "Reload plugins", reinterpret_cast<void *>(4), 1);
+    XPLMAppendMenuItem(plugin_menu, "Reload scenery", reinterpret_cast<void *>(5), 1);
     XPLMAppendMenuSeparator(plugin_menu);
-    reload_on_plugin_change_item = XPLMAppendMenuItem(plugin_menu, "Reload plugins on modification", (void *)7, 1);
+    reload_on_plugin_change_item = XPLMAppendMenuItem(plugin_menu, "Reload plugins on modification", reinterpret_cast<void *>(7), 1);
     XPLMAppendMenuSeparator(plugin_menu);
-    impersonate_dre_menu_item = XPLMAppendMenuItem(plugin_menu, "Impersonate DRE (requires reload)", (void *)8, 1);
+    impersonate_dre_menu_item = XPLMAppendMenuItem(plugin_menu, "Impersonate DRE (requires reload)", reinterpret_cast<void *>(8), 1);
     XPLMAppendMenuSeparator(plugin_menu);
-    XPLMAppendMenuItem(plugin_menu, "About DataRefTool", (void *)6, 1);
+    XPLMAppendMenuItem(plugin_menu, "About DataRefTool", reinterpret_cast<void *>(6), 1);
 
     XPLMEnableMenuItem(plugin_menu, 0, 1);
     XPLMEnableMenuItem(plugin_menu, 1, 1);
@@ -445,10 +445,10 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
         // Add custom datarefs in the style of DRE:
         // http://www.xsquawkbox.net/xpsdk/mediawiki/Register_Custom_DataRef_in_DRE
         case MSG_ADD_DATAREF:
-            new_datarefs_from_messages_this_frame.emplace_back((char *)inParam);
+            new_datarefs_from_messages_this_frame.emplace_back(reinterpret_cast<char *>(inParam));
             break;
         case MSG_ADD_COMMANDREF:
-            new_datarefs_from_messages_this_frame.emplace_back((char *)inParam);
+            new_datarefs_from_messages_this_frame.emplace_back(reinterpret_cast<char *>(inParam));
             break;
         case XPLM_MSG_PLANE_LOADED: {
             int64_t plane_num = int64_t(inParam);

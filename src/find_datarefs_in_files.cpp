@@ -15,7 +15,7 @@
 
 // + character is necessary for A320neo
 inline char isValidDatarefChar(char c) {
-	return std::isalnum((unsigned char)(c)) || '_' == c || '/' == c || '-' == c || '.' == c || '+' == c;
+	return std::isalnum(static_cast<unsigned char>(c)) || '_' == c || '/' == c || '-' == c || '.' == c || '+' == c;
 }
 
 const size_t min_dataref_length = 8;

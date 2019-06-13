@@ -55,8 +55,8 @@ class ViewerWindow {
 	SearchParams params;
 
 	static int viewerWindowCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t) {
-		XPMouseState_t * mouse_info = (XPMouseState_t *) inParam1;
-		ViewerWindow * obj = (ViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
+		XPMouseState_t * mouse_info = reinterpret_cast<XPMouseState_t *>(inParam1);
+		ViewerWindow * obj = reinterpret_cast<ViewerWindow *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
 		switch(inMessage) {
 			case xpMsg_MouseWheel:
 				obj->list->moveScroll(mouse_info->delta);
@@ -107,8 +107,8 @@ class ViewerWindow {
 	}
 
 	static int searchFieldCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t) {
-		ViewerWindow * obj = (ViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
-		XPKeyState_t * keystruct = (XPKeyState_t *) inParam1;
+		ViewerWindow * obj = reinterpret_cast<ViewerWindow *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
+		XPKeyState_t * keystruct = reinterpret_cast<XPKeyState_t *>(inParam1);
 		switch(inMessage) {
 			case xpMsg_DescriptorChanged:
 				obj->params.setSearchTerms(obj->getSearchTermText());
@@ -168,7 +168,7 @@ class ViewerWindow {
 						}
 					}
 				} else {
-					switch((uint8_t) keystruct->vkey) {
+					switch(static_cast<uint8_t>(keystruct->vkey)) {
 						case XPLM_VK_NUMPAD_ENT:
 						case XPLM_VK_ENTER:
 						case XPLM_VK_RETURN:
@@ -188,7 +188,7 @@ class ViewerWindow {
 	}
 
 	static int filterClickCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t, intptr_t) {
-		ViewerWindow * obj = (ViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
+		ViewerWindow * obj = reinterpret_cast<ViewerWindow *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
 		switch(inMessage) {
 			case xpMsg_ButtonStateChanged:
 				if(inWidget == obj->change_filter_button) {
@@ -214,7 +214,7 @@ class ViewerWindow {
 	}
 
 	static int drawListCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t, intptr_t) {
-		ViewerWindow * obj = (ViewerWindow *) XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr);
+		ViewerWindow * obj = reinterpret_cast<ViewerWindow *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
 		switch(inMessage) {
 			case xpMsg_Draw:
 				obj->draw();
@@ -236,7 +236,7 @@ public:
 		XPSetWidgetProperty(window, xpProperty_MainWindowHasCloseBoxes, 1);
 		XPSetWidgetProperty(window, xpProperty_MainWindowType, xpMainWindowStyle_Translucent);
 		XPAddWidgetCallback(window, viewerWindowCallback);
-		XPSetWidgetProperty(window, xpProperty_Object, (intptr_t)this);
+		XPSetWidgetProperty(window, xpProperty_Object, reinterpret_cast<intptr_t>(this));
 		
 		list = std::make_unique<ViewerWindowList>(window, refs);
 
@@ -245,21 +245,21 @@ public:
 		XPSetWidgetProperty(regex_toggle_button, xpProperty_ButtonBehavior, xpButtonBehaviorCheckBox);
 		XPSetWidgetProperty(regex_toggle_button, xpProperty_ButtonState, 0);
 		XPAddWidgetCallback(regex_toggle_button, filterClickCallback);
-		XPSetWidgetProperty(regex_toggle_button, xpProperty_Object, (intptr_t)this);
+		XPSetWidgetProperty(regex_toggle_button, xpProperty_Object, reinterpret_cast<intptr_t>(this));
 
 		case_sensitive_button = XPCreateWidget(0, 0, 1, 1, 1,"Aa", 0, window, xpWidgetClass_Button);
 		XPSetWidgetProperty(case_sensitive_button, xpProperty_ButtonType, xpPushButton);
 		XPSetWidgetProperty(case_sensitive_button, xpProperty_ButtonBehavior, xpButtonBehaviorCheckBox);
 		XPSetWidgetProperty(case_sensitive_button, xpProperty_ButtonState, 0);
 		XPAddWidgetCallback(case_sensitive_button, filterClickCallback);
-		XPSetWidgetProperty(case_sensitive_button, xpProperty_Object, (intptr_t)this);
+		XPSetWidgetProperty(case_sensitive_button, xpProperty_Object, reinterpret_cast<intptr_t>(this));
 
 		change_filter_button = XPCreateWidget(0, 0, 1, 1, 1,"Ch", 0, window, xpWidgetClass_Button);
 		XPSetWidgetProperty(change_filter_button, xpProperty_ButtonType, xpPushButton);
 		XPSetWidgetProperty(change_filter_button, xpProperty_ButtonBehavior, xpButtonBehaviorCheckBox);
 		XPSetWidgetProperty(change_filter_button, xpProperty_ButtonState, 0);
 		XPAddWidgetCallback(change_filter_button, filterClickCallback);
-		XPSetWidgetProperty(change_filter_button, xpProperty_Object, (intptr_t)this);
+		XPSetWidgetProperty(change_filter_button, xpProperty_Object, reinterpret_cast<intptr_t>(this));
 		updateChangeButton();
 
 		cr_dr_filter_button = XPCreateWidget(0, 0, 1, 1, 1,"??", 0, window, xpWidgetClass_Button);
@@ -267,13 +267,13 @@ public:
 		XPSetWidgetProperty(cr_dr_filter_button, xpProperty_ButtonBehavior, xpButtonBehaviorCheckBox);
 		XPSetWidgetProperty(cr_dr_filter_button, xpProperty_ButtonState, 0);
 		XPAddWidgetCallback(cr_dr_filter_button, filterClickCallback);
-		XPSetWidgetProperty(cr_dr_filter_button, xpProperty_Object, (intptr_t)this);
+		XPSetWidgetProperty(cr_dr_filter_button, xpProperty_Object, reinterpret_cast<intptr_t>(this));
 		updateCrDrFilterButton();
 
 		search_field = XPCreateWidget(0, 0, 1, 1, 1,"", 0, window, xpWidgetClass_TextField);
 		XPSetWidgetProperty(search_field, xpProperty_TextFieldType, xpTextTranslucent);
 		XPAddWidgetCallback(search_field, searchFieldCallback);
-		XPSetWidgetProperty(search_field, xpProperty_Object, (intptr_t)this);
+		XPSetWidgetProperty(search_field, xpProperty_Object, reinterpret_cast<intptr_t>(this));
 
 		// Clamp window bounds to screen size. This could happen if, e.g.,
 		// a window is closed in VR, and then re-opened in non-VR.

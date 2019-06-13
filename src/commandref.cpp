@@ -3,7 +3,7 @@
 #include "plugin.h"
 
 int CommandRefRecord::cr_callback(XPLMCommandRef /*inCommand*/, XPLMCommandPhase phase, void * inRefcon) {
-    CommandRefRecord * record = (CommandRefRecord *) inRefcon;
+    CommandRefRecord * record = reinterpret_cast<CommandRefRecord *>(inRefcon);
 
     std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
     record->last_updated = now;
