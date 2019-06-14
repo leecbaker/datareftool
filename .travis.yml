@@ -2,17 +2,19 @@ language: cpp
 dist: xenial
 sudo: false
 os:
-- linux
-- osx
-compiler:
-- clang
-- gcc
-matrix:
-  exclude:
-  - os: linux
-    compiler: clang
-  - os: osx
+  linux:
     compiler: gcc
+    env:
+    - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
+    - BOOST_BOOTSTRAP_FLAGS="--with-toolset=gcc"
+    after_success:
+    - otool -L ../bin/datareftool/*.xpl
+  osx:
+    compiler: clang
+    env:
+    - BOOST_BOOTSTRAP_FLAGS=""
+    after_success:
+    - ldd ../bin/datareftool/*.xpl
 addons:
   apt:
     sources:
@@ -27,24 +29,25 @@ addons:
     - g++-8
   homebrew:
     packages: hudochenkov/sshpass/sshpass
-before_install:
+script:
 - cmake --version
 - $CC --version
 - $CXX --version
-- bash build_latest_boost.sh
-script:
+- wget https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz
+- tar xf boost_1_69_0.tar.gz
+- cd boost_1_69_0/
+- ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system --prefix=~/boost
+- ./b2 link=static threading=multi runtime-link=shared cxxflags=-fPIC
+- ./b2 install --prefix=~/boost
+- cd $TRAVIS_BUILD_DIR
 - mkdir build
 - cd build
-- export BOOST_ROOT=~/boost
-- cmake -DCMAKE_BUILD_TYPE=Release ..
+- cmake -DBOOST_ROOT=~/boost -DCMAKE_BUILD_TYPE=Release ..
 - make
 - export SSHPASS=$DEPLOY_PASS
 - sshpass -e ssh -oStrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST mkdir -p /home/$DEPLOY_USER/drt/${TRAVIS_COMMIT}
 - sshpass -e scp ../bin/datareftool/*.xpl  $DEPLOY_USER@$DEPLOY_HOST:/home/$DEPLOY_USER/drt/${TRAVIS_COMMIT}
 - sshpass -e ssh $DEPLOY_USER@$DEPLOY_HOST cp /home/$DEPLOY_USER/drt/${TRAVIS_COMMIT}/*.xpl /home/$DEPLOY_USER/drt/latest/
-after_success:
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then otool -L ../bin/datareftool/*.xpl ; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; ldd ../bin/datareftool/*.xpl ; fi
 env:
   global:
   - secure: lieFXMe/EzHlDEA0ukepL28uQsgZWArC39w9Tk7jsTp8nBOeIYtlgO/oFOn5XIIoX8nPlLTx7u6eG0/cpU0Ny4yXpdg+JONAdKoDlHZI9o7vSpH4WEJw2wllmQJCxaYNVil014/a/5qba5K574MoG7wiRETXd+QOTioMKSD+ZyfjREEtw07YuMR1r/LnxowMbeDaLEeGOrRH+kaglIHtUu2/A2PCeYeS2EZPWlTpy383UnDmOBxa1Bw1Af5zwKTelCjpv+3nJd8+lREwYER8BqAemN6avJxJuCMJcYv6MMs0vQwDKvbFTaTrgUs33uzgrGDJIc3M88227UT+MTsXiJJ6o5915k6EB27hw18dTcnJTIo44ljHGOzLi7TWHqDm21vgfwozUle79vuIINsiuulbNICqPgs+t5lU5O50VfNm/9hOP9Tr8xALRjDvei+ANeVz5dNSWrqZYE6t1OA5R+tuRUmjM5d0ROsTfw13Kko/rTY6dftGnSxsEj0Wzke+/Hoo3tlX96RneDDZ+g6k/prfYbrnq7f87NwpXAfojOvTtdkAB2xrPTWx5XsCGvl3hankfVaeIx//s60mu4wSlDf8EsYQHPLu0v1dEUD8ibOHEYC6A741CmorJ26T3mKp2snPNpiiUawSl6EbzsXPpT/3+ZzFJEu8NFc7tNJp9M4=
