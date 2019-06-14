@@ -11,6 +11,7 @@
 
 #include <cctype>
 #include <chrono>
+#include <cmath>
 #include <iterator>
 #include <string>
 
@@ -269,7 +270,7 @@ void ViewerWindowList::updateCommandButtons() {
             CommandRefRecord * crr = dynamic_cast<CommandRefRecord *>(results[result_index]);
             if(nullptr != crr) {
                 float command_name_width = XPLMMeasureString(font, crr->getName().c_str(), int(crr->getName().size()));
-                cbr->showAtPosition(list_left + ceil(command_name_width), top, list_right, bottom);
+                cbr->showAtPosition(list_left + std::ceil(command_name_width), top, list_right, bottom);
                 cbr->setCommand(crr);
             } else {
                 cbr->hide();
