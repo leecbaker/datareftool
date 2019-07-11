@@ -2,9 +2,7 @@ language: cpp
 dist: xenial
 os:
 - linux
-  compiler: gcc
 - osx
-  compiler: clang
 addons:
   apt:
     sources:
