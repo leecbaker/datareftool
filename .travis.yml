@@ -1,20 +1,12 @@
 language: cpp
 dist: xenial
 sudo: false
+env:
 os:
-  linux:
-    compiler: gcc
-    env:
-    - MATRIX_EVAL="CC=gcc-8 && CXX=g++-8"
-    - BOOST_BOOTSTRAP_FLAGS="--with-toolset=gcc"
-    after_success:
-    - otool -L ../bin/datareftool/*.xpl
-  osx:
-    compiler: clang
-    env:
-    - BOOST_BOOTSTRAP_FLAGS=""
-    after_success:
-    - ldd ../bin/datareftool/*.xpl
+- linux
+  compiler: gcc
+- osx
+  compiler: clang
 addons:
   apt:
     sources:
@@ -27,29 +19,33 @@ addons:
     - sshpass
     - libglu1-mesa-dev
     - g++-8
+    - ninja
   homebrew:
-    packages: hudochenkov/sshpass/sshpass
-script:
+    packages:
+    - ninja
+before_install:
 - cmake --version
 - $CC --version
 - $CXX --version
-- wget https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz
-- tar xf boost_1_69_0.tar.gz
-- cd boost_1_69_0/
-- ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system --prefix=~/boost
+script:
+- pwd
+- mkdir -p /home/travis/boost
+- wget http://downloads.sourceforge.net/project/boost/boost/1.60.0/boost_1_60_0.tar.bz2
+- tar --bzip2 -xf boost_1_60_0.tar.bz2
+- cd boost_1_60_0/
+- ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system --prefix=/home/travis/boost
 - ./b2 link=static threading=multi runtime-link=shared cxxflags=-fPIC
-- ./b2 install --prefix=~/boost
+- ./b2 install --prefix=/home/travis/boost
 - cd $TRAVIS_BUILD_DIR
 - mkdir build
 - cd build
-- cmake -DBOOST_ROOT=~/boost -DCMAKE_BUILD_TYPE=Release ..
+- ls -l /home/travis/boost/include
+- ls -l /home/travis/boost/lib
+- cmake -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=/home/travis/boost -DBOOST_INCLUDEDIR=/home/travis/boost/include ..
 - make
-- export SSHPASS=$DEPLOY_PASS
-- sshpass -e ssh -oStrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST mkdir -p /home/$DEPLOY_USER/drt/${TRAVIS_COMMIT}
-- sshpass -e scp ../bin/datareftool/*.xpl  $DEPLOY_USER@$DEPLOY_HOST:/home/$DEPLOY_USER/drt/${TRAVIS_COMMIT}
-- sshpass -e ssh $DEPLOY_USER@$DEPLOY_HOST cp /home/$DEPLOY_USER/drt/${TRAVIS_COMMIT}/*.xpl /home/$DEPLOY_USER/drt/latest/
-env:
-  global:
-  - secure: lieFXMe/EzHlDEA0ukepL28uQsgZWArC39w9Tk7jsTp8nBOeIYtlgO/oFOn5XIIoX8nPlLTx7u6eG0/cpU0Ny4yXpdg+JONAdKoDlHZI9o7vSpH4WEJw2wllmQJCxaYNVil014/a/5qba5K574MoG7wiRETXd+QOTioMKSD+ZyfjREEtw07YuMR1r/LnxowMbeDaLEeGOrRH+kaglIHtUu2/A2PCeYeS2EZPWlTpy383UnDmOBxa1Bw1Af5zwKTelCjpv+3nJd8+lREwYER8BqAemN6avJxJuCMJcYv6MMs0vQwDKvbFTaTrgUs33uzgrGDJIc3M88227UT+MTsXiJJ6o5915k6EB27hw18dTcnJTIo44ljHGOzLi7TWHqDm21vgfwozUle79vuIINsiuulbNICqPgs+t5lU5O50VfNm/9hOP9Tr8xALRjDvei+ANeVz5dNSWrqZYE6t1OA5R+tuRUmjM5d0ROsTfw13Kko/rTY6dftGnSxsEj0Wzke+/Hoo3tlX96RneDDZ+g6k/prfYbrnq7f87NwpXAfojOvTtdkAB2xrPTWx5XsCGvl3hankfVaeIx//s60mu4wSlDf8EsYQHPLu0v1dEUD8ibOHEYC6A741CmorJ26T3mKp2snPNpiiUawSl6EbzsXPpT/3+ZzFJEu8NFc7tNJp9M4=
-  - secure: HfpHnZ/zFgB3G1aquuK4F6SC/9MA5yrDl4i9hFxn96QGs2N39X6cAziawwV88jjtEbOTvW1AIrCKB4RQq0s5kDzQNk30KIRR58sNLIkjQvZkNSQJakJLslrvKYQlsQpDI2+GY18YAHm/kaeIZb17uqBqHqTLjCRkNUnarkFDcMNgxDFVD394U1yqDdk8BpkFZWg/RZon1gZDk1FjOhFJ7AvvlCc/RcwdhtaXJL8z+mY+U8gW3G5zpPjRQWLHBTY3QAMLwhy2E1LyBl5C8UVtd8qfJ4TzxHN67Fn/LP286vfuA1HiJ+nY5IHYnHEeeoLsb8idlUMWJYVGgRm0bhGqovigtNEfUfI+m/4BrJD6YUbMNQNeZqDDDKOUQHPVxVGgYPF8IcxAFIJNEOdd4A/BzmwpOVzjzO50JAjd8v+f+Qs9AcRvDqnBrbVK/e/CIDMh1SNtdu6DViUhkuMECynMg07g0ixAsjCkQ/fenToSmvOal5nvFdUKb0AfmJAAE7SNwn0AhNwtxHtmWTo+vVXUm/J1s4d/mit75qxNP3crE8SDg/nhbe+jgJldjPXu42OH1HUnHmFxQcPyibVrOeeJrAM4GsvRQLd1U9RdMDF4m4fqvAG8Q9qX7/RQQ2Z/fIqEHDL8cM4rUkpxbVppHq+1vBegXUR9PfhnW9l40SRKDLo=
-  - secure: HgE+FqpED7sQ8WeU4eJrH7uWRnckCbQVw8sgP0ClDG7xoRSJqqGMJXWlzeMz6LVqs9PujyOJLVK9TBS+oT8DNrBGhRgRyxU36xTMXlBUAeqIJQuKeobaZCMZmsptjt9VBcAnJ56+tRqkb7vwiLE2bNimo0CyOG9skQXSZrnP6AeJ7fGkVyLa1ma5R8VCzifcJRGjvQ2t16cj3B2B136G42hjWhukYwEp15rqs4EctO70lUw8SSwnCbdsQ8IsruL+FIHLEQramExzkK7AlcpLMi+WfX/dd5wz0TDTHTQlYgGF42hLBkzk9xiSEMil3Bur8n2ETCtj+j28yXIML4ctTjdYPyAxtWqL/quE+6mW11DSJlKt6osKQjW5h4Nmy2CAyU7p2q3R+Sw070KWTQwK0OCFAwqAlm0kmcEmVF00YqqsyjQ9oQoyEZCC2VArpfNQrBnZp7MZU5tGBey+iCk90OHYeAjSXlpZ416H8+k6pngy5wjZsjypknlVTEptFU3RKMJNmcYqZ9PRObVjddenxU+BedgX/jBXzbIeK70idvd2pt9/ssQns7J7wuMLMGVpSUTepVLqFHvLFaS2H38PzUVJ184Uo7SvlzbkPijxsx9Doeymk+iAKrHW/I1gjA0yU4nw7Kb0mPSGLfBZX3BiVW1ORFLqlW50S+HYz0dGUkI=
+after_success:
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then otool -L ../bin/datareftool/*.xpl ; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; ldd ../bin/datareftool/*.xpl ; fi
+addons:
+  artifacts:
+    paths: build/*.xpl
