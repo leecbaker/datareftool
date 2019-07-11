@@ -24,8 +24,6 @@ before_install:
 - $CC --version
 - $CXX --version
 script:
-- pwd
-- mkdir -p /home/travis/boost
 - wget http://downloads.sourceforge.net/project/boost/boost/1.60.0/boost_1_60_0.tar.bz2
 - tar --bzip2 -xf boost_1_60_0.tar.bz2
 - cd boost_1_60_0/
