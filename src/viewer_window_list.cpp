@@ -15,8 +15,10 @@
 #include <iterator>
 #include <string>
 
+#if IBM || LIN
+#define GLEW_STATIC
 #include "../lib/glew/glew.h"
-
+#endif
 #if APL
 #include <OpenGL/gl.h>
 #endif
