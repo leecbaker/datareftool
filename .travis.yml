@@ -44,4 +44,5 @@ after_success:
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; ldd ../bin/datareftool/*.xpl ; fi
 addons:
   artifacts:
-    paths: build/*.xpl
+    paths: bin/datareftool/*.xpl
+    target_paths: /$(git rev-parse HEAD)/
