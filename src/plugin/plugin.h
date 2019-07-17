@@ -2,7 +2,7 @@
 
 #include <boost/optional.hpp>
 
-#include "allrefs.h"
+#include "../lib/allrefs.h"
 
 #include "XPLMProcessing.h"
 

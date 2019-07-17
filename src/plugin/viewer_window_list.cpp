@@ -1,9 +1,11 @@
 #include "viewer_window_list.h"
 
-#include "allrefs.h"
+#include "../lib/allrefs.h"
 #include "clipboard.h"
-#include "commandref.h"
-#include "string_util.h"
+#include "../lib/commandref.h"
+#include "../lib/string_util.h"
+
+#include "logging.h"
 
 #include <boost/range/iterator_range.hpp>
 
@@ -322,13 +324,13 @@ bool ViewerWindowList::saveEditField() {
             }
         } else if(select_edit_dataref->isFloatArray()) {
             std::vector<float> array;
-            if(false == parseArray<float>(edit_txt, array, select_edit_dataref->getArrayLength())) {
+            if(false == parseArray<float>(xplog, edit_txt, array, select_edit_dataref->getArrayLength())) {
                 return false;
             }
             select_edit_dataref->setFloatArray(array);
         } else if(select_edit_dataref->isIntArray()) {
             std::vector<int> array;
-            if(false == parseArray<int>(edit_txt, array, select_edit_dataref->getArrayLength())) {
+            if(false == parseArray<int>(xplog, edit_txt, array, select_edit_dataref->getArrayLength())) {
                 return false;
             }
             select_edit_dataref->setIntArray(array);

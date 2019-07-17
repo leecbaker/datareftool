@@ -3,7 +3,7 @@
 #include "XPLMGraphics.h"
 #include "XPWidgets.h"
 
-#include "commandref.h"
+#include "../lib/commandref.h"
 
 #include <array>
 

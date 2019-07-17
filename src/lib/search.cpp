@@ -1,7 +1,5 @@
 #include "search.h"
 
-#include "logging.h"
-
 #include <boost/algorithm/string.hpp>
 
 void SearchParams::setSearchTerms(const std::string & terms) {

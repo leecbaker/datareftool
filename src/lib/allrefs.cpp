@@ -1,6 +1,5 @@
 
 #include "allrefs.h"
-#include "logging.h"
 #include "search.h"
 
 #include <algorithm>
@@ -19,7 +18,7 @@
 
 #include <signal.h>
 
-void RefRecords::saveToFile(const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const {
+void RefRecords::saveToFile(std::ostream & log, const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const {
 	std::vector<const std::string *> dataref_names, commandref_names;
 	dataref_names.reserve(datarefs.size());
 	for(const DataRefRecord & dr : datarefs) {
@@ -31,7 +30,7 @@ void RefRecords::saveToFile(const boost::filesystem::path & dataref_filename, co
 		commandref_names.push_back(&cr.getName());
 	}
 
-	auto sort_and_write_names = [](std::vector<const std::string *> & names, const boost::filesystem::path & filename) -> bool {
+	auto sort_and_write_names = [&log](std::vector<const std::string *> & names, const boost::filesystem::path & filename) -> bool {
 		auto p_str_comparator = [](const std::string * s1, const std::string * s2) -> bool {
 			return boost::ilexicographical_compare(*s1, *s2);
 		};
@@ -43,7 +42,7 @@ void RefRecords::saveToFile(const boost::filesystem::path & dataref_filename, co
 		}
 		f.close();
 		if(f.fail()) {
-			xplog << "Error writing file " << filename << "\n";
+			log << "Error writing file " << filename << "\n";
 		}
 		return f.fail();
 	};

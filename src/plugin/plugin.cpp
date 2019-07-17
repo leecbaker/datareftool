@@ -8,12 +8,12 @@
 
 #include "about_window.h"
 #include "viewer_window.h"
-#include "find_datarefs_in_files.h"
+#include "../lib/find_datarefs_in_files.h"
 
-#include "../lib/glew/glew.h"
+#include "../../lib/glew/glew.h"
 
-#include "allrefs.h"
-#include "dataref_files.h"
+#include "../lib/allrefs.h"
+#include "../lib/dataref_files.h"
 #include "logging.h"
 #include "plugin.h"
 #include "prefs.h"
@@ -56,7 +56,7 @@ void loadAircraftDatarefs() {
     char filename[256] = {0};
     char path[512] = {0};
     XPLMGetNthAircraftModel(0, filename, path);
-    std::vector<std::string> aircraft_datarefs = getDatarefsFromAircraft(path);
+    std::vector<std::string> aircraft_datarefs = getDatarefsFromAircraft(xplog, path);
 
     std::vector<RefRecord *> acf_refs = plugin_data->refs.add(aircraft_datarefs, ref_src_t::AIRCRAFT);
     xplog << "Found " << aircraft_datarefs.size() << " possible datarefs from aircraft files; " << acf_refs.size() << " commandrefs and datarefs OK.\n";
@@ -119,13 +119,13 @@ bool load_dr_callback() {
     std::vector<RefRecord *> dr_file_refs, cr_file_refs;
 
     {
-        std::vector<std::string> dr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "DataRefs.txt");
+        std::vector<std::string> dr_file = loadDatarefsFile(xplog, system_path / "Resources" / "plugins" / "DataRefs.txt");
         dr_file_refs = plugin_data->refs.add(dr_file, ref_src_t::FILE);
         xplog << dr_file_refs.size() << " datarefs from DataRefs.txt opened successfully.\n";
     }
 
     {
-        std::vector<std::string> cr_file = loadDatarefsFile(system_path / "Resources" / "plugins" / "Commands.txt");
+        std::vector<std::string> cr_file = loadDatarefsFile(xplog, system_path / "Resources" / "plugins" / "Commands.txt");
         cr_file_refs = plugin_data->refs.add(cr_file, ref_src_t::FILE);
         xplog << cr_file_refs.size() << " datarefs from Commands.txt opened successfully.\n";
     }
@@ -150,7 +150,7 @@ bool load_dr_callback() {
         char description[512] = {0};
         XPLMGetPluginInfo(id, name, path, signature, description);
 
-        std::vector<std::string> this_plugin_datarefs = getDatarefsFromFile(path);
+        std::vector<std::string> this_plugin_datarefs = getDatarefsFromFile(xplog, path);
         all_plugin_datarefs.insert(all_plugin_datarefs.end(), this_plugin_datarefs.begin(), this_plugin_datarefs.end());
 
         xplog << "Found plugin with name=\"" << name << "\" desc=\"" << description << "\" signature=\"" << signature << "\"";
@@ -165,7 +165,7 @@ bool load_dr_callback() {
         if(boost::filesystem::is_directory(fwl_scripts_dir)) { // if this is true, it also exists
             for(auto& file_de : boost::make_iterator_range(boost::filesystem::directory_iterator(fwl_scripts_dir), {})) {
                 if(file_de.path().extension() == ".lua") {
-                    std::vector<std::string> this_script_datarefs = getDatarefsFromFile(file_de.path());
+                    std::vector<std::string> this_script_datarefs = getDatarefsFromFile(xplog, file_de.path());
                     all_plugin_datarefs.insert(all_plugin_datarefs.cend(), this_script_datarefs.begin(), this_script_datarefs.end());
                 }
             }
@@ -255,7 +255,7 @@ PluginData::~PluginData() {
         boost::filesystem::path system_path(system_path_c);
         boost::filesystem::path output_dir = system_path / "Output" / "preferences";
 
-        refs.saveToFile(output_dir / "drt_last_run_datarefs.txt", output_dir / "drt_last_run_commandrefs.txt");
+        refs.saveToFile(xplog, output_dir / "drt_last_run_datarefs.txt", output_dir / "drt_last_run_commandrefs.txt");
     }
 }
 
@@ -338,7 +338,7 @@ PluginData::PluginData() : load_dr_flcb(load_dr_callback), update_dr_flcb(update
         XPLMGetSystemPath(system_path_c);
         boost::filesystem::path system_path(system_path_c);
         
-        blacklisted_datarefs = loadBlacklistFile(system_path / "Resources" / "plugins" / "drt_blacklist.txt");
+        blacklisted_datarefs = loadBlacklistFile(xplog, system_path / "Resources" / "plugins" / "drt_blacklist.txt");
     }
 }
 

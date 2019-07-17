@@ -16,6 +16,11 @@
 
 class SearchParams;
 
+// represents a search of the records DB
+class RefQuery {
+public:
+};
+
 //Store all commandrefs and datarefs here
 
 class RefRecords {
@@ -30,12 +35,12 @@ class RefRecords {
     RecordPointerType dr_pointers;
     NameMapType ref_names_loaded;
 
-	DataRefUpdater updater;
+    DataRefUpdater updater;
 public:
     std::vector<RefRecord *> CHECK_RESULT_USED add(const std::vector<std::string> & names, ref_src_t source);
 
     std::vector<RefRecord *> update();
-    void saveToFile(const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const;
+    void saveToFile(std::ostream & log, const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const;
 
     const RecordPointerType & getAllCommandrefs() const { return cr_pointers; }
     const RecordPointerType & getAllDatarefs() const { return dr_pointers; }

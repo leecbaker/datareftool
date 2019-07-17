@@ -1,6 +1,6 @@
 #include "commandref.h"
 
-#include "plugin.h"
+#include "../plugin/plugin.h"
 
 int CommandRefRecord::cr_callback(XPLMCommandRef /*inCommand*/, XPLMCommandPhase phase, void * inRefcon) {
     CommandRefRecord * record = reinterpret_cast<CommandRefRecord *>(inRefcon);

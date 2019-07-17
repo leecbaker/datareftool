@@ -1,4 +1,3 @@
-#include "logging.h"
 #include "string_util.h"
 
 #include <boost/algorithm/string.hpp>
@@ -19,7 +18,7 @@ inline int parseElement<int>(const std::string &s) {
 }
 
 template <class T>
-bool parseArray(const std::string & txt, std::vector<T> & data_out, int length) {
+bool parseArray(std::ostream & log, const std::string & txt, std::vector<T> & data_out, int length) {
     std::vector<std::string> txt_fields;
     
     std::string trimmed_txt = txt;
@@ -34,7 +33,7 @@ bool parseArray(const std::string & txt, std::vector<T> & data_out, int length) 
     boost::split(txt_fields, trimmed_txt, boost::is_any_of(","));
     
     if(length != int(txt_fields.size())) {
-        xplog << "Save cancelled, as supplied data array doesn't match DR array length\n";
+        log << "Save cancelled, as supplied data array doesn't match DR array length\n";
         return false;
     }
     
@@ -45,7 +44,7 @@ bool parseArray(const std::string & txt, std::vector<T> & data_out, int length) 
         try {
             data_out.push_back(parseElement<T>(txt_field));
         } catch (std::exception &) {
-            xplog << "Save cancelled, failed to parse field\n";
+            log << "Save cancelled, failed to parse field\n";
             return false;
         }
     }
@@ -54,7 +53,7 @@ bool parseArray(const std::string & txt, std::vector<T> & data_out, int length) 
 }
 
 template
-bool parseArray<float>(const std::string & txt, std::vector<float> & data_out, int length);
+bool parseArray<float>(std::ostream & log, const std::string & txt, std::vector<float> & data_out, int length);
 
 template
-bool parseArray<int>(const std::string & txt, std::vector<int> & data_out, int length);
+bool parseArray<int>(std::ostream & log, const std::string & txt, std::vector<int> & data_out, int length);

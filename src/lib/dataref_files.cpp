@@ -1,13 +1,12 @@
 #include "dataref_files.h"
-#include "logging.h"
 
 #include <boost/algorithm/string.hpp>
 
-std::vector<std::string> loadBlacklistFile(const boost::filesystem::path & filename) {
+std::vector<std::string> loadBlacklistFile(std::ostream & log, const boost::filesystem::path & filename) {
     std::vector<std::string> entries;
     std::ifstream f(filename.string());
     if(f.fail()) {
-        xplog << "Failed to open blacklist file at " << filename << "\n";
+        log << "Failed to open blacklist file at " << filename << "\n";
         return {};
     }
     
@@ -25,18 +24,18 @@ std::vector<std::string> loadBlacklistFile(const boost::filesystem::path & filen
         entries.emplace_back(std::move(line));
     }
 
-    xplog << "Loaded blacklist with " << entries.size() << " entries\n";
+    log << "Loaded blacklist with " << entries.size() << " entries\n";
     
     return entries;
 }
 
-std::vector<std::string> loadDatarefsFile(const boost::filesystem::path & filename) {
-    xplog << "Loading datarefs from path " << filename << "\n";
+std::vector<std::string> loadDatarefsFile(std::ostream & log, const boost::filesystem::path & filename) {
+    log << "Loading datarefs from path " << filename << "\n";
     
     std::ifstream dr_file(filename.string());
     
     if(dr_file.bad()) {
-        xplog << "DataRefs.txt file could not be loaded\n";
+        log << "DataRefs.txt file could not be loaded\n";
         return {};
     }
     
@@ -53,7 +52,7 @@ std::vector<std::string> loadDatarefsFile(const boost::filesystem::path & filena
         datarefs.emplace_back(std::move(line));
     }
     
-    xplog << "Finished loading " << datarefs.size() << " datarefs\n";
+    log << "Finished loading " << datarefs.size() << " datarefs\n";
     
     return datarefs;
 }

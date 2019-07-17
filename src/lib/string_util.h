@@ -1,10 +1,11 @@
 #pragma once
 
+#include <ostream>
 #include <string>
 #include <vector>
 
 template <class T>
-bool parseArray(const std::string & txt, std::vector<T> & data_out, int length);
+bool parseArray(std::ostream & log, const std::string & txt, std::vector<T> & data_out, int length);
 
 template <class T>
 inline std::string compactFpString(T f) {
