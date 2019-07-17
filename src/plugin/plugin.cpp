@@ -43,14 +43,6 @@ boost::filesystem::path prefs_path;
 
 XPLMMenuID plugin_menu = nullptr;
 
-std::vector<std::string> new_datarefs_from_messages_this_frame;
-
-std::vector<RefRecord *> new_refs_this_frame, changed_cr_this_frame;
-
-void addUpdatedCommandThisFrame(RefRecord * record) {
-    changed_cr_this_frame.push_back(record);
-}
-
 void loadAircraftDatarefs() {
     //get path
     char filename[256] = {0};
@@ -61,7 +53,7 @@ void loadAircraftDatarefs() {
     std::vector<RefRecord *> acf_refs = plugin_data->refs.add(aircraft_datarefs, ref_src_t::AIRCRAFT);
     xplog << "Found " << aircraft_datarefs.size() << " possible datarefs from aircraft files; " << acf_refs.size() << " commandrefs and datarefs OK.\n";
 
-    new_refs_this_frame.insert(new_refs_this_frame.cend(), acf_refs.cbegin(), acf_refs.cend());
+    plugin_data->refs.addNewRefsThisFrame(acf_refs.cbegin(), acf_refs.cend());
 }
 
 //callback so we can load new aircraft datarefs when the aircraft is reloaded
@@ -75,33 +67,7 @@ void load_acf_dr_callback() {
 
 bool update_dr_callback() {
     if(0 != countViewerWindows()) {
-        std::vector<RefRecord *> changed_drs = plugin_data->refs.update();
-
-        if(false == new_datarefs_from_messages_this_frame.empty()) {
-            std::vector<RefRecord *> refs_from_msg = plugin_data->refs.add(new_datarefs_from_messages_this_frame, ref_src_t::USER_MSG);
-
-            xplog << "Loaded : " << new_datarefs_from_messages_this_frame.size() << " commands/datarefs from messages; " << refs_from_msg.size() << " are ok\n";
-            new_datarefs_from_messages_this_frame.clear();
-        }
-
-        //eliminate duplicate CRs
-        if(1 < changed_cr_this_frame.size()) {
-            auto comparator = [](const RefRecord * a, const RefRecord * b) -> bool {
-                return a->getName() < b->getName();
-            };
-            auto record_equal = [](const RefRecord * a, const RefRecord * b) -> bool {
-                return a->getName() == b->getName();
-            };
-            std::sort(changed_cr_this_frame.begin(), changed_cr_this_frame.end(), comparator);
-            auto new_end = std::unique(changed_cr_this_frame.begin(), changed_cr_this_frame.end(), record_equal);
-            changed_cr_this_frame.erase(new_end, changed_cr_this_frame.end());
-        }
-
-        updateWindowsPerFrame(new_refs_this_frame, changed_cr_this_frame, changed_drs);
-
-        changed_cr_this_frame.clear();
-        changed_drs.clear();
-        new_refs_this_frame.clear();
+        plugin_data->refs.update(xplog, updateWindowsPerFrame);
     }
 
     return true; //repeat
@@ -177,9 +143,9 @@ bool load_dr_callback() {
     std::vector<RefRecord *> plugin_refs = plugin_data->refs.add(all_plugin_datarefs, ref_src_t::PLUGIN);
     xplog << "Found " << all_plugin_datarefs.size() << " possible datarefs from plugin files; " << plugin_refs.size() << " datarefs and commands loaded OK.\n";
     
-    new_refs_this_frame.insert(new_refs_this_frame.cend(), cr_file_refs.cbegin(), cr_file_refs.cend());
-    new_refs_this_frame.insert(new_refs_this_frame.cend(), dr_file_refs.cbegin(), dr_file_refs.cend());
-    new_refs_this_frame.insert(new_refs_this_frame.cend(), plugin_refs.cbegin(), plugin_refs.cend());
+    plugin_data->refs.addNewRefsThisFrame(cr_file_refs.cbegin(), cr_file_refs.cend());
+    plugin_data->refs.addNewRefsThisFrame(dr_file_refs.cbegin(), dr_file_refs.cend());
+    plugin_data->refs.addNewRefsThisFrame(plugin_refs.cbegin(), plugin_refs.cend());
 
     return false;
 }
@@ -445,10 +411,10 @@ PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * i
         // Add custom datarefs in the style of DRE:
         // http://www.xsquawkbox.net/xpsdk/mediawiki/Register_Custom_DataRef_in_DRE
         case MSG_ADD_DATAREF:
-            new_datarefs_from_messages_this_frame.emplace_back(reinterpret_cast<char *>(inParam));
+            plugin_data->refs.addNewRefFromMessage(reinterpret_cast<char *>(inParam));
             break;
         case MSG_ADD_COMMANDREF:
-            new_datarefs_from_messages_this_frame.emplace_back(reinterpret_cast<char *>(inParam));
+            plugin_data->refs.addNewRefFromMessage(reinterpret_cast<char *>(inParam));
             break;
         case XPLM_MSG_PLANE_LOADED: {
             int64_t plane_num = int64_t(inParam);

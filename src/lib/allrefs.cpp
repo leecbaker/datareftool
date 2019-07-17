@@ -94,7 +94,7 @@ void sig_handler(int) {
 	exit(-1);
 }
 
-std::vector<RefRecord *> RefRecords::update() {
+std::vector<RefRecord *> RefRecords::updateValues() {
 	std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
 	updater.updateTime(now);
 	std::vector<RefRecord *> changed_drs;
@@ -121,4 +121,35 @@ std::vector<RefRecord *> RefRecords::update() {
 	current_dr_name = nullptr;
 
 	return changed_drs;
+}
+
+
+void RefRecords::update(std::ostream & log, void (* update_func)(const std::vector<RefRecord *> &, std::vector<RefRecord *> &, std::vector<RefRecord *> &)) {
+	std::vector<RefRecord *> changed_drs = updateValues();
+
+	if(false == new_datarefs_from_messages_this_frame.empty()) {
+		std::vector<RefRecord *> refs_from_msg = add(new_datarefs_from_messages_this_frame, ref_src_t::USER_MSG);
+
+		log << "Loaded : " << new_datarefs_from_messages_this_frame.size() << " commands/datarefs from messages; " << refs_from_msg.size() << " are ok\n";
+		new_datarefs_from_messages_this_frame.clear();
+	}
+
+	//eliminate duplicate CRs
+	if(1 < changed_cr_this_frame.size()) {
+		auto comparator = [](const RefRecord * a, const RefRecord * b) -> bool {
+			return a->getName() < b->getName();
+		};
+		auto record_equal = [](const RefRecord * a, const RefRecord * b) -> bool {
+			return a->getName() == b->getName();
+		};
+		std::sort(changed_cr_this_frame.begin(), changed_cr_this_frame.end(), comparator);
+		auto new_end = std::unique(changed_cr_this_frame.begin(), changed_cr_this_frame.end(), record_equal);
+		changed_cr_this_frame.erase(new_end, changed_cr_this_frame.end());
+	}
+
+	update_func(new_refs_this_frame, changed_cr_this_frame, changed_drs);
+
+	changed_cr_this_frame.clear();
+	changed_drs.clear();
+	new_refs_this_frame.clear();
 }
