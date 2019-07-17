@@ -23,24 +23,30 @@ before_install:
 - cmake --version
 - $CC --version
 - $CXX --version
-script:
-- wget http://downloads.sourceforge.net/project/boost/boost/1.60.0/boost_1_60_0.tar.bz2
+- if [ "$TRAVIS_OS_NAME" = "linux" ]; then ls -l /usr/include/GL/; fi
+install:
+- export BOOST_DIR=~/boost
+- pwd
+- wget -nv http://downloads.sourceforge.net/project/boost/boost/1.60.0/boost_1_60_0.tar.bz2
 - tar --bzip2 -xf boost_1_60_0.tar.bz2
 - cd boost_1_60_0/
-- ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system --prefix=/home/travis/boost
+- ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system --prefix=${BOOST_DIR}
 - ./b2 link=static threading=multi runtime-link=shared cxxflags=-fPIC
-- ./b2 install --prefix=/home/travis/boost
+- ./b2 install --prefix=${BOOST_DIR}
 - cd $TRAVIS_BUILD_DIR
 - mkdir build
 - cd build
-- ls -l /home/travis/boost/include
-- ls -l /home/travis/boost/lib
-- cmake -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=/home/travis/boost -DBOOST_INCLUDEDIR=/home/travis/boost/include ..
+script:
+- cmake -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=${BOOST_DIR} -DBOOST_INCLUDEDIR=${BOOST_DIR}/include ..
 - make
 after_success:
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then otool -L ../bin/datareftool/*.xpl ; fi
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; ldd ../bin/datareftool/*.xpl ; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ldd ../bin/datareftool/*.xpl ; fi
 addons:
   artifacts:
-    paths: bin/datareftool/*.xpl
-    target_paths: /$(git rev-parse HEAD)/
+    debug: true
+    s3_region: us-east-2
+    paths:
+    - bin/datareftool/mac.xpl
+    - bin/datareftool/lin.xpl
+    - bin/datareftool/win.xpl
