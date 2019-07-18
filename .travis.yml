@@ -23,7 +23,6 @@ before_install:
 - cmake --version
 - $CC --version
 - $CXX --version
-- if [ "$TRAVIS_OS_NAME" = "linux" ]; then ls -l /usr/include/GL/; fi
 install:
 - export BOOST_DIR=~/boost
 - pwd
