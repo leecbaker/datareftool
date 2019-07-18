@@ -3,7 +3,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/functional/hash.hpp> 
 
 #include "about_window.h"
 #include "viewer_window.h"

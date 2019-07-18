@@ -72,8 +72,8 @@ if(WIN32)
 endif()
 
 find_package(Boost 1.54.0 REQUIRED COMPONENTS filesystem system iostreams)
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-target_link_libraries(plugin PUBLIC ${Boost_LIBRARIES})
+target_link_libraries(datareftool PUBLIC Boost::filesystem Boost::system Boost::iostreams)
+target_link_libraries(plugin PUBLIC Boost::filesystem Boost::system)
 
 if(UNIX)
 	include_directories(SYSTEM "../lib/xplane_sdk/CHeaders/XPLM/" "../lib/xplane_sdk/CHeaders/Widgets/" "../lib/xplane_sdk/CHeaders/Wrappers/")
