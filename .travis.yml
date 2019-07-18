@@ -25,10 +25,9 @@ before_install:
 - $CXX --version
 install:
 - export BOOST_DIR=~/boost
-- pwd
-- wget -nv http://downloads.sourceforge.net/project/boost/boost/1.60.0/boost_1_60_0.tar.bz2
-- tar --bzip2 -xf boost_1_60_0.tar.bz2
-- cd boost_1_60_0/
+- wget -nv http://downloads.sourceforge.net/project/boost/boost/1.70.0/boost_1_70_0.tar.bz2
+- tar --bzip2 -xf boost_1_70_0.tar.bz2
+- cd boost_1_70_0/
 - ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system --prefix=${BOOST_DIR}
 - ./b2 link=static threading=multi runtime-link=shared cxxflags=-fPIC
 - ./b2 install --prefix=${BOOST_DIR}

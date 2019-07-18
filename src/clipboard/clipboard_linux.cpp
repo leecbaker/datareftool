@@ -1,5 +1,4 @@
 #include "clipboard.h"
-#include "logging.h"
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -72,6 +71,6 @@ std::string getClipboard() {
 void setClipboard(const std::string & s) {
 	std::string command = "echo -n " + s + " | xclip -sel c";
 	if(0 != system(command.c_str())) {
-		xplog << "Copy command failed. Do you have xclip on your system?\n";
+		std::cerr << "Copy command failed. Do you have xclip on your system?" << std::endl;
 	}
 }
