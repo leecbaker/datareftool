@@ -7,7 +7,9 @@
 #include "about_window.h"
 #include "viewer_window.h"
 
-#include "../../lib/glew/glew.h"
+#if IBM || LIN
+#include "glew.h"
+#endif
 
 #include "logging.h"
 #include "plugin.h"
@@ -254,7 +256,9 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
     XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
     XPLMEnableFeature("XPLM_USE_NATIVE_WIDGET_WINDOWS", 1);
 
+#if IBM || LIN
     glewInit();
+#endif
 
     plugin_data.emplace();
 

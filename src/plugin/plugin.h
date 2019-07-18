@@ -5,7 +5,7 @@
 
 #include <boost/optional.hpp>
 
-#include "../lib/refscanner.h"
+#include "refscanner.h"
 
 #include "XPLMProcessing.h"
 

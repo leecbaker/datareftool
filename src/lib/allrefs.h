@@ -17,6 +17,11 @@
 
 class SearchParams;
 
+class SearchQuery {
+    std::vector<RefRecord *> results;
+public:
+};
+
 //Store all commandrefs and datarefs here
 
 class RefRecords {

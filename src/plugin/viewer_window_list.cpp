@@ -1,9 +1,9 @@
 #include "viewer_window_list.h"
 
-#include "../lib/allrefs.h"
+#include "allrefs.h"
 #include "clipboard.h"
-#include "../lib/commandref.h"
-#include "../lib/string_util.h"
+#include "commandref.h"
+#include "string_util.h"
 
 #include "logging.h"
 
@@ -18,8 +18,7 @@
 #include <string>
 
 #if IBM || LIN
-#define GLEW_STATIC
-#include "../lib/glew/glew.h"
+#include "glew.h"
 #endif
 #if APL
 #include <OpenGL/gl.h>

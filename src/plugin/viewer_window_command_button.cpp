@@ -3,13 +3,12 @@
 #include "XPLMGraphics.h"
 #include "XPWidgets.h"
 
-#include "../lib/commandref.h"
+#include "commandref.h"
 
 #include <array>
 
 #if IBM || LIN
-#define GLEW_STATIC
-#include "../lib/glew/glew.h"
+#include "glew.h"
 #endif
 #if APL
 #include <OpenGL/gl.h>

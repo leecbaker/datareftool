@@ -7,6 +7,6 @@ IF( NOT CMAKE_BUILD_TYPE )
 ENDIF()
 message(STATUS "Current build type is : ${CMAKE_BUILD_TYPE}")
 
-
+add_subdirectory(lib)
 add_subdirectory(src)
 cmake_minimum_required(VERSION 2.8)

@@ -7,20 +7,11 @@ set(CMAKE_CXX_EXTENSIONS off)
 SET(LIB_SRC lib/allrefs.cpp lib/refscanner.cpp lib/dataref.cpp lib/commandref.cpp lib/dataref_files.cpp lib/find_datarefs_in_files.cpp lib/search.cpp lib/string_util.cpp)
 SET(LIB_HDR lib/allrefs.h lib/refscanner.h lib/dataref.h lib/commandref.h lib/ref.h lib/dataref_files.h lib/find_datarefs_in_files.h lib/search.h lib/string_util.h)
 
-SET(PLUGIN_SRC plugin/about_window.cpp plugin/plugin.cpp plugin/viewer_window.cpp plugin/viewer_window_list.cpp plugin/viewer_window_command_button.cpp plugin/prefs.cpp plugin/logging.cpp ../lib/glew/glew.c)
-SET(PLUGIN_HDR plugin/about_window.h plugin/plugin.h plugin/viewer_window.h plugin/viewer_window_list.h plugin/viewer_window_command_button.h plugin/clipboard.h plugin/prefs.h plugin/logging.h ../lib/glew/glew.h)
+SET(PLUGIN_SRC plugin/about_window.cpp plugin/plugin.cpp plugin/viewer_window.cpp plugin/viewer_window_list.cpp plugin/viewer_window_command_button.cpp plugin/prefs.cpp plugin/logging.cpp)
+SET(PLUGIN_HDR plugin/about_window.h plugin/plugin.h plugin/viewer_window.h plugin/viewer_window_list.h plugin/viewer_window_command_button.h plugin/prefs.h plugin/logging.h)
 
 SET(SRC_PLUGIN_EXAMPLE tools/plugin_custom_dataref.cpp)
 SET(SRC_PLUGIN_CRASHER tools/plugin_crasher.cpp)
-
-
-if(APPLE)
-	list(APPEND PLUGIN_SRC "plugin/clipboard_mac.mm")
-elseif(WIN32)
-	list(APPEND PLUGIN_SRC "plugin/clipboard_win.cpp")
-else()
-	list(APPEND PLUGIN_SRC "plugin/clipboard_linux.cpp")
-endif()
 
 SET(LIB_SRC ${LIB_SRC} ${LIB_HDR})
 SET(PLUGIN_SRC ${PLUGIN_SRC} ${PLUGIN_HDR})
@@ -28,7 +19,7 @@ LIST(SORT PLUGIN_SRC)
 LIST(SORT LIB_SRC)
 
 add_library(datareftool STATIC ${LIB_SRC} ${LIB_HDR})
-target_include_directories(datareftool INTERFACE ${CMAKE_CURRENT_SOURCE_DIRECTORY}/lib)
+target_include_directories(datareftool INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 if(APPLE)
 	add_executable(plugin ${PLUGIN_SRC})
@@ -48,7 +39,7 @@ elseif(WIN32)
 	SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
 endif()
 
-target_link_libraries(plugin PUBLIC datareftool)
+add_subdirectory(clipboard)
 
 #compiler flags
 if(WIN32)
@@ -73,7 +64,7 @@ endif()
 
 find_package(Boost 1.54.0 REQUIRED COMPONENTS filesystem system iostreams)
 target_link_libraries(datareftool PUBLIC Boost::filesystem Boost::system Boost::iostreams)
-target_link_libraries(plugin PUBLIC Boost::filesystem Boost::system)
+target_link_libraries(plugin PUBLIC Boost::filesystem Boost::system datareftool clipboard glew)
 
 if(UNIX)
 	include_directories(SYSTEM "../lib/xplane_sdk/CHeaders/XPLM/" "../lib/xplane_sdk/CHeaders/Widgets/" "../lib/xplane_sdk/CHeaders/Wrappers/")
