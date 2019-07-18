@@ -1,6 +1,6 @@
 #include "commandref.h"
 
-#include "../plugin/plugin.h"
+#include "allrefs.h"
 
 int CommandRefRecord::cr_callback(XPLMCommandRef /*inCommand*/, XPLMCommandPhase phase, void * inRefcon) {
     CommandRefRecord * record = reinterpret_cast<CommandRefRecord *>(inRefcon);
@@ -15,6 +15,6 @@ int CommandRefRecord::cr_callback(XPLMCommandRef /*inCommand*/, XPLMCommandPhase
         case xplm_CommandEnd: record->activated = false; break;
     }
 
-    addUpdatedCommandThisFrame(record);
+    record->all_records.addUpdatedCommandThisFrame(record);
     return 1;
 }

@@ -84,5 +84,3 @@ protected:
 };
 
 extern boost::optional<PluginData> plugin_data;
-
-inline void addUpdatedCommandThisFrame(RefRecord * r) { plugin_data->refs.addUpdatedCommandThisFrame(r); }

@@ -3,13 +3,16 @@
 #include "ref.h"
 #include "XPLMUtilities.h"
 
+class RefRecords;
+
 class CommandRefRecord : public RefRecord {
+    RefRecords & all_records;
     XPLMCommandRef ref = nullptr;
     static int cr_callback(XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
     bool activated = false;
 public:
-    CommandRefRecord(const std::string & name, XPLMCommandRef ref, ref_src_t source) 
-    : RefRecord(name, source), ref(ref) {
+    CommandRefRecord(const std::string & name, XPLMCommandRef ref, ref_src_t source, RefRecords & all_records) 
+    : RefRecord(name, source), all_records(all_records), ref(ref) {
         XPLMRegisterCommandHandler(ref, &cr_callback, 0, this);
         XPLMRegisterCommandHandler(ref, &cr_callback, 1, this);
     }

@@ -556,10 +556,6 @@ public:
 		}
 		updateCrDrFilterButton();
 	}
-
-	bool includeDataRefs() const { return cr_dr_filter_state == 0 || cr_dr_filter_state == 2; }
-
-	bool includeCommandRefs() const { return cr_dr_filter_state == 1 || cr_dr_filter_state == 2; }
     
     int getWidth() const {
         int l,r;
@@ -688,11 +684,6 @@ void showViewerWindow(bool show_dr, bool show_cr) {
 	window_details.put(KEY_HAS_CR, show_cr);
     showViewerWindow(window_details);
 }
-
-void showViewerWindow() { 
-	showViewerWindow(boost::property_tree::ptree());
-}
-
 
 void setAllWindowsInVr(bool in_vr) {
 	for(const std::unique_ptr<ViewerWindow> & window : viewer_windows) {

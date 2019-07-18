@@ -74,7 +74,7 @@ std::vector<RefRecord *> RefRecords::add(const std::vector<std::string> & names,
 		}
 
 		if(nullptr != cr) {
-        	commandrefs.emplace_back(name, cr, source);
+        	commandrefs.emplace_back(name, cr, source, *this);
 			new_records.emplace_back(&commandrefs.back());
 			cr_pointers.emplace_back(&commandrefs.back());
 			ref_names_loaded.insert(name);

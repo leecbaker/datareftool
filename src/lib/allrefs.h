@@ -45,7 +45,7 @@ public:
     std::vector<RefRecord *> updateValues();
 
     // For change detection
-    void addUpdatedCommandThisFrame(RefRecord * record) {
+    void addUpdatedCommandThisFrame(CommandRefRecord * record) {
         changed_cr_this_frame.push_back(record);
     }
 
