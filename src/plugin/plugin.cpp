@@ -12,7 +12,6 @@
 
 #include "../../lib/glew/glew.h"
 
-#include "../lib/allrefs.h"
 #include "../lib/dataref_files.h"
 #include "logging.h"
 #include "plugin.h"
@@ -43,39 +42,37 @@ boost::filesystem::path prefs_path;
 
 XPLMMenuID plugin_menu = nullptr;
 
-void loadAircraftDatarefs() {
+void PluginData::loadAircraftDatarefs() {
     //get path
     char filename[256] = {0};
     char path[512] = {0};
     XPLMGetNthAircraftModel(0, filename, path);
     std::vector<std::string> aircraft_datarefs = getDatarefsFromAircraft(xplog, path);
 
-    std::vector<RefRecord *> acf_refs = plugin_data->refs.add(aircraft_datarefs, ref_src_t::AIRCRAFT);
+    std::vector<RefRecord *> acf_refs = refs.add(aircraft_datarefs, ref_src_t::AIRCRAFT);
     xplog << "Found " << aircraft_datarefs.size() << " possible datarefs from aircraft files; " << acf_refs.size() << " commandrefs and datarefs OK.\n";
 
-    plugin_data->refs.addNewRefsThisFrame(acf_refs.cbegin(), acf_refs.cend());
+    refs.addNewRefsThisFrame(acf_refs.cbegin(), acf_refs.cend());
 }
 
 //callback so we can load new aircraft datarefs when the aircraft is reloaded
-void load_acf_dr_callback() {
+void PluginData::load_acf_dr_callback() {
     { // re-add the blacklisted datarefs in case a new plugin was loaded. needed for, eg, x737
-        std::vector<RefRecord *> bl_refs = plugin_data->refs.add(plugin_data->blacklisted_datarefs, ref_src_t::BLACKLIST);
+        std::vector<RefRecord *> bl_refs = refs.add(blacklisted_datarefs, ref_src_t::BLACKLIST);
         std::string success_message = std::to_string(bl_refs.size()) + " datarefs from blacklist opened successfully.";
     }
     loadAircraftDatarefs();
 }
 
-bool update_dr_callback() {
+void PluginData::update_dr_callback() {
     if(0 != countViewerWindows()) {
-        plugin_data->refs.update(xplog, updateWindowsPerFrame);
+        refs.update(xplog, updateWindowsPerFrame);
     }
-
-    return true; //repeat
 }
 
-bool load_dr_callback() {
+void PluginData::load_dr_callback() {
     {	//re-add the blacklisted datarefs in case a new plugin was loaded
-        std::vector<RefRecord *> bl_refs = plugin_data->refs.add(plugin_data->blacklisted_datarefs, ref_src_t::BLACKLIST);
+        std::vector<RefRecord *> bl_refs = refs.add(blacklisted_datarefs, ref_src_t::BLACKLIST);
         std::string success_message = std::to_string(bl_refs.size()) + " datarefs from blacklist opened successfully.";
     }
 
@@ -86,13 +83,13 @@ bool load_dr_callback() {
 
     {
         std::vector<std::string> dr_file = loadDatarefsFile(xplog, system_path / "Resources" / "plugins" / "DataRefs.txt");
-        dr_file_refs = plugin_data->refs.add(dr_file, ref_src_t::FILE);
+        dr_file_refs = refs.add(dr_file, ref_src_t::FILE);
         xplog << dr_file_refs.size() << " datarefs from DataRefs.txt opened successfully.\n";
     }
 
     {
         std::vector<std::string> cr_file = loadDatarefsFile(xplog, system_path / "Resources" / "plugins" / "Commands.txt");
-        cr_file_refs = plugin_data->refs.add(cr_file, ref_src_t::FILE);
+        cr_file_refs = refs.add(cr_file, ref_src_t::FILE);
         xplog << cr_file_refs.size() << " datarefs from Commands.txt opened successfully.\n";
     }
 
@@ -140,14 +137,12 @@ bool load_dr_callback() {
 
     removeVectorUniques(all_plugin_datarefs);
 
-    std::vector<RefRecord *> plugin_refs = plugin_data->refs.add(all_plugin_datarefs, ref_src_t::PLUGIN);
+    std::vector<RefRecord *> plugin_refs = refs.add(all_plugin_datarefs, ref_src_t::PLUGIN);
     xplog << "Found " << all_plugin_datarefs.size() << " possible datarefs from plugin files; " << plugin_refs.size() << " datarefs and commands loaded OK.\n";
     
-    plugin_data->refs.addNewRefsThisFrame(cr_file_refs.cbegin(), cr_file_refs.cend());
-    plugin_data->refs.addNewRefsThisFrame(dr_file_refs.cbegin(), dr_file_refs.cend());
-    plugin_data->refs.addNewRefsThisFrame(plugin_refs.cbegin(), plugin_refs.cend());
-
-    return false;
+    refs.addNewRefsThisFrame(cr_file_refs.cbegin(), cr_file_refs.cend());
+    refs.addNewRefsThisFrame(dr_file_refs.cbegin(), dr_file_refs.cend());
+    refs.addNewRefsThisFrame(plugin_refs.cbegin(), plugin_refs.cend());
 }
 
 namespace std {
@@ -161,7 +156,7 @@ namespace std {
 typedef std::unordered_map<boost::filesystem::path, std::time_t> plugin_last_modified_t;
 plugin_last_modified_t plugin_last_modified;
 
-bool plugin_changed_check_callback() {
+void PluginData::plugin_changed_check_callback() {
     const char * xplane_plugin_path = "laminar.xplane.xplane";
     int num_plugins = XPLMCountPlugins();
     char plugin_path_array[256 + 1];
@@ -197,8 +192,6 @@ bool plugin_changed_check_callback() {
             }
         }
     }
-
-    return true;
 }
 
 void reloadAircraft() {
@@ -225,13 +218,17 @@ PluginData::~PluginData() {
     }
 }
 
-void plugin_menu_handler(void *, void * inItemRef) {
-    switch ( intptr_t(inItemRef) )
+void PluginData::plugin_menu_handler(void * refcon, void * inItemRef) {
+    static_cast<PluginData *>(refcon)->handleMenu(inItemRef);
+}
+
+void PluginData::handleMenu(void * item_ref) {
+    switch (reinterpret_cast<intptr_t>(item_ref))
     {
         case 0: showViewerWindow(true, false); break;	
         case 1: showViewerWindow(false, true); break;	
         case 2:
-            plugin_data->rescanDatarefs();
+            rescanDatarefs();
             break;
         case 3: 
             xplog << "Reloaded aircraft\n";
@@ -285,7 +282,11 @@ const char * dre_signature = "xplanesdk.examples.DataRefEditor";
 const char * dre_name = "DataRefEditor";
 const char * dre_description = "A plugin that shows all data refs!.";
 
-PluginData::PluginData() : load_dr_flcb(load_dr_callback), update_dr_flcb(update_dr_callback), plugin_changed_flcb(plugin_changed_check_callback), load_acf_dr_flcb(load_acf_dr_callback) {
+PluginData::PluginData() 
+: load_dr_flcb(std::bind(&PluginData::load_dr_callback, this))
+, update_dr_flcb(std::bind(&PluginData::update_dr_callback, this))
+, plugin_changed_flcb(std::bind(&PluginData::plugin_changed_check_callback, this))
+, load_acf_dr_flcb(std::bind(&PluginData::load_acf_dr_callback, this)) {
     load_dr_flcb.scheduleNextFlightLoop();
     update_dr_flcb.scheduleEveryFlightLoop();
     plugin_changed_flcb.schedule(1.f, 1.f);
@@ -336,7 +337,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
     }
     
     int plugin_submenu = XPLMAppendMenuItem(XPLMFindPluginsMenu(), "DataRefTool", nullptr, 1);
-    plugin_menu = XPLMCreateMenu("DataRefTool", XPLMFindPluginsMenu(), plugin_submenu, plugin_menu_handler, nullptr);
+    plugin_menu = XPLMCreateMenu("DataRefTool", XPLMFindPluginsMenu(), plugin_submenu, &PluginData::plugin_menu_handler, nullptr);
 
     XPLMAppendMenuItem(plugin_menu, "View Datarefs", reinterpret_cast<void *>(0), 1);
     XPLMAppendMenuItem(plugin_menu, "View Commands", reinterpret_cast<void *>(1), 1);
@@ -407,20 +408,24 @@ const intptr_t MSG_ADD_DATAREF = 0x01000000;
 const intptr_t MSG_ADD_COMMANDREF = 0x01000099;
 
 PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * inParam) {
+    plugin_data->handleMessage(inMessage, inParam);
+}
+
+void PluginData::handleMessage(intptr_t inMessage, void * inParam) {
     switch(inMessage) {
         // Add custom datarefs in the style of DRE:
         // http://www.xsquawkbox.net/xpsdk/mediawiki/Register_Custom_DataRef_in_DRE
         case MSG_ADD_DATAREF:
-            plugin_data->refs.addNewRefFromMessage(reinterpret_cast<char *>(inParam));
+            refs.addNewRefFromMessage(reinterpret_cast<char *>(inParam));
             break;
         case MSG_ADD_COMMANDREF:
-            plugin_data->refs.addNewRefFromMessage(reinterpret_cast<char *>(inParam));
+            refs.addNewRefFromMessage(reinterpret_cast<char *>(inParam));
             break;
         case XPLM_MSG_PLANE_LOADED: {
             int64_t plane_num = int64_t(inParam);
             xplog << "Plane loaded #: " << plane_num << "\n";
             if(0 == plane_num) {	//user's plane
-                plugin_data->aircraftIsBeingLoaded();
+                aircraftIsBeingLoaded();
             }
             break;
         }

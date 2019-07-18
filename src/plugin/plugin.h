@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstdint>
+#include <functional>
+
 #include <boost/optional.hpp>
 
 #include "../lib/allrefs.h"
@@ -52,11 +55,13 @@ public:
 
 // Plugin state
 class PluginData {
+public:
+    static void plugin_menu_handler(void * refcon, void * inItemRef);
+protected:
     NextFlightLoopCallback load_dr_flcb;
     NextFlightLoopCallback update_dr_flcb;
     NextFlightLoopCallback plugin_changed_flcb;
     NextFlightLoopCallback load_acf_dr_flcb;
-
 public:
     RefRecords refs; //TODO public member var
     std::vector<std::string> blacklisted_datarefs; //TODO public member var
@@ -66,6 +71,18 @@ public:
 
     void aircraftIsBeingLoaded();
     void rescanDatarefs();
+
+    // Callbacks
+    void loadAircraftDatarefs();
+    void load_dr_callback();
+    void update_dr_callback();
+    void load_acf_dr_callback();
+    void plugin_changed_check_callback();
+
+public:
+    void handleMessage(intptr_t inMessage, void * inParam);
+protected:
+    void handleMenu(void * item_ref);
 };
 
 extern boost::optional<PluginData> plugin_data;
