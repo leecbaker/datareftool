@@ -17,11 +17,6 @@
 
 class SearchParams;
 
-// represents a search of the records DB
-class RefQuery {
-public:
-};
-
 //Store all commandrefs and datarefs here
 
 class RefRecords {
@@ -40,7 +35,10 @@ class RefRecords {
 
     std::vector<RefRecord *> new_refs_this_frame, changed_cr_this_frame;
     std::vector<std::string> new_datarefs_from_messages_this_frame;
+protected:
+    std::ostream & log;
 public:
+    RefRecords(std::ostream & log) : log(log) {}
     std::vector<RefRecord *> CHECK_RESULT_USED add(const std::vector<std::string> & names, ref_src_t source);
 
     /// @return changed refs
@@ -60,8 +58,8 @@ public:
         new_datarefs_from_messages_this_frame.push_back(std::move(s));
     }
 
-    void update(std::ostream & log, void (* update_func)(const std::vector<RefRecord *> &, std::vector<RefRecord *> &, std::vector<RefRecord *> &));
-    void saveToFile(std::ostream & log, const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const;
+    void update(void (* update_func)(const std::vector<RefRecord *> &, std::vector<RefRecord *> &, std::vector<RefRecord *> &));
+    void saveToFile(const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const;
 
     const RecordPointerType & getAllCommandrefs() const { return cr_pointers; }
     const RecordPointerType & getAllDatarefs() const { return dr_pointers; }

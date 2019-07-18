@@ -4,15 +4,12 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/functional/hash.hpp> 
-#include <boost/range/iterator_range.hpp>
 
 #include "about_window.h"
 #include "viewer_window.h"
-#include "../lib/find_datarefs_in_files.h"
 
 #include "../../lib/glew/glew.h"
 
-#include "../lib/dataref_files.h"
 #include "logging.h"
 #include "plugin.h"
 #include "prefs.h"
@@ -42,68 +39,33 @@ boost::filesystem::path prefs_path;
 
 XPLMMenuID plugin_menu = nullptr;
 
-void PluginData::loadAircraftDatarefs() {
-    //get path
+boost::filesystem::path getCurrentAircraftPath() {
     char filename[256] = {0};
     char path[512] = {0};
     XPLMGetNthAircraftModel(0, filename, path);
-    std::vector<std::string> aircraft_datarefs = getDatarefsFromAircraft(xplog, path);
-
-    std::vector<RefRecord *> acf_refs = refs.add(aircraft_datarefs, ref_src_t::AIRCRAFT);
-    xplog << "Found " << aircraft_datarefs.size() << " possible datarefs from aircraft files; " << acf_refs.size() << " commandrefs and datarefs OK.\n";
-
-    refs.addNewRefsThisFrame(acf_refs.cbegin(), acf_refs.cend());
+    return path;
 }
 
 //callback so we can load new aircraft datarefs when the aircraft is reloaded
 void PluginData::load_acf_dr_callback() {
-    { // re-add the blacklisted datarefs in case a new plugin was loaded. needed for, eg, x737
-        std::vector<RefRecord *> bl_refs = refs.add(blacklisted_datarefs, ref_src_t::BLACKLIST);
-        std::string success_message = std::to_string(bl_refs.size()) + " datarefs from blacklist opened successfully.";
-    }
-    loadAircraftDatarefs();
+    refs.scanAircraft(getCurrentAircraftPath());
 }
 
 void PluginData::update_dr_callback() {
     if(0 != countViewerWindows()) {
-        refs.update(xplog, updateWindowsPerFrame);
+        refs.update(updateWindowsPerFrame);
     }
 }
 
 void PluginData::load_dr_callback() {
-    {	//re-add the blacklisted datarefs in case a new plugin was loaded
-        std::vector<RefRecord *> bl_refs = refs.add(blacklisted_datarefs, ref_src_t::BLACKLIST);
-        std::string success_message = std::to_string(bl_refs.size()) + " datarefs from blacklist opened successfully.";
-    }
-
-    char system_path_c[1000];
-    XPLMGetSystemPath(system_path_c);
-    boost::filesystem::path system_path(system_path_c);
-    std::vector<RefRecord *> dr_file_refs, cr_file_refs;
-
-    {
-        std::vector<std::string> dr_file = loadDatarefsFile(xplog, system_path / "Resources" / "plugins" / "DataRefs.txt");
-        dr_file_refs = refs.add(dr_file, ref_src_t::FILE);
-        xplog << dr_file_refs.size() << " datarefs from DataRefs.txt opened successfully.\n";
-    }
-
-    {
-        std::vector<std::string> cr_file = loadDatarefsFile(xplog, system_path / "Resources" / "plugins" / "Commands.txt");
-        cr_file_refs = refs.add(cr_file, ref_src_t::FILE);
-        xplog << cr_file_refs.size() << " datarefs from Commands.txt opened successfully.\n";
-    }
-
-    loadAircraftDatarefs();
-
-    //load plugins
     int num_plugins = XPLMCountPlugins();
-    XPLMPluginID my_id = XPLMGetMyID();
+    XPLMPluginID this_plugin_id = XPLMGetMyID();
 
-    std::vector<std::string> all_plugin_datarefs;
+    std::vector<boost::filesystem::path> all_plugin_datarefs;
 
     for(int i = 0; i < num_plugins; i++) {
-        XPLMPluginID id = XPLMGetNthPlugin(i);
-        if(id == my_id || 0 == id) {
+        XPLMPluginID plugin_id = XPLMGetNthPlugin(i);
+        if(plugin_id == this_plugin_id || 0 == plugin_id) {
             continue;
         }
 
@@ -111,38 +73,13 @@ void PluginData::load_dr_callback() {
         char path[512] = {0};
         char signature[512] = {0};
         char description[512] = {0};
-        XPLMGetPluginInfo(id, name, path, signature, description);
-
-        std::vector<std::string> this_plugin_datarefs = getDatarefsFromFile(xplog, path);
-        all_plugin_datarefs.insert(all_plugin_datarefs.end(), this_plugin_datarefs.begin(), this_plugin_datarefs.end());
+        XPLMGetPluginInfo(plugin_id, name, path, signature, description);
+        all_plugin_datarefs.push_back(path);
 
         xplog << "Found plugin with name=\"" << name << "\" desc=\"" << description << "\" signature=\"" << signature << "\"";
     }
 
-    { //FWL directory
-        char xplane_dir[1024];
-        XPLMGetSystemPath(xplane_dir);
-
-        boost::filesystem::path fwl_scripts_dir = boost::filesystem::path(xplane_dir) / "Resources" / "plugins" / "FlyWithLua" / "Scripts";
-
-        if(boost::filesystem::is_directory(fwl_scripts_dir)) { // if this is true, it also exists
-            for(auto& file_de : boost::make_iterator_range(boost::filesystem::directory_iterator(fwl_scripts_dir), {})) {
-                if(file_de.path().extension() == ".lua") {
-                    std::vector<std::string> this_script_datarefs = getDatarefsFromFile(xplog, file_de.path());
-                    all_plugin_datarefs.insert(all_plugin_datarefs.cend(), this_script_datarefs.begin(), this_script_datarefs.end());
-                }
-            }
-        }
-    }
-
-    removeVectorUniques(all_plugin_datarefs);
-
-    std::vector<RefRecord *> plugin_refs = refs.add(all_plugin_datarefs, ref_src_t::PLUGIN);
-    xplog << "Found " << all_plugin_datarefs.size() << " possible datarefs from plugin files; " << plugin_refs.size() << " datarefs and commands loaded OK.\n";
-    
-    refs.addNewRefsThisFrame(cr_file_refs.cbegin(), cr_file_refs.cend());
-    refs.addNewRefsThisFrame(dr_file_refs.cbegin(), dr_file_refs.cend());
-    refs.addNewRefsThisFrame(plugin_refs.cbegin(), plugin_refs.cend());
+    refs.scanInitial(all_plugin_datarefs, getCurrentAircraftPath());
 }
 
 namespace std {
@@ -214,7 +151,7 @@ PluginData::~PluginData() {
         boost::filesystem::path system_path(system_path_c);
         boost::filesystem::path output_dir = system_path / "Output" / "preferences";
 
-        refs.saveToFile(xplog, output_dir / "drt_last_run_datarefs.txt", output_dir / "drt_last_run_commandrefs.txt");
+        refs.saveToFile(output_dir / "drt_last_run_datarefs.txt", output_dir / "drt_last_run_commandrefs.txt");
     }
 }
 
@@ -286,7 +223,8 @@ PluginData::PluginData()
 : load_dr_flcb(std::bind(&PluginData::load_dr_callback, this))
 , update_dr_flcb(std::bind(&PluginData::update_dr_callback, this))
 , plugin_changed_flcb(std::bind(&PluginData::plugin_changed_check_callback, this))
-, load_acf_dr_flcb(std::bind(&PluginData::load_acf_dr_callback, this)) {
+, load_acf_dr_flcb(std::bind(&PluginData::load_acf_dr_callback, this))
+, refs(xplog) {
     load_dr_flcb.scheduleNextFlightLoop();
     update_dr_flcb.scheduleEveryFlightLoop();
     plugin_changed_flcb.schedule(1.f, 1.f);
@@ -304,8 +242,9 @@ PluginData::PluginData()
         char system_path_c[1000];
         XPLMGetSystemPath(system_path_c);
         boost::filesystem::path system_path(system_path_c);
-        
-        blacklisted_datarefs = loadBlacklistFile(xplog, system_path / "Resources" / "plugins" / "drt_blacklist.txt");
+
+        boost::filesystem::path blacklist_path = system_path / "Resources" / "plugins" / "drt_blacklist.txt";
+        refs.loadBlacklist(blacklist_path);
     }
 }
 

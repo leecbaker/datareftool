@@ -5,7 +5,7 @@
 
 #include <boost/optional.hpp>
 
-#include "../lib/allrefs.h"
+#include "../lib/refscanner.h"
 
 #include "XPLMProcessing.h"
 
@@ -63,8 +63,7 @@ protected:
     NextFlightLoopCallback plugin_changed_flcb;
     NextFlightLoopCallback load_acf_dr_flcb;
 public:
-    RefRecords refs; //TODO public member var
-    std::vector<std::string> blacklisted_datarefs; //TODO public member var
+    RefScanner refs; //TODO public member var
 
     PluginData();
     ~PluginData();
@@ -73,7 +72,6 @@ public:
     void rescanDatarefs();
 
     // Callbacks
-    void loadAircraftDatarefs();
     void load_dr_callback();
     void update_dr_callback();
     void load_acf_dr_callback();

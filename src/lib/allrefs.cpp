@@ -18,7 +18,7 @@
 
 #include <signal.h>
 
-void RefRecords::saveToFile(std::ostream & log, const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const {
+void RefRecords::saveToFile(const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const {
 	std::vector<const std::string *> dataref_names, commandref_names;
 	dataref_names.reserve(datarefs.size());
 	for(const DataRefRecord & dr : datarefs) {
@@ -30,7 +30,7 @@ void RefRecords::saveToFile(std::ostream & log, const boost::filesystem::path & 
 		commandref_names.push_back(&cr.getName());
 	}
 
-	auto sort_and_write_names = [&log](std::vector<const std::string *> & names, const boost::filesystem::path & filename) -> bool {
+	auto sort_and_write_names = [this](std::vector<const std::string *> & names, const boost::filesystem::path & filename) -> bool {
 		auto p_str_comparator = [](const std::string * s1, const std::string * s2) -> bool {
 			return boost::ilexicographical_compare(*s1, *s2);
 		};
@@ -124,7 +124,7 @@ std::vector<RefRecord *> RefRecords::updateValues() {
 }
 
 
-void RefRecords::update(std::ostream & log, void (* update_func)(const std::vector<RefRecord *> &, std::vector<RefRecord *> &, std::vector<RefRecord *> &)) {
+void RefRecords::update(void (* update_func)(const std::vector<RefRecord *> &, std::vector<RefRecord *> &, std::vector<RefRecord *> &)) {
 	std::vector<RefRecord *> changed_drs = updateValues();
 
 	if(false == new_datarefs_from_messages_this_frame.empty()) {
