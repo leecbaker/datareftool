@@ -88,6 +88,10 @@ elseif(WIN32)
 endif()
 
 #linking
+if(UNIX AND NOT APPLE)
+    set_property(TARGET datareftool PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif()
+
 if(APPLE)
 	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ../lib/xplane_sdk/Libraries/Mac/)
 	FIND_LIBRARY(XPLM_LIBRARY XPLM ../lib/xplane_sdk/Libraries/Mac/)
