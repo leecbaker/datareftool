@@ -19,6 +19,13 @@ addons:
   homebrew:
     packages:
     - ninja
+  artifacts:
+    debug: true
+    s3_region: us-east-2
+    paths:
+    - bin/datareftool/mac.xpl
+    - bin/datareftool/lin.xpl
+    - bin/datareftool/win.xpl
 before_install:
 - cmake --version
 - $CC --version
@@ -40,11 +47,3 @@ script:
 after_success:
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then otool -L ../bin/datareftool/*.xpl ; fi
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ldd ../bin/datareftool/*.xpl ; fi
-addons:
-  artifacts:
-    debug: true
-    s3_region: us-east-2
-    paths:
-    - bin/datareftool/mac.xpl
-    - bin/datareftool/lin.xpl
-    - bin/datareftool/win.xpl
