@@ -2,6 +2,8 @@
 
 #include <boost/filesystem/path.hpp>
 
+#include <json.hpp>
+
 bool getAutoReloadPlugins();
 void setAutoReloadPlugins(bool reload_automatically);
 

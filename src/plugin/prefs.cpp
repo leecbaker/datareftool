@@ -2,8 +2,8 @@
 
 #include "logging.h"
 #include "viewer_window.h"
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+
+#include <fstream>
 
 #include <boost/foreach.hpp>
 
@@ -13,7 +13,7 @@ bool logging_enabled = true;
 
 bool getAutoReloadPlugins() { return auto_reload_plugins; }
 void setAutoReloadPlugins(bool reload_automatically) {
-	auto_reload_plugins = reload_automatically;
+    auto_reload_plugins = reload_automatically;
 }
 
 bool getLoggingEnabled() { return logging_enabled; }
@@ -26,66 +26,77 @@ const char * impersonate_dre_key = "impersonate_dre";
 const char * logging_enabled_key = "logging_enabled";
 
 bool loadPrefs(const boost::filesystem::path & path) {
-	//open file, and deserialize
-	std::ifstream f(path.string());
+    //open file, and deserialize
+    std::ifstream f(path.string());
 
-	if(f.fail()) {
-		xplog << "Couldn't open properties file: " << path << "\n";
-		return false;
-	}
-
-	boost::property_tree::ptree prefs;
-	try {
-		read_json(f, prefs);
-	} catch (const boost::property_tree::json_parser_error & e) {
-		xplog << "Error parsing preferences file at " << path << "\n";
-		xplog << "Error: " << e.what() << "\n";
-		xplog << "Preferences going back to default.\n";
-		return false;
-	}
-
-	BOOST_FOREACH(boost::property_tree::ptree::value_type & window_detail_val, prefs.get_child("windows")) {
-        showViewerWindow(window_detail_val.second);
+    if(f.fail()) {
+        xplog << "Couldn't open properties file: " << path << "\n";
+        return false;
     }
 
-	auto_reload_plugins = prefs.get<bool>(auto_reload_plugin_key, true);
-	impersonate_dre = prefs.get<bool>(impersonate_dre_key, false);
-	bool logging_enabled_loaded = prefs.get<bool>(logging_enabled_key, true);
+    nlohmann::json prefs;
 
-	if(false == logging_enabled_loaded) {
-		xplog << "Logging disabled via prefs file\n";
-	}
-	xplog << "Loaded prefs from " << path << "\n";
-	logging_enabled = logging_enabled_loaded;
+    try {
+        f >> prefs;
+    } catch (const nlohmann::json::parse_error & pe) {
+        xplog << "Error parsing preferences file at " << path << "\n";
+        xplog << "Error: " << pe.what() << "\n";
+        xplog << "Preferences going back to default.\n";
+        return false;
+    }
 
-	return true;
+    try {
+        for(const nlohmann::json & window: prefs["windows"]) {
+            showViewerWindow(window);
+        }
+    } catch(nlohmann::json::exception) {
+
+    }
+
+    bool logging_enabled_loaded = true;
+    try {
+        auto_reload_plugins = prefs.value<bool>(auto_reload_plugin_key, true);
+        impersonate_dre = prefs.value<bool>(impersonate_dre_key, false);
+        logging_enabled_loaded = prefs.value<bool>(logging_enabled_key, true);
+    } catch(nlohmann::json::exception) {
+
+    }
+
+
+    if(false == logging_enabled_loaded) {
+        xplog << "Logging disabled via prefs file\n";
+    }
+    xplog << "Loaded prefs from " << path << "\n";
+    logging_enabled = logging_enabled_loaded;
+
+    return true;
 }
 
 bool savePrefs(const boost::filesystem::path & path) {
 
-	boost::property_tree::ptree prefs;
-	boost::property_tree::ptree windows = getViewerWindowsDetails();
-    
-    prefs.put("author", "Lee C. Baker");
-    prefs.put("compile_date", __DATE__ " " __TIME__);
-    prefs.add_child("windows", windows);
-	prefs.put(auto_reload_plugin_key, auto_reload_plugins);
-	prefs.put(impersonate_dre_key, impersonate_dre);
-	prefs.put(logging_enabled_key, logging_enabled);
+    nlohmann::json windows = getViewerWindowsDetails();
 
-	//serialize and save to file
-	std::ofstream f(path.string());
+    nlohmann::json prefs = {
+        {"author", "Lee C. Baker"},
+        {"compile_date", __DATE__ " " __TIME__},
+        {"windows", windows},
+        {auto_reload_plugin_key, auto_reload_plugins},
+        {impersonate_dre_key, impersonate_dre},
+        {logging_enabled_key, logging_enabled}
+    };
+
+    //serialize and save to file
+    std::ofstream f(path.string());
     if(f.fail()) {
         return false;
     }
     try {
-		write_json(f, prefs);
-    } catch(boost::property_tree::json_parser_error & e) {
-		xplog << "Error writing preferences file at " << path << "\n";
-		xplog << e.filename() << ":" << e.line() << "\n";
-		xplog << e.message() << "\n";
-    	return false;
+        f << prefs;
+    } catch(nlohmann::json::exception & e) {
+        xplog << "Error writing preferences file at " << path << "\n";
+        xplog << e.what() << "\n";
+        return false;
     }
 
-	return false == f.fail();
+    return false == f.fail();
 }

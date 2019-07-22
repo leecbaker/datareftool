@@ -64,7 +64,7 @@ endif()
 
 find_package(Boost 1.54.0 REQUIRED COMPONENTS filesystem system iostreams)
 target_link_libraries(datareftool PUBLIC Boost::filesystem Boost::system Boost::iostreams)
-target_link_libraries(plugin PUBLIC Boost::filesystem Boost::system datareftool clipboard glew)
+target_link_libraries(plugin PUBLIC Boost::filesystem Boost::system datareftool clipboard glew nlohmann_json)
 
 if(UNIX)
 	include_directories(SYSTEM "../lib/xplane_sdk/CHeaders/XPLM/" "../lib/xplane_sdk/CHeaders/Widgets/" "../lib/xplane_sdk/CHeaders/Wrappers/")
