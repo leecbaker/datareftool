@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <memory>
 #include <set>
+#include <sstream>
 #include <string>
 
 const int bottom_row_height = 20;
