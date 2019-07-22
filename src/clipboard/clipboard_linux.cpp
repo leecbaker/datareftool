@@ -3,6 +3,8 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+#include <iostream>
+
 //implementation from @jason-watkins
 std::string getClipboard() {
 	std::string result;
