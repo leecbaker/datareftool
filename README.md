@@ -100,4 +100,4 @@ I don't always know why DRT causes X-Plane to crash, but here's are common cause
 
 DRT is written by Lee C. Baker. If you benefitted from this plugin, please consider purchasing the [PlaneCommand](https://planecommand.com) voice recognition plugin.
 
-&copy; 2017-2018 Lee C. Baker.
+&copy; 2017-2019 Lee C. Baker.
