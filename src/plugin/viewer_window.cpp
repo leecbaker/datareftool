@@ -19,7 +19,6 @@
 #include <cmath>
 #include <cstdint>
 #include <memory>
-#include <set>
 #include <sstream>
 #include <string>
 
@@ -35,12 +34,14 @@ ViewerWindow::ViewerWindow(int l, int t, int r, int b) {
                 NULL,									// no container
                 xpWidgetClass_MainWindow);
 
+    results = plugin_data->refs.doSearch(params);
+
     XPSetWidgetProperty(window, xpProperty_MainWindowHasCloseBoxes, 1);
     XPSetWidgetProperty(window, xpProperty_MainWindowType, xpMainWindowStyle_Translucent);
     XPAddWidgetCallback(window, viewerWindowCallback);
     XPSetWidgetProperty(window, xpProperty_Object, reinterpret_cast<intptr_t>(this));
     
-    list = std::make_unique<ViewerWindowList>(window, refs);
+    list = std::make_unique<ViewerWindowList>(window, results);
 
     regex_toggle_button = XPCreateWidget(0, 0, 1, 1, 1,".*", 0, window, xpWidgetClass_Button);
     XPSetWidgetProperty(regex_toggle_button, xpProperty_ButtonType, xpPushButton);
@@ -164,7 +165,7 @@ void ViewerWindow::updateTitle() { //update title
             window_title << ": " << search_term_text;
         }
 
-        window_title << " (" << this->refs.size() << ")";
+        window_title << " (" << results->size() << ")";
 
         if(params.invalidRegex()) {
             window_title << " (Invalid regex)";
@@ -310,12 +311,12 @@ int ViewerWindow::searchFieldCallback(XPWidgetMessage inMessage, XPWidgetID inWi
 
                     case XPLM_VK_W:	//close window 
                     {
-                        closeViewerWindow(obj);
+                        plugin_data->closeViewerWindow(obj);
                         return 1;
                     }
                     case XPLM_VK_N: //new window
                     {
-                        showViewerWindow();
+                        plugin_data->showViewerWindow();
                         return 1;
                     }
                 }
@@ -347,7 +348,7 @@ int ViewerWindow::viewerWindowCallback(XPWidgetMessage inMessage, XPWidgetID inW
             obj->list->moveScroll(mouse_info->delta);
             return 1;
         case xpMessage_CloseButtonPushed:
-            closeViewerWindow(obj);
+            plugin_data->closeViewerWindow(obj);
             return 1;
         case xpMsg_MouseDown:
             XPGetWidgetGeometry(obj->window, &obj->drag_start_window_left, &obj->drag_start_window_top, &obj->drag_start_window_right, &obj->drag_start_window_bottom);
@@ -486,72 +487,31 @@ void ViewerWindow::setCrDrFilter(bool has_datarefs, bool has_commandrefs) {
     updateCrDrFilterButton();
 }
 
-/////////////////
-std::set<std::unique_ptr<ViewerWindow>> viewer_windows;
-
-size_t countViewerWindows() { return viewer_windows.size(); }
-
-void closeViewerWindow(const ViewerWindow * window) {
-    auto ptr_up_equal = [window](const std::unique_ptr<ViewerWindow> & up) -> bool {
-        return up.get() == window;
+nlohmann::json ViewerWindow::to_json() const {
+    nlohmann::json window = {
+        {"window_height", getHeight()},
+        {"window_width", getWidth()},
+        {"x", getX()},
+        {"y", getY()},
+        {"case_sensitive", params.isCaseSensitive()},
+        {"regex", params.useRegex()},
+        {"changed", params.useChangeDetection()},
+        {"big_changes_only", params.useOnlyLargeChanges()},
+        {"search_term", params.getSearchField()},
     };
-
-    std::set<std::unique_ptr<ViewerWindow>>::const_iterator window_ptr_loc = std::find_if(viewer_windows.cbegin(), viewer_windows.cend(), ptr_up_equal);
-
-    if(viewer_windows.cend() != window_ptr_loc) {
-        viewer_windows.erase(window_ptr_loc);
-    }
+    return window;
 }
 
-void closeViewerWindows() {
-    viewer_windows.clear();
-}
+/////////////////
 
-void updateWindowsPerFrame(const std::vector<RefRecord *> & new_refs, std::vector<RefRecord *> & changed_crs, std::vector<RefRecord *> & changed_drs) {
-    for(const std::unique_ptr<ViewerWindow> & window : viewer_windows) {
-        window->doSearch(new_refs, changed_crs, changed_drs);
-    }
-}
-
-nlohmann::json getViewerWindowsDetails() {
-    nlohmann::json windows = nlohmann::json::array();
-    
-    for(const std::unique_ptr<ViewerWindow> & pwindow : viewer_windows) {
-        const SearchParams & params = pwindow->getSearchParams();
-        nlohmann::json window = {
-            {"window_height", pwindow->getHeight()},
-            {"window_width", pwindow->getWidth()},
-            {"x", pwindow->getX()},
-            {"y", pwindow->getY()},
-            {"case_sensitive", params.isCaseSensitive()},
-            {"regex", params.useRegex()},
-            {"changed", params.useChangeDetection()},
-            {"big_changes_only", params.useOnlyLargeChanges()},
-            {"search_term", params.getSearchField()},
-        };
-
-        windows.push_back(std::move(window));
-    }
-    
-    return windows;
-}
-
-void ViewerWindow::doSearch(const std::vector<RefRecord *> & new_refs, std::vector<RefRecord *> & changed_crs, std::vector<RefRecord *> & changed_drs) {
+void ViewerWindow::update() {
     if(params_changed) {
+        results = plugin_data->refs.doSearch(params);
         list->deselectEditField();
-        params.freshSearch(this->refs, plugin_data->refs.getAllCommandrefs(), plugin_data->refs.getAllDatarefs());
         params_changed = false;
-        list->deselectEditField();
-        updateTitle();
-    } else {
-        // Updating the search may increase or decrease the number of results, and change the scroll
-        // position. Previously, we would deselect the edit field as a result, but this may cause the
-        // edit field to disappear unexpectedly. The edit field won't line up with the corresponding
-        // dataref, but that's ok.
-        params.updateSearch(this->refs, new_refs, changed_crs, changed_drs);
     }
-    list->updateScroll();
 
+    list->updateScroll();
     updateTitle();
 }
 
@@ -581,7 +541,7 @@ void ViewerWindow::setSearchSelection(intptr_t start, intptr_t stop) {
 const char * KEY_HAS_DR = "has_datarefs";
 const char * KEY_HAS_CR = "has_commandrefs";
 
-void showViewerWindow(const nlohmann::json & window_details) {
+std::unique_ptr<ViewerWindow> createViewerWindow(const nlohmann::json & window_details) {
     // now construct as if we didnt
     int width, height;
     XPLMGetScreenSize(&width, &height);
@@ -641,20 +601,14 @@ void showViewerWindow(const nlohmann::json & window_details) {
     viewer_window->setIsChanged(is_changed, is_big_changes);
     viewer_window->setCrDrFilter(has_datarefs, has_commandrefs);
     viewer_window->setSearchText(search_term);
-    
-    viewer_windows.insert(std::move(viewer_window));
+
+    return viewer_window;
 }
 
-void showViewerWindow(bool show_dr, bool show_cr) {
+std::unique_ptr<ViewerWindow> createViewerWindow(bool show_dr, bool show_cr) {
     nlohmann::json window_details = {
         { KEY_HAS_DR, show_dr},
         { KEY_HAS_CR, show_cr}
     };
-    showViewerWindow(window_details);
-}
-
-void setAllWindowsInVr(bool in_vr) {
-    for(const std::unique_ptr<ViewerWindow> & window : viewer_windows) {
-        window->setInVr(in_vr);
-    }
+    return createViewerWindow(window_details);
 }

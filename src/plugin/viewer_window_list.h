@@ -9,6 +9,7 @@
 #include "XPWidgets.h"
 #include "XPStandardWidgets.h"
 
+#include "search.h"
 #include "viewer_window_command_button.h"
 
 class RefRecord;
@@ -82,7 +83,7 @@ class ViewerWindowList {
 	CommandRefRecord * selected_command = nullptr;
 	bool edit_modified = false;
 
-	std::vector<RefRecord *> & results;
+	std::shared_ptr<SearchResults> & results;
 
 	std::vector<std::unique_ptr<CommandButtonRow>> command_buttons;
 
@@ -106,7 +107,7 @@ class ViewerWindowList {
     bool leftClick(int x, int y, MouseButton button);
 
 public:
-    ViewerWindowList(XPWidgetID window, std::vector<RefRecord *> & results);
+    ViewerWindowList(XPWidgetID window, std::shared_ptr<SearchResults> & results);
     void draw();
     void resize(int left, int top, int right, int bottom);
     void updateScroll();

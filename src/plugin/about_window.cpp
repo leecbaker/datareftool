@@ -10,9 +10,11 @@
 XPLMWindowID about_window = nullptr;
 
 void closeAboutWindow() {
-	XPHideWidget(about_window);
-	XPLMDestroyWindow(about_window);
-	about_window = nullptr;
+	if(nullptr != about_window) {
+		XPHideWidget(about_window);
+		XPLMDestroyWindow(about_window);
+		about_window = nullptr;
+	}
 }
 
 int	aboutWindowCallback(XPWidgetMessage message, XPWidgetID, intptr_t, intptr_t)

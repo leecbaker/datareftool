@@ -3,6 +3,8 @@
 #include "logging.h"
 #include "viewer_window.h"
 
+#include "plugin.h"
+
 #include <fstream>
 
 #include <boost/foreach.hpp>
@@ -47,7 +49,7 @@ bool loadPrefs(const boost::filesystem::path & path) {
 
     try {
         for(const nlohmann::json & window: prefs["windows"]) {
-            showViewerWindow(window);
+            plugin_data->showViewerWindow(window);
         }
     } catch(nlohmann::json::exception) {
 
@@ -72,9 +74,7 @@ bool loadPrefs(const boost::filesystem::path & path) {
     return true;
 }
 
-bool savePrefs(const boost::filesystem::path & path) {
-
-    nlohmann::json windows = getViewerWindowsDetails();
+bool savePrefs(const boost::filesystem::path & path, const nlohmann::json & windows) {
 
     nlohmann::json prefs = {
         {"author", "Lee C. Baker"},

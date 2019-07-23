@@ -83,3 +83,19 @@ protected:
         return result.second != rhs.cend() && (result.first == lhs.cend() || tolower(*result.first) < tolower(*result.second));
     }
 };
+
+class SearchResults {
+    using container_type = std::vector<RefRecord *>;
+    SearchParams params;
+    std::vector<RefRecord *> refs;
+public:
+    SearchResults(SearchParams params, const std::vector<RefRecord *> & commandrefs, const std::vector<RefRecord *> & datarefs);
+    void update(const std::vector<RefRecord *> & new_refs, const std::vector<RefRecord *> & changed_cr, const std::vector<RefRecord *> & changed_dr);
+
+    size_t size() const { return refs.size(); }
+    container_type::const_iterator cbegin() const { return refs.cbegin(); }
+    container_type::const_iterator cend() const { return refs.cend(); }
+    RefRecord * operator[](size_t index) {
+        return refs[index];
+    }
+};

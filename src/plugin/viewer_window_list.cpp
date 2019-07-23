@@ -26,7 +26,7 @@
 
 const XPLMFontID font = xplmFont_Basic;
 
-ViewerWindowList::ViewerWindowList(XPWidgetID window, std::vector<RefRecord *> & results)
+ViewerWindowList::ViewerWindowList(XPWidgetID window, std::shared_ptr<SearchResults> & results)
 : results(results) {
 
     XPLMGetFontDimensions(font, &fontwidth, &fontheight, nullptr);
@@ -109,11 +109,11 @@ bool ViewerWindowList::leftClick(int x, int y, MouseButton button) {
     int element_bottom = element_top - fontheight;
 
     // if not a click on an element
-    if(element_index < 0 || element_index >= static_cast<int>(results.size())) {
+    if(element_index < 0 || element_index >= static_cast<int>(results->size())) {
         return false;
     }
 
-    RefRecord * record = results[element_index];
+    RefRecord * record = (*results)[element_index];
     const std::string & name = record->getName();
     float dataref_name_width = XPLMMeasureString(font, name.c_str(), int(name.size()) + 1);
     float dataref_name_width_plus_eq = XPLMMeasureString(font, (name + "=").c_str(), int(name.size()) + 2);
@@ -184,7 +184,7 @@ void ViewerWindowList::draw() {
 
     std::string linetext;
     int top = list_top + scroll_position - (fontheight * result_index);
-    for(const RefRecord * record : boost::iterator_range<std::vector<RefRecord *>::const_iterator>(results.cbegin() + result_index, results.cend())) {
+    for(const RefRecord * record : boost::iterator_range<std::vector<RefRecord *>::const_iterator>(results->cbegin() + result_index, results->cend())) {
         std::array<float, 3> colors;
         int bottom = top - fontheight;
         if(top < list_bottom) {
@@ -229,7 +229,7 @@ void ViewerWindowList::resize(int left, int top, int right, int bottom) {
 
 void ViewerWindowList::updateScroll(int /* left */, int top, int /* right */, int bottom) {
 
-    int results_height = results.size() * fontheight;
+    int results_height = results->size() * fontheight;
     int window_height = top - bottom;
     int scroll_pixels = std::max<int>(0, results_height - window_height);
 
@@ -267,10 +267,10 @@ void ViewerWindowList::updateCommandButtons() {
 
     for(std::unique_ptr<CommandButtonRow> & cbr : command_buttons) {
         int bottom = top - fontheight;
-        if(bottom < list_bottom || result_index >= results.size()) { // if not visible or past end of results
+        if(bottom < list_bottom || result_index >= results->size()) { // if not visible or past end of results
             cbr->hide();
         } else {
-            CommandRefRecord * crr = dynamic_cast<CommandRefRecord *>(results[result_index]);
+            CommandRefRecord * crr = dynamic_cast<CommandRefRecord *>((*results)[result_index]);
             if(nullptr != crr) {
                 float command_name_width = XPLMMeasureString(font, crr->getName().c_str(), int(crr->getName().size()));
                 cbr->showAtPosition(list_left + std::ceil(command_name_width), top, list_right, bottom);

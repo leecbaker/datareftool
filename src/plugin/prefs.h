@@ -12,4 +12,4 @@ bool getLoggingEnabled();
 void setImpersonateDRE(bool impersonate);
 
 bool loadPrefs(const boost::filesystem::path & path);
-bool savePrefs(const boost::filesystem::path & path);
+bool savePrefs(const boost::filesystem::path & path, const nlohmann::json & windows);

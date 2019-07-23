@@ -165,3 +165,11 @@ void SearchParams::updateSearch(std::vector<RefRecord *> & results_in_out, const
         }
     }
 }
+
+SearchResults::SearchResults(SearchParams params, const std::vector<RefRecord *> & commandrefs, const std::vector<RefRecord *> & datarefs) : params(params) {
+    params.freshSearch(refs, commandrefs, datarefs);
+}
+
+void SearchResults::update(const std::vector<RefRecord *> & new_refs, const std::vector<RefRecord *> & changed_cr, const std::vector<RefRecord *> & changed_dr) {
+    params.updateSearch(refs, new_refs, changed_cr, changed_dr);
+}

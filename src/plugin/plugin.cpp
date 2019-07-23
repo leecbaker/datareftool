@@ -36,8 +36,6 @@ void PluginData::rescanDatarefs() {
 
 boost::optional<PluginData> plugin_data;
 
-boost::filesystem::path prefs_path;
-
 XPLMMenuID plugin_menu = nullptr;
 
 boost::filesystem::path getCurrentAircraftPath() {
@@ -53,8 +51,12 @@ void PluginData::load_acf_dr_callback() {
 }
 
 void PluginData::update_dr_callback() {
-    if(0 != countViewerWindows()) {
-        refs.update(updateWindowsPerFrame);
+    if(false == viewer_windows.empty()) {
+        refs.update();
+    }
+
+    for(std::unique_ptr<ViewerWindow> & window: viewer_windows) {
+        window->update();
     }
 }
 
@@ -154,10 +156,24 @@ PluginData::~PluginData() {
 
         refs.saveToFile(output_dir / "drt_last_run_datarefs.txt", output_dir / "drt_last_run_commandrefs.txt");
     }
+
+    closeAboutWindow();
+
+    if(savePrefs(prefs_path, plugin_data->getViewerWindowsDetails())) {
+        xplog << "Prefs saved to " << prefs_path << "\n";
+    }
 }
 
 void PluginData::plugin_menu_handler(void * refcon, void * inItemRef) {
-    static_cast<PluginData *>(refcon)->handleMenu(inItemRef);
+    plugin_data->handleMenu(inItemRef);
+}
+
+
+void PluginData::showViewerWindow(bool show_dr, bool show_cr) {
+    viewer_windows.push_back(createViewerWindow(show_dr, show_cr));
+}
+void PluginData::showViewerWindow(const nlohmann::json & window_details) {
+    viewer_windows.push_back(createViewerWindow(window_details));
 }
 
 void PluginData::handleMenu(void * item_ref) {
@@ -204,13 +220,13 @@ XPLMCommandRef show_datarefs_command = nullptr;
 int command_handler(XPLMCommandRef command, XPLMCommandPhase phase, void * ) {
     if(xplm_CommandBegin == phase) {
         if(command == reload_aircraft_command) {
-                reloadAircraft();
+            reloadAircraft();
         } else if(command == reload_plugins_command) {
-                XPLMReloadPlugins();
+            XPLMReloadPlugins();
         } else if(command == reload_scenery_command) {
-                XPLMReloadScenery();
+            XPLMReloadScenery();
         } else if(command == show_datarefs_command) {
-                showViewerWindow();
+            plugin_data->showViewerWindow();
         }
     }
     return 1;
@@ -234,9 +250,6 @@ PluginData::PluginData()
         char prefs_dir_c[512];
         XPLMGetPrefsPath(prefs_dir_c);
         prefs_path = boost::filesystem::path(prefs_dir_c).parent_path() / "datareftool.json";
-        if(loadPrefs(prefs_path)) {
-            xplog << "prefs loaded from " << prefs_path << "\n";
-        }
     }
 
     { //load blacklist first, before everything else
@@ -261,6 +274,9 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 #endif
 
     plugin_data.emplace();
+    if(loadPrefs(plugin_data->getPrefsPath())) {
+        xplog << "prefs loaded from " << plugin_data->getPrefsPath() << "\n";
+    }
 
     // let's try to find DRE before we register the plugin. If it's already here, we shouldn't register with the same signature!
     bool found_dre_early = XPLM_NO_PLUGIN_ID != XPLMFindPluginBySignature(dre_signature);
@@ -279,7 +295,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
     }
     
     int plugin_submenu = XPLMAppendMenuItem(XPLMFindPluginsMenu(), "DataRefTool", nullptr, 1);
-    plugin_menu = XPLMCreateMenu("DataRefTool", XPLMFindPluginsMenu(), plugin_submenu, &PluginData::plugin_menu_handler, nullptr);
+    plugin_menu = XPLMCreateMenu("DataRefTool", XPLMFindPluginsMenu(), plugin_submenu, &PluginData::plugin_menu_handler, reinterpret_cast<void *>(&plugin_data));
 
     XPLMAppendMenuItem(plugin_menu, "View Datarefs", reinterpret_cast<void *>(0), 1);
     XPLMAppendMenuItem(plugin_menu, "View Commands", reinterpret_cast<void *>(1), 1);
@@ -328,13 +344,6 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 }
 
 PLUGIN_API void	XPluginStop(void) {
-    if(savePrefs(prefs_path)) {
-        xplog << "Prefs saved to " << prefs_path << "\n";
-    }
-
-    closeAboutWindow();
-    closeViewerWindows();
-
     plugin_data = boost::none;
 }
 
@@ -376,10 +385,36 @@ void PluginData::handleMessage(intptr_t inMessage, void * inParam) {
             break;
 
         case XPLM_MSG_ENTERED_VR:
-            setAllWindowsInVr(true);
+            for(const std::unique_ptr<ViewerWindow> & window : viewer_windows) {
+                window->setInVr(true);
+            }
             break;
         case XPLM_MSG_EXITING_VR:
-            setAllWindowsInVr(false);
+            for(const std::unique_ptr<ViewerWindow> & window : viewer_windows) {
+                window->setInVr(false);
+            }
             break;
     }
+}
+
+void PluginData::closeViewerWindow(const ViewerWindow * window) {
+    auto ptr_up_equal = [window](const std::unique_ptr<ViewerWindow> & up) -> bool {
+        return up.get() == window;
+    };
+
+    std::vector<std::unique_ptr<ViewerWindow>>::const_iterator window_ptr_loc = std::find_if(viewer_windows.cbegin(), viewer_windows.cend(), ptr_up_equal);
+
+    if(viewer_windows.cend() != window_ptr_loc) {
+        viewer_windows.erase(window_ptr_loc);
+    }
+}
+
+nlohmann::json PluginData::getViewerWindowsDetails() {
+    nlohmann::json windows = nlohmann::json::array();
+    
+    for(const std::unique_ptr<ViewerWindow> & pwindow : viewer_windows) {
+        windows.push_back(pwindow->to_json());
+    }
+    
+    return windows;
 }

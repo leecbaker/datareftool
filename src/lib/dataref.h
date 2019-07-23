@@ -2,6 +2,7 @@
 
 #include "XPLMDataAccess.h"
 
+#include <cassert>
 #include <chrono>
 #include <string>
 #include <vector>

@@ -2,6 +2,9 @@
 
 #include <cstdint>
 #include <functional>
+#include <vector>
+
+#include <json.hpp>
 
 #include <boost/optional.hpp>
 
@@ -9,6 +12,7 @@
 
 #include "XPLMProcessing.h"
 
+class ViewerWindow;
 
 // The callback function returns a bool- true if the callback should repeat, or false if it should only happen once
 class NextFlightLoopCallback {
@@ -62,6 +66,9 @@ protected:
     NextFlightLoopCallback update_dr_flcb;
     NextFlightLoopCallback plugin_changed_flcb;
     NextFlightLoopCallback load_acf_dr_flcb;
+
+    std::vector<std::unique_ptr<ViewerWindow>> viewer_windows;
+    boost::filesystem::path prefs_path;
 public:
     RefScanner refs; //TODO public member var
 
@@ -77,6 +84,14 @@ public:
     void load_acf_dr_callback();
     void plugin_changed_check_callback();
 
+    void closeViewerWindow(const ViewerWindow * window);
+
+    void showViewerWindow(bool show_dr, bool show_cr);
+    void showViewerWindow(const nlohmann::json & window_details = {});
+    
+    nlohmann::json getViewerWindowsDetails();
+
+    const boost::filesystem::path getPrefsPath() const { return prefs_path; }
 public:
     void handleMessage(intptr_t inMessage, void * inParam);
 protected:

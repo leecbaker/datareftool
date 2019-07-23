@@ -34,7 +34,7 @@ class ViewerWindow {
     int cr_dr_filter_state = 0;	//0 for dataref only, 1 for CR only, 2 for both
     bool params_changed = false;
 
-    std::vector<RefRecord *> refs;
+    std::shared_ptr<SearchResults> results;
 
     SearchParams params;
 
@@ -71,7 +71,6 @@ public:
     void setSearchText(const std::string & s);
 
     intptr_t getSearchSelectionStart() const;
-
     intptr_t getSearchSelectionStop() const;
 
     void setSearchSelection(intptr_t start, intptr_t stop);
@@ -79,7 +78,7 @@ public:
     void updateChangeButton();
     void updateCrDrFilterButton();
 
-    void doSearch(const std::vector<RefRecord *> & new_refs, std::vector<RefRecord *> & changed_crs, std::vector<RefRecord *> & changed_drs);
+    void update(); //< When results have changed, update the window
 
     void updateTitle();
     void draw();
@@ -87,32 +86,19 @@ public:
     void resize();
     void resize(int left, int top, int right, int bottom);
 
-    const SearchParams & getSearchParams() const { return params; }
-    
     void setCaseSensitive(bool is_case_sensitive);
     void setIsRegex(bool is_regex);
     void setIsChanged(bool is_changed, bool only_big_changes);
     void setCrDrFilter(bool has_datarefs, bool has_commandrefs);
-    
+
     int getWidth() const;
-    
     int getHeight() const;
-    
-    //left
-    int getX() const;
-    
-    //bottom, ogl coordinates
-    int getY() const;
+
+    int getX() const; //<left
+    int getY() const; //<bottom, ogl coordinates
+
+    nlohmann::json to_json() const;
 };
 
-void showViewerWindow(bool show_dr, bool show_cr);
-void showViewerWindow(const nlohmann::json & window_details = {});
-nlohmann::json getViewerWindowsDetails();
-
-class RefRecord;
-void updateWindowsPerFrame(const std::vector<RefRecord *> & new_refs, std::vector<RefRecord *> & changed_crs, std::vector<RefRecord *> & changed_drs);
-void closeViewerWindow(const ViewerWindow * window);
-void closeViewerWindows();
-size_t countViewerWindows();
-
-void setAllWindowsInVr(bool in_vr);
+std::unique_ptr<ViewerWindow> createViewerWindow(const nlohmann::json & window_details);
+std::unique_ptr<ViewerWindow> createViewerWindow(bool show_dr, bool show_cr);

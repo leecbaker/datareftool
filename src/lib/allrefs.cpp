@@ -124,7 +124,7 @@ std::vector<RefRecord *> RefRecords::updateValues() {
 }
 
 
-void RefRecords::update(void (* update_func)(const std::vector<RefRecord *> &, std::vector<RefRecord *> &, std::vector<RefRecord *> &)) {
+void RefRecords::update() {
 	std::vector<RefRecord *> changed_drs = updateValues();
 
 	if(false == new_datarefs_from_messages_this_frame.empty()) {
@@ -147,9 +147,23 @@ void RefRecords::update(void (* update_func)(const std::vector<RefRecord *> &, s
 		changed_cr_this_frame.erase(new_end, changed_cr_this_frame.end());
 	}
 
-	update_func(new_refs_this_frame, changed_cr_this_frame, changed_drs);
+	{	// remove inactive searches
+		auto new_end = std::remove_if(result_records.begin(), result_records.end(), [](const std::weak_ptr<SearchResults> & r) -> bool { return r.expired(); });
+		result_records.erase(new_end, result_records.cend());
+	}
+
+	for(std::weak_ptr<SearchResults> & results_weak : result_records) {
+		std::shared_ptr<SearchResults> results = results_weak.lock();
+		results->update(new_refs_this_frame, changed_cr_this_frame, changed_drs);
+	}
 
 	changed_cr_this_frame.clear();
 	changed_drs.clear();
 	new_refs_this_frame.clear();
+}
+
+std::shared_ptr<SearchResults> RefRecords::doSearch(SearchParams params) {
+	std::shared_ptr<SearchResults> results = std::make_shared<SearchResults>(params, cr_pointers, dr_pointers);
+	result_records.push_back(results);
+	return results;
 }

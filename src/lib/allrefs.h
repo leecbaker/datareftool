@@ -1,6 +1,5 @@
 #pragma once
 #include <array>
-#include <cassert>
 #include <chrono>
 #include <cstddef>
 #include <cstring>
@@ -14,6 +13,7 @@
 
 #include "dataref.h"
 #include "commandref.h"
+#include "search.h"
 
 class SearchParams;
 
@@ -42,6 +42,7 @@ class RefRecords {
     std::vector<std::string> new_datarefs_from_messages_this_frame;
 protected:
     std::ostream & log;
+    std::vector<std::weak_ptr<SearchResults>> result_records;
 public:
     RefRecords(std::ostream & log) : log(log) {}
     std::vector<RefRecord *> CHECK_RESULT_USED add(const std::vector<std::string> & names, ref_src_t source);
@@ -63,9 +64,12 @@ public:
         new_datarefs_from_messages_this_frame.push_back(std::move(s));
     }
 
-    void update(void (* update_func)(const std::vector<RefRecord *> &, std::vector<RefRecord *> &, std::vector<RefRecord *> &));
+    void update();
     void saveToFile(const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const;
 
     const RecordPointerType & getAllCommandrefs() const { return cr_pointers; }
     const RecordPointerType & getAllDatarefs() const { return dr_pointers; }
+
+    // Make a new search, with a constant set of search parameters
+    std::shared_ptr<SearchResults> doSearch(SearchParams params);
 };
