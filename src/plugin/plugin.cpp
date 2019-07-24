@@ -164,16 +164,17 @@ PluginData::~PluginData() {
     }
 }
 
-void PluginData::plugin_menu_handler(void * refcon, void * inItemRef) {
+void PluginData::plugin_menu_handler(void * /* refcon */, void * inItemRef) {
+    // TODO: can we replace plugin_data with the refcon?
     plugin_data->handleMenu(inItemRef);
 }
 
 
 void PluginData::showViewerWindow(bool show_dr, bool show_cr) {
-    viewer_windows.push_back(createViewerWindow(show_dr, show_cr));
+    viewer_windows.push_back(std::make_unique<ViewerWindow>(show_dr, show_cr, refs));
 }
 void PluginData::showViewerWindow(const nlohmann::json & window_details) {
-    viewer_windows.push_back(createViewerWindow(window_details));
+    viewer_windows.push_back(std::make_unique<ViewerWindow>(window_details, refs));
 }
 
 void PluginData::handleMenu(void * item_ref) {

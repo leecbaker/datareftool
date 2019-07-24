@@ -9,6 +9,7 @@
 #include "search.h"
 
 class RefRecord;
+class RefRecords;
 class ViewerWindowList;
 
 class ViewerWindow {
@@ -37,6 +38,7 @@ class ViewerWindow {
     std::shared_ptr<SearchResults> results;
 
     SearchParams params;
+    RefRecords & refs;
 
     static int viewerWindowCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t);
     static int searchFieldCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t);
@@ -46,7 +48,8 @@ class ViewerWindow {
     static int drawListCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t, intptr_t);
 
 public:
-    ViewerWindow(int l, int t, int r, int b);
+    ViewerWindow(const nlohmann::json & window_params, RefRecords & refs);
+    ViewerWindow(bool show_dr, bool show_cr, RefRecords & refs);
 
     void setDefaultPosition() {
         int width, height;
@@ -99,6 +102,3 @@ public:
 
     nlohmann::json to_json() const;
 };
-
-std::unique_ptr<ViewerWindow> createViewerWindow(const nlohmann::json & window_details);
-std::unique_ptr<ViewerWindow> createViewerWindow(bool show_dr, bool show_cr);

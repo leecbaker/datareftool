@@ -26,15 +26,70 @@ const int bottom_row_height = 20;
 const int toggle_button_width = 28;
 const int title_bar_height = 16;
 
-ViewerWindow::ViewerWindow(int l, int t, int r, int b) {
-    window = XPCreateWidget(l, t, r, b,
+const char * KEY_HAS_DR = "has_datarefs";
+const char * KEY_HAS_CR = "has_commandrefs";
+
+ViewerWindow::ViewerWindow(bool show_dr, bool show_cr, RefRecords & refs) : ViewerWindow({
+        { KEY_HAS_DR, show_dr},
+        { KEY_HAS_CR, show_cr}
+    }, refs) {}
+
+ViewerWindow::ViewerWindow(const nlohmann::json & window_details, RefRecords & refs) : refs(refs) {
+    // Decode parameters from json
+    int screen_width, screen_height;
+    XPLMGetScreenSize(&screen_width, &screen_height);
+
+    int window_width = 500;
+    int window_height = 400;
+    int l = screen_width / 2 - window_width / 2;
+    int b = screen_height / 2 - window_height / 2;
+
+    bool is_case_sensitive = false;
+    bool is_regex = true;
+    bool is_changed = false;
+    bool is_big_changes = false;
+    bool has_datarefs = true;
+    bool has_commandrefs = true;
+
+    //extract parameters, if present
+    try {
+        window_width = window_details.value<int>("window_width", window_width);
+        window_height = window_details.value<int>("window_height", window_height);
+        l = window_details.value<int>("x", l);
+        b = window_details.value<int>("y", b);
+        
+        is_case_sensitive = window_details.value<bool>("case_sensitive", is_case_sensitive);
+        is_regex = window_details.value<bool>("regex", is_regex);
+        is_changed = window_details.value<bool>("changed", is_changed);
+        is_big_changes = window_details.value<bool>("big_changes_only", is_big_changes);
+        has_datarefs = window_details.value<bool>(KEY_HAS_DR, has_datarefs);
+        has_commandrefs = window_details.value<bool>(KEY_HAS_CR, has_commandrefs);
+    } catch(nlohmann::json::exception) {
+
+    }
+
+    if(false == has_datarefs && false == has_commandrefs) {
+        has_datarefs = has_commandrefs = true;
+    }
+
+    std::string search_term;
+    if(window_details.count("search_term")) {
+        try {
+            search_term = window_details["search_term"].get<std::string>();
+        } catch(nlohmann::json::exception) {
+
+        }
+    }
+
+    //////
+    window = XPCreateWidget(l, b + window_height, l + window_width, b,
                 1,										// Visible
                 "Data Ref Tool",	// desc
                 1,										// root
                 NULL,									// no container
                 xpWidgetClass_MainWindow);
 
-    results = plugin_data->refs.doSearch(params);
+    results = refs.doSearch(params);
 
     XPSetWidgetProperty(window, xpProperty_MainWindowHasCloseBoxes, 1);
     XPSetWidgetProperty(window, xpProperty_MainWindowType, xpMainWindowStyle_Translucent);
@@ -80,9 +135,7 @@ ViewerWindow::ViewerWindow(int l, int t, int r, int b) {
 
     // Clamp window bounds to screen size. This could happen if, e.g.,
     // a window is closed in VR, and then re-opened in non-VR.
-    int screen_width, screen_height;
-    XPLMGetScreenSize(&screen_width, &screen_height);
-    if(l < 0 || r - l < 100 || r > screen_width || b < 0 || t - b < 100 || t > screen_height) {
+    if(l < 0 || window_width < 100 || l + window_width > screen_width || b < 0 || window_height < 100 || window_height > screen_height) {
         setDefaultPosition();
     } else {
         resize();
@@ -90,6 +143,12 @@ ViewerWindow::ViewerWindow(int l, int t, int r, int b) {
 
     params_changed = true;
     list->updateScroll();
+
+    setCaseSensitive(is_case_sensitive);
+    setIsRegex(is_regex);
+    setIsChanged(is_changed, is_big_changes);
+    setCrDrFilter(has_datarefs, has_commandrefs);
+    setSearchText(search_term);
 
     //VR
     XPLMDataRef vr_dref = XPLMFindDataRef("sim/graphics/VR/enabled");
@@ -506,7 +565,7 @@ nlohmann::json ViewerWindow::to_json() const {
 
 void ViewerWindow::update() {
     if(params_changed) {
-        results = plugin_data->refs.doSearch(params);
+        results = refs.doSearch(params);
         list->deselectEditField();
         params_changed = false;
     }
@@ -536,79 +595,4 @@ intptr_t ViewerWindow::getSearchSelectionStop() const {
 void ViewerWindow::setSearchSelection(intptr_t start, intptr_t stop) {
     XPSetWidgetProperty(search_field, xpProperty_EditFieldSelStart, start);
     XPSetWidgetProperty(search_field, xpProperty_EditFieldSelEnd, stop);
-}
-
-const char * KEY_HAS_DR = "has_datarefs";
-const char * KEY_HAS_CR = "has_commandrefs";
-
-std::unique_ptr<ViewerWindow> createViewerWindow(const nlohmann::json & window_details) {
-    // now construct as if we didnt
-    int width, height;
-    XPLMGetScreenSize(&width, &height);
-    
-    const int expected_window_width = 500;
-    const int expected_window_height = 400;
-    const int expected_l = width/2 - expected_window_width / 2;
-    const int expected_b = height/2 - expected_window_height / 2;
-    
-    //extract parameters, if present
-    int window_width = expected_window_width;
-    int window_height = expected_window_height;
-    int l = expected_l;
-    int b = expected_b;
-    
-    bool is_case_sensitive = false;
-    bool is_regex = true;
-    bool is_changed = false;
-    bool is_big_changes = false;
-    bool has_datarefs = true;
-    bool has_commandrefs = true;
-
-    try {
-        window_width = window_details.value<int>("window_width", window_width);
-        window_height = window_details.value<int>("window_height", window_height);
-        l = window_details.value<int>("x", l);
-        b = window_details.value<int>("y", b);
-        
-        is_case_sensitive = window_details.value<bool>("case_sensitive", is_case_sensitive);
-        is_regex = window_details.value<bool>("regex", is_regex);
-        is_changed = window_details.value<bool>("changed", is_changed);
-        is_big_changes = window_details.value<bool>("big_changes_only", is_big_changes);
-        has_datarefs = window_details.value<bool>(KEY_HAS_DR, has_datarefs);
-        has_commandrefs = window_details.value<bool>(KEY_HAS_CR, has_commandrefs);
-    } catch(nlohmann::json::exception) {
-
-    }
-
-    if(false == has_datarefs && false == has_commandrefs) {
-        has_datarefs = has_commandrefs = true;
-    }
-
-    std::string search_term;
-    if(window_details.count("search_term")) {
-        try {
-            search_term = window_details["search_term"].get<std::string>();
-        } catch(nlohmann::json::exception) {
-
-        }
-    }
-    
-    //now make the window
-    std::unique_ptr<ViewerWindow> viewer_window = std::make_unique<ViewerWindow>(l, b + window_height, l + window_width, b);
-    
-    viewer_window->setCaseSensitive(is_case_sensitive);
-    viewer_window->setIsRegex(is_regex);
-    viewer_window->setIsChanged(is_changed, is_big_changes);
-    viewer_window->setCrDrFilter(has_datarefs, has_commandrefs);
-    viewer_window->setSearchText(search_term);
-
-    return viewer_window;
-}
-
-std::unique_ptr<ViewerWindow> createViewerWindow(bool show_dr, bool show_cr) {
-    nlohmann::json window_details = {
-        { KEY_HAS_DR, show_dr},
-        { KEY_HAS_CR, show_cr}
-    };
-    return createViewerWindow(window_details);
 }

@@ -69,9 +69,9 @@ protected:
 
     std::vector<std::unique_ptr<ViewerWindow>> viewer_windows;
     boost::filesystem::path prefs_path;
-public:
-    RefScanner refs; //TODO public member var
 
+    RefScanner refs;
+public:
     PluginData();
     ~PluginData();
 

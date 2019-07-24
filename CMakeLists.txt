@@ -2,6 +2,8 @@ if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 IF( NOT CMAKE_BUILD_TYPE )
 	SET( CMAKE_BUILD_TYPE "RelWithDebInfo" )
 ENDIF()
