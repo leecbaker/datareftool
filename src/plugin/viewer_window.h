@@ -45,8 +45,6 @@ class ViewerWindow {
 
     static int filterClickCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t, intptr_t);
 
-    static int drawListCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t, intptr_t);
-
 public:
     ViewerWindow(const nlohmann::json & window_params, RefRecords & refs);
     ViewerWindow(bool show_dr, bool show_cr, RefRecords & refs);

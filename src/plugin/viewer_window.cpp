@@ -282,16 +282,6 @@ void ViewerWindow::resize(int left, int top, int right, int bottom) {
     list->updateScroll();
 }
 
-int ViewerWindow::drawListCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t, intptr_t) {
-    ViewerWindow * obj = reinterpret_cast<ViewerWindow *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
-    switch(inMessage) {
-        case xpMsg_Draw:
-            obj->draw();
-            return 1;
-    }
-    return 0;
-}
-
 int ViewerWindow::filterClickCallback(XPWidgetMessage  inMessage, XPWidgetID  inWidget, intptr_t, intptr_t) {
     ViewerWindow * obj = reinterpret_cast<ViewerWindow *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
     switch(inMessage) {
