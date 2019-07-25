@@ -23,9 +23,12 @@ addons:
     debug: true
     s3_region: us-east-2
     paths:
-    - bin/datareftool/mac.xpl
-    - bin/datareftool/lin.xpl
-    - bin/datareftool/win.xpl
+    - mac.xpl
+    - lin.xpl
+    - win.xpl
+    working_dir: ${TRAVIS_BUILD_DIR}/bin/datareftool/
+    target_paths:
+    - $(git rev-parse HEAD)
 before_install:
 - cmake --version
 - $CC --version
