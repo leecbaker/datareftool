@@ -1,21 +1,16 @@
 language: cpp
-dist: xenial
+dist: bionic
 os:
 - linux
 - osx
 addons:
   apt:
-    sources:
-    - boost-latest
-    - ubuntu-toolchain-r-test
     packages:
     - cmake
     - libx11-dev
     - libbz2-dev
-    - sshpass
     - libglu1-mesa-dev
     - g++-8
-    - ninja
   homebrew:
     packages:
     - ninja
