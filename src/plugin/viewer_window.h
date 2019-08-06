@@ -82,7 +82,6 @@ public:
     void update(); //< When results have changed, update the window
 
     void updateTitle();
-    void draw();
 
     void resize();
     void resize(int left, int top, int right, int bottom);

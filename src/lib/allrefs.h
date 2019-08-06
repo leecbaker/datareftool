@@ -9,7 +9,7 @@
 #include <unordered_set>
 #include "XPLMDataAccess.h"
 
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 
 #include "dataref.h"
 #include "commandref.h"

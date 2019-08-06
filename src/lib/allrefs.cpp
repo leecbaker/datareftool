@@ -7,14 +7,13 @@
 #include <functional>
 #include <fstream>
 #include <locale>
+#include <optional>
 #include <regex>
 #include <unordered_set>
 #include <vector>
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string.hpp>
-#include <boost/optional.hpp>
 
 #include <signal.h>
 

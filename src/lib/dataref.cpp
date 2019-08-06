@@ -147,7 +147,7 @@ bool DataRefUpdater::operator()(std::nullptr_t&) const {
 
 bool DataRefRecord::update(DataRefUpdater & updater) {
     updater.setDataref(this);
-    return boost::apply_visitor(updater, value);
+    return std::visit(updater, value);
 }
 
 std::string DataRefRecord::getLabelString() const {
@@ -188,7 +188,7 @@ std::string makeArrayString(std::string (*stringify_func)(T), const std::vector<
     return s.str();
 }
 
-class DatarefDisplayStringifier : public boost::static_visitor<std::string> {
+class DatarefDisplayStringifier {
     size_t max_chars;
 public:
     DatarefDisplayStringifier(size_t max_chars) : max_chars(max_chars) {}
@@ -210,7 +210,7 @@ public:
     }
 };
 
-class DatarefEditStringifier : public boost::static_visitor<std::string> {
+class DatarefEditStringifier {
 public:
     std::string operator()(const float f) const { return compactFpString(f); }
     std::string operator()(const double f) const { return compactFpString(f); }
@@ -234,10 +234,10 @@ std::string DataRefRecord::getDisplayString(size_t display_length) const {
     if(isBlacklisted()) {
         return "blacklisted";
     } else {
-        return boost::apply_visitor(DatarefDisplayStringifier(display_length), value);
+        return std::visit(DatarefDisplayStringifier(display_length), value);
     }
 }
 
 std::string DataRefRecord::getEditString() const {
-    return boost::apply_visitor(DatarefEditStringifier(), value);
+    return std::visit(DatarefEditStringifier(), value);
 }

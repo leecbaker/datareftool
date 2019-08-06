@@ -3,6 +3,8 @@
 #include "dataref_files.h"
 #include "find_datarefs_in_files.h"
 
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/range/iterator_range.hpp>
 
 void RefScanner::loadBlacklist(const boost::filesystem::path & blacklist_path) {

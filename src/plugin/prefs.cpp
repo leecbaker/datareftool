@@ -7,8 +7,6 @@
 
 #include <fstream>
 
-#include <boost/foreach.hpp>
-
 bool auto_reload_plugins;
 bool impersonate_dre = false;
 bool logging_enabled = true;

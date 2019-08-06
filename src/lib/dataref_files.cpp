@@ -1,5 +1,7 @@
 #include "dataref_files.h"
 
+#include <fstream>
+
 #include <boost/algorithm/string.hpp>
 
 std::vector<std::string> loadBlacklistFile(std::ostream & log, const boost::filesystem::path & filename) {

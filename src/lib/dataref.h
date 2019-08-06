@@ -5,10 +5,8 @@
 #include <cassert>
 #include <chrono>
 #include <string>
+#include <variant>
 #include <vector>
-
-#include <boost/variant/variant.hpp>
-#include <boost/variant/static_visitor.hpp>
 
 #include "ref.h"
 
@@ -16,14 +14,14 @@ class DataRefUpdater;
 
 class DataRefRecord : public RefRecord {
     friend class DataRefUpdater;
-    using value_type = boost::variant<float,double, int, std::vector<float>, std::vector<int>, std::vector<uint8_t>, std::nullptr_t>;
+    using value_type = std::variant<float,double, int, std::vector<float>, std::vector<int>, std::vector<uint8_t>, std::nullptr_t>;
     value_type value;
     
     XPLMDataTypeID type;
     XPLMDataRef ref;
     size_t array_hash = 0;
 
-    class GetArraySize : public boost::static_visitor<int> {
+    class GetArraySize {
     public:
         int operator()(const float&) const { return -1; }
         int operator()(const double&) const { return -1; }
@@ -51,7 +49,7 @@ public:
     bool isData() const { return 0 != (xplmType_Data & type); }
 
     bool isArray() const { return isFloatArray() || isIntArray(); }
-    int getArrayLength() const { assert(isArray()); return boost::apply_visitor(GetArraySize(),value); }
+    int getArrayLength() const { assert(isArray()); return std::visit(GetArraySize(),value); }
 
     void setDouble(double d) { assert(isDouble()); XPLMSetDatad(ref, d); }
     void setFloat(float f) { assert(isFloat()); XPLMSetDataf(ref, f); }
@@ -61,7 +59,7 @@ public:
     void setFloatArray(const std::vector<float> & f) { assert(isFloatArray()); XPLMSetDatavf(ref, const_cast<float *>(f.data()), 0, static_cast<int>(f.size())); }
 };
 
-class DataRefUpdater : public boost::static_visitor<bool> {
+class DataRefUpdater {
     std::chrono::system_clock::time_point current_time;
     DataRefRecord * dr;
 public:

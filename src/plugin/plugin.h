@@ -2,11 +2,10 @@
 
 #include <cstdint>
 #include <functional>
+#include <optional>
 #include <vector>
 
 #include <json.hpp>
-
-#include <boost/optional.hpp>
 
 #include "refscanner.h"
 
@@ -98,4 +97,4 @@ protected:
     void handleMenu(void * item_ref);
 };
 
-extern boost::optional<PluginData> plugin_data;
+extern std::optional<PluginData> plugin_data;

@@ -34,7 +34,7 @@ void PluginData::rescanDatarefs() {
     load_dr_flcb.scheduleNextFlightLoop();
 }
 
-boost::optional<PluginData> plugin_data;
+std::optional<PluginData> plugin_data;
 
 XPLMMenuID plugin_menu = nullptr;
 
@@ -345,7 +345,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
 }
 
 PLUGIN_API void	XPluginStop(void) {
-    plugin_data = boost::none;
+    plugin_data.reset();
 }
 
 PLUGIN_API void XPluginDisable(void) {

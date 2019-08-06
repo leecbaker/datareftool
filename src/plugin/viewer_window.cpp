@@ -481,10 +481,6 @@ void ViewerWindow::updateCrDrFilterButton() {
     }
 }
 
-void ViewerWindow::draw() {
-    list->draw();
-}
-
 int ViewerWindow::getWidth() const {
     int l,r;
     XPGetWidgetGeometry(window, &l, nullptr, &r, nullptr);
