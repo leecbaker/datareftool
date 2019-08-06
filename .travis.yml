@@ -1,8 +1,9 @@
 language: cpp
-dist: bionic
 os:
 - linux
+  dist: bionic
 - osx
+  osx_image: xcode10.2
 addons:
   apt:
     packages:
