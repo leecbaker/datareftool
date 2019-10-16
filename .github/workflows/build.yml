@@ -90,16 +90,17 @@ jobs:
      - uses: actions/download-artifact@master
        with:
          name: drt_lin
-         path: binaries/lin.xpl
+         path: binaries/
      - uses: actions/download-artifact@master
        with:
          name: drt_mac
-         path: binaries/mac.xpl
+         path: binaries/
      - uses: actions/download-artifact@master
        with:
          name: drt_win
-         path: binaries/win.xpl
+         path: binaries/
      - run: |
+         ls -l binaries/
          zip DataRefTool.zip binaries/*
      - uses: actions/upload-artifact@master
        with:
