@@ -57,9 +57,9 @@ jobs:
 
     - name: MSBuild
       working-directory: build
-      run: msbuild ALL_BUILD.vcxproj
+      run: msbuild /p:Configuration=Release ALL_BUILD.vcxproj
       
     - uses: actions/upload-artifact@master
       with:
         name: drt_win
-        path: bin/datareftool/win.xpl
+        path: bin/datareftool/Release/win.xpl
