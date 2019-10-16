@@ -37,7 +37,7 @@ jobs:
         wget -nv http://downloads.sourceforge.net/project/boost/boost/1.68.0/boost_1_68_0.tar.bz2
         tar --bzip2 -xf boost_1_68_0.tar.bz2
         cd boost_1_68_0/
-        ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system --prefix=${BOOST_DIR}
+        ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system,regex --prefix=${BOOST_DIR}
         ./b2 link=static threading=multi runtime-link=shared cxxflags=-fPIC
         ./b2 install --prefix=${BOOST_DIR}
     - uses: actions/checkout@v1
