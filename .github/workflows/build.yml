@@ -30,8 +30,6 @@ jobs:
         submodule: recursive
     - name: CMake
       run: |
-        env
-        ls -l ${BOOST_ROOT}
         mkdir -p build
         cd build && cmake -DBoost_DIR=${BOOST_ROOT} -DBOOST_ROOT=${BOOST_ROOT} -DBOOST_INCLUDEDIR=${BOOST_ROOT}/include -DBOOST_LIBRARYDIR=${BOOST_ROOT}/lib ..; cd ..
     - name: Make
