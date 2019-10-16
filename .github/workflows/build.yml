@@ -14,7 +14,7 @@ jobs:
     - name: CMake
       run: |
         mkdir -p build
-        cd build && cmake ..; cd ..
+        cd build && cmake -DCMAKE_BUILD_TYPE=Release ..; cd ..
     - name: Make
       run: make -C build
     - uses: actions/upload-artifact@master
@@ -29,15 +29,20 @@ jobs:
     steps:
     - name: Install boost
       run: |
-        sudo apt-get update -qq
-        sudo apt-get install libboost-dev
+        export BOOST_DIR=~/boost_install
+        wget -nv http://downloads.sourceforge.net/project/boost/boost/1.70.0/boost_1_70_0.tar.bz2
+        tar --bzip2 -xf boost_1_70_0.tar.bz2
+        cd boost_1_70_0/
+        ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system --prefix=${BOOST_DIR}
+        ./b2 link=static threading=multi runtime-link=shared cxxflags=-fPIC
+        ./b2 install --prefix=${BOOST_DIR}
     - uses: actions/checkout@v1
       with:
         submodule: recursive
     - name: CMake
       run: |
         mkdir -p build
-        cd build && cmake ..; cd ..
+        cd build && cmake -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=${BOOST_DIR} -DBOOST_INCLUDEDIR=${BOOST_DIR}/include ..; cd ..
     - name: Make
       run: make -C build
     - uses: actions/upload-artifact@master
