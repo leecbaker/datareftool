@@ -17,6 +17,10 @@ jobs:
         cd build && cmake ..; cd ..
     - name: Make
       run: make -C build
+    - uses: actions/upload-artifact@master
+      with:
+        name: drt_mac
+        path: bin/datareftool/mac.xpl
 
   build-lin:
     runs-on: ubuntu-latest
@@ -30,6 +34,10 @@ jobs:
         cd build && cmake ..; cd ..
     - name: Make
       run: make -C build
+    - uses: actions/upload-artifact@master
+      with:
+        name: drt_lin
+        path: bin/datareftool/lin.xpl
 
   build-win:
     runs-on: windows-latest
@@ -43,3 +51,7 @@ jobs:
         cd build && cmake ..; cd ..
     - name: Make
       run: make -C build
+    - uses: actions/upload-artifact@master
+      with:
+        name: drt_win
+        path: bin/datareftool/win.xpl
