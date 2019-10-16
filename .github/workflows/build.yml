@@ -31,8 +31,9 @@ jobs:
     - name: CMake
       run: |
         env
+        ls -l ${BOOST_ROOT}
         mkdir -p build
-        cd build && cmake -DBoost_DIR=${BOOST_ROOT} -DBOOST_ROOT=${BOOST_ROOT} ..; cd ..
+        cd build && cmake -DBoost_DIR=${BOOST_ROOT} -DBOOST_ROOT=${BOOST_ROOT} -DBOOST_INCLUDEDIR=${BOOST_ROOT}/include -DBOOST_LIBRARYDIR=${BOOST_ROOT}/lib ..; cd ..
     - name: Make
       run: make -C build
     - uses: actions/upload-artifact@master
@@ -50,8 +51,14 @@ jobs:
       run: |
         mkdir -p build
         cd build && cmake -G "Visual Studio 16 2019" -A x64 ..; cd ..
-    - name: Make
-      run: msbuild.exe build/ALL_BUILD.vcxproj
+
+    - name: Setup MSBuild.exe
+      uses: warrenbuckley/Setup-MSBuild@v1
+
+    - name: MSBuild
+      working-directory: build
+      run: msbuild ALL_BUILD.vcxproj
+      
     - uses: actions/upload-artifact@master
       with:
         name: drt_win
