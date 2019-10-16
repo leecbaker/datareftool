@@ -42,7 +42,7 @@ jobs:
     - name: CMake
       run: |
         mkdir -p build
-        cd build && cmake -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=${BOOST_DIR} -DBOOST_INCLUDEDIR=${BOOST_DIR}/include ..; cd ..
+        cd build && cmake -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=~/boost_install -DBOOST_INCLUDEDIR=~/boost_install/include ..; cd ..
     - name: Make
       run: make -C build
     - uses: actions/upload-artifact@master
