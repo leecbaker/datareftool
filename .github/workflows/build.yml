@@ -30,7 +30,7 @@ jobs:
     - name: Install boost
       run: |
         sudo apt-get update -qq
-        sudo apt-get install boost
+        sudo apt-get install libboost-dev
     - uses: actions/checkout@v1
       with:
         submodule: recursive
