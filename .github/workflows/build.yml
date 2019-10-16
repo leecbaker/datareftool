@@ -100,8 +100,8 @@ jobs:
          name: drt_win
          path: binaries/win.xpl
      - run: |
-         zip DataRefTool_`date +%Y_%m_%d`.zip binaries/*
+         zip DataRefTool.zip binaries/*
      - uses: actions/upload-artifact@master
        with:
          name: drt_zip
-         path: ${FOLDER}.zip
+         path: DataRefTool.zip
