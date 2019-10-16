@@ -36,8 +36,6 @@ jobs:
         submodule: recursive
     - name: CMake
       run: |
-        ls $BOOST_ROOT
-        ls $BOOST_ROOT/include
         mkdir -p build
         cd build && cmake ..; cd ..
     - name: Make
