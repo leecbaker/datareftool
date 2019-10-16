@@ -63,3 +63,31 @@ jobs:
       with:
         name: drt_win
         path: bin/datareftool/Release/win.xpl
+        
+  build-zip:
+   runs-on: ubuntu-latest
+   needs: [build-mac, build-lin, build-win]
+   steps:
+     - uses: actions/checkout@v1
+     - run: |
+         export DATE=`date +%Y_%m_%d`
+         export FOLDER=DataRefTool_${DATE}
+         mkdir -p ${FOLDER}
+         cp LICENSE ${FOLDER}/
+     - uses: actions/download-artifact@master
+       with:
+         name: drt_lin
+         path: ${FOLDER}/lin.xpl
+     - uses: actions/download-artifact@master
+       with:
+         name: drt_mac
+         path: ${FOLDER}/mac.xpl
+     - uses: actions/download-artifact@master
+       with:
+         name: drt_win
+         path: ${FOLDER}/win.xpl
+     - run: zip ${FOLDER}.zip ${FOLDER}/*
+     - uses: actions/upload-artifact@master
+       with:
+         name: drt_zip
+         path: ${FOLDER}.zip
