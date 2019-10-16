@@ -85,23 +85,22 @@ jobs:
    steps:
      - uses: actions/checkout@v1
      - run: |
-         export DATE=`date +%Y_%m_%d`
-         export FOLDER=DataRefTool_${DATE}
-         mkdir -p ${FOLDER}
-         cp LICENSE ${FOLDER}/
+         mkdir -p binaries
+         cp LICENSE binaries/
      - uses: actions/download-artifact@master
        with:
          name: drt_lin
-         path: ${FOLDER}/lin.xpl
+         path: binaries/lin.xpl
      - uses: actions/download-artifact@master
        with:
          name: drt_mac
-         path: ${FOLDER}/mac.xpl
+         path: binaries/mac.xpl
      - uses: actions/download-artifact@master
        with:
          name: drt_win
-         path: ${FOLDER}/win.xpl
-     - run: zip ${FOLDER}.zip ${FOLDER}/*
+         path: binaries/win.xpl
+     - run: |
+         zip DataRefTool_`date +%Y_%m_%d`.zip binaries/*
      - uses: actions/upload-artifact@master
        with:
          name: drt_zip
