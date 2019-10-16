@@ -21,10 +21,16 @@ jobs:
       with:
         name: drt_mac
         path: bin/datareftool/mac.xpl
+    - name: Dependencies
+      run: otool -L bin/datareftool/mac.xpl
 
   build-lin:
     runs-on: ubuntu-latest
     steps:
+    - name: Install boost
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install boost
     - uses: actions/checkout@v1
       with:
         submodule: recursive
@@ -40,6 +46,8 @@ jobs:
       with:
         name: drt_lin
         path: bin/datareftool/lin.xpl
+    - name: Dependencies
+      run: ldd bin/datareftool/lin.xpl
 
   build-win:
     runs-on: windows-latest
@@ -63,6 +71,8 @@ jobs:
       with:
         name: drt_win
         path: bin/datareftool/Release/win.xpl
+    - name: Dependencies
+      run: dumpbin /dependents bin/datareftool/Release/win.xpl
         
   build-zip:
    runs-on: ubuntu-latest
