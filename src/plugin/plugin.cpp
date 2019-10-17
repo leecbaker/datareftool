@@ -384,7 +384,7 @@ void PluginData::handleMessage(intptr_t inMessage, void * inParam) {
 
         case XPLM_MSG_WILL_WRITE_PREFS:
             break;
-
+#ifdef XPLM301
         case XPLM_MSG_ENTERED_VR:
             for(const std::unique_ptr<ViewerWindow> & window : viewer_windows) {
                 window->setInVr(true);
@@ -395,6 +395,7 @@ void PluginData::handleMessage(intptr_t inMessage, void * inParam) {
                 window->setInVr(false);
             }
             break;
+#endif
     }
 }
 

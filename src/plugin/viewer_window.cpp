@@ -151,11 +151,13 @@ ViewerWindow::ViewerWindow(const nlohmann::json & window_details, RefRecords & r
     setSearchText(search_term);
 
     //VR
+#ifdef XPLM301
     XPLMDataRef vr_dref = XPLMFindDataRef("sim/graphics/VR/enabled");
     bool vr_enabled = nullptr != vr_dref && XPLMGetDatai(vr_dref);
     if(vr_enabled) {
         setInVr(true);
     }
+#endif
     resize();
 }
 
@@ -168,6 +170,7 @@ void ViewerWindow::deselectSearchField() {
     XPLoseKeyboardFocus(search_field);
 }
 
+#ifdef XPLM301
 void ViewerWindow::setInVr(bool in_vr) {
     XPLMWindowID window_id = XPGetWidgetUnderlyingWindow(window);
     if(in_vr) {
@@ -180,6 +183,7 @@ void ViewerWindow::setInVr(bool in_vr) {
         setDefaultPosition();
     }
 }
+#endif
 
 void ViewerWindow::updateTitle() { //update title
     DataRefRecord * select_edit_dataref = list->getSelectedDataref();

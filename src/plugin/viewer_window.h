@@ -61,7 +61,9 @@ public:
         resize(left, top, right, bottom);
     }
 
+#ifdef XPLM301
     void setInVr(bool in_vr);
+#endif
 
     ~ViewerWindow();
 
