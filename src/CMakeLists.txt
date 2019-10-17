@@ -62,7 +62,7 @@ if(WIN32)
 	add_definitions( -DBOOST_ALL_NO_LIB ) # disable auto linking
 endif()
 
-find_package(Boost 1.54.0 REQUIRED COMPONENTS filesystem system iostreams)
+find_package(Boost 1.54.0 REQUIRED COMPONENTS filesystem system iostreams regex)
 target_link_libraries(datareftool PUBLIC Boost::filesystem Boost::system Boost::iostreams)
 target_link_libraries(plugin PUBLIC Boost::filesystem Boost::system datareftool clipboard nlohmann_json)
 
