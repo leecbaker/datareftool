@@ -102,8 +102,8 @@ jobs:
      - run: |
          ls -l binaries/
          mv binaries/ DataRefTool_`date +%Y_%m_%d`
-         zip DataRefTool_${GITHUB_SHA}.zip DataRefTool_`date +%Y_%m_%d`/*
+         zip DataRefTool_build.zip DataRefTool_`date +%Y_%m_%d`/*
      - uses: actions/upload-artifact@master
        with:
          name: datareftool_build
-         path: DataRefTool_${GITHUB_SHA}.zip
+         path: DataRefTool_build.zip
