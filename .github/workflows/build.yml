@@ -59,16 +59,15 @@ jobs:
   build-win:
     runs-on: windows-latest
     steps:
+    - name: VS command prompt
+      run: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/Common7/Tools/VsDevCmd.bat"
     - uses: actions/checkout@v1
       with:
         submodule: recursive
     - name: CMake
       run: |
         mkdir -p build
-        cd build && cmake -G "Visual Studio 16 2019" -A x64 ..; cd ..
-
-    - name: Setup MSBuild.exe
-      uses: warrenbuckley/Setup-MSBuild@v1
+        cd build && cmake -G "Visual Studio 16 2019" -A x64 ..; cd ..a
 
     - name: MSBuild
       working-directory: build
@@ -79,9 +78,7 @@ jobs:
         name: drt_win
         path: bin/datareftool/Release/win.xpl
     - name: Dependencies
-      run: |
-        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat"
-        dumpbin.exe /dependents bin/datareftool/Release/win.xpl
+      run: dumpbin.exe /dependents bin/datareftool/Release/win.xpl
         
   build-zip:
    runs-on: ubuntu-latest
