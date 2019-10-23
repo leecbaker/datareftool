@@ -60,7 +60,7 @@ jobs:
     runs-on: windows-latest
     steps:
     - name: VS command prompt
-      run: "C:\\Program Files\ (x86)\\Microsoft\ Visual\ Studio\\2019\\Enterprise\\Common7\\Tools\\VsDevCmd.bat"
+      run: "C:\\Program Files\\\ (x86)\\Microsoft\\\ Visual\\\ Studio\\2019\\Enterprise\\Common7\\Tools\\VsDevCmd.bat"
     - uses: actions/checkout@v1
       with:
         submodule: recursive
