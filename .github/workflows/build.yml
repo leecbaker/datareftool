@@ -78,6 +78,10 @@ jobs:
       with:
         name: drt_win
         path: bin/datareftool/Release/win.xpl
+    - name: Dependencies
+      run: |
+        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Common7\Tools\VsDevCmd.bat"
+        dumpbin.exe /dependents bin/datareftool/Release/win.xpl
         
   build-zip:
    runs-on: ubuntu-latest
