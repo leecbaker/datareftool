@@ -66,12 +66,14 @@ jobs:
       run: mkdir -p build
     - name: CMake
       working-directory: build
+      shell: cmd
       run: cmake -G "Visual Studio 16 2019" -A x64 ..
     - name: Setup MSBuild.exe
       uses: warrenbuckley/Setup-MSBuild@v1
 
     - name: MSBuild
       working-directory: build
+      shell: cmd
       run: msbuild /p:Configuration=Release ALL_BUILD.vcxproj
       
     - uses: actions/upload-artifact@master
@@ -79,6 +81,7 @@ jobs:
         name: drt_win
         path: bin/datareftool/Release/win.xpl
     - name: Dependencies
+      shell: cmd
       run: |
         call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         dumpbin.exe /dependents bin/datareftool/Release/win.xpl
