@@ -62,10 +62,11 @@ jobs:
     - uses: actions/checkout@v1
       with:
         submodule: recursive
+    - name: Prebuild
+      run: mkdir -p build
     - name: CMake
-      run: |
-        mkdir -p build
-        cd build && cmake -G "Visual Studio 16 2019" -A x64 ..; cd ..
+      working-directory: build
+      run: cmake -G "Visual Studio 16 2019" -A x64 ..
     - name: Setup MSBuild.exe
       uses: warrenbuckley/Setup-MSBuild@v1
 
