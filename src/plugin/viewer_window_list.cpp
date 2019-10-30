@@ -174,7 +174,8 @@ void ViewerWindowList::draw() {
     XPGetWidgetGeometry(list_widget, &list_left, &list_top, &list_right, &list_bottom);
     const int list_width = list_right - list_left;
     const int list_width_in_chars = list_width / fontwidth;
-    glScissor(list_left, list_bottom, list_right - list_left, list_top - list_bottom);
+    std::array<float, 4> scissor_box = scissor_coordinate_converter.convert({static_cast<float>(list_left), static_cast<float>(list_top), static_cast<float>(list_right), static_cast<float>(list_bottom)});
+    glScissor(scissor_box[0], scissor_box[3], scissor_box[2] - scissor_box[0], scissor_box[1] - scissor_box[3]);
     glEnable(GL_SCISSOR_TEST);
 
     const std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
