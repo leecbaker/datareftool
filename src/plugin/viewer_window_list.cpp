@@ -101,8 +101,8 @@ bool ViewerWindowList::leftClick(int x, int y, MouseButton button) {
 
     int y_from_top = list_top - y;
 
-    const int scroll_position = getScrollPosition();
-    int list_y = y_from_top + getScrollPosition();
+    const int scroll_position = static_cast<int>(getScrollPosition());
+    int list_y = y_from_top + scroll_position;
     int element_index = list_y / fontheight;
 
     int element_top = list_top + scroll_position - element_index * fontheight;
@@ -126,14 +126,14 @@ bool ViewerWindowList::leftClick(int x, int y, MouseButton button) {
         case MouseButton::LEFT:
             if(nullptr != dr_record) {
                 if(x < dataref_name_width) {
-                    XPSetWidgetGeometry(edit_field, list_left, element_top + box_padding_y, list_left + dataref_name_width + box_padding_x, element_bottom - box_padding_y);
+                    XPSetWidgetGeometry(edit_field, list_left, element_top + box_padding_y, list_left + static_cast<int>(std::ceil(dataref_name_width)) + box_padding_x, element_bottom - box_padding_y);
                     XPSetWidgetDescriptor(edit_field, name.c_str());
                     setEditSelection(0, name.size());
                 } else {
                     const std::string value_str = dr_record->getEditString();
                     select_edit_dataref = dr_record;
                     selected_command = nullptr;
-                    XPSetWidgetGeometry(edit_field, list_left + dataref_name_width_plus_eq - box_padding_x, element_top + box_padding_y, list_right, element_bottom - box_padding_y);
+                    XPSetWidgetGeometry(edit_field, list_left + static_cast<int>(std::ceil(dataref_name_width_plus_eq)) - box_padding_x, element_top + box_padding_y, list_right, element_bottom - box_padding_y);
                     XPSetWidgetDescriptor(edit_field, value_str.c_str());
                     setEditSelection(0, value_str.size());
                 }
@@ -143,7 +143,7 @@ bool ViewerWindowList::leftClick(int x, int y, MouseButton button) {
                 selected_command = cr_record;
                 select_edit_dataref = nullptr;
 
-                XPSetWidgetGeometry(edit_field, list_left, element_top + box_padding_y, list_left + dataref_name_width + box_padding_x, element_bottom - box_padding_y);
+                XPSetWidgetGeometry(edit_field, list_left, element_top + box_padding_y, list_left + static_cast<int>(std::ceil(dataref_name_width)) + box_padding_x, element_bottom - box_padding_y);
                 XPSetWidgetDescriptor(edit_field, name.c_str());
                 setEditSelection(0, name.size());
                 XPShowWidget(edit_field);
@@ -183,7 +183,7 @@ void ViewerWindowList::draw() {
     size_t result_index = std::max<size_t>(0, scroll_position / fontheight);
 
     std::string linetext;
-    int top = list_top + scroll_position - (fontheight * result_index);
+    int top = list_top + static_cast<int>(scroll_position) - (fontheight * result_index);
     for(const RefRecord * record : boost::iterator_range<std::vector<RefRecord *>::const_iterator>(results->cbegin() + result_index, results->cend())) {
         std::array<float, 3> colors;
         int bottom = top - fontheight;
@@ -229,7 +229,7 @@ void ViewerWindowList::resize(int left, int top, int right, int bottom) {
 
 void ViewerWindowList::updateScroll(int /* left */, int top, int /* right */, int bottom) {
 
-    int results_height = results->size() * fontheight;
+    int results_height = static_cast<int>(results->size()) * fontheight;
     int window_height = top - bottom;
     int scroll_pixels = std::max<int>(0, results_height - window_height);
 
@@ -257,7 +257,7 @@ void ViewerWindowList::updateCommandButtons() {
     size_t scroll_position = getScrollPosition();
     size_t result_index = std::max<size_t>(0, scroll_position / fontheight);
 
-    int top = list_top + scroll_position - (fontheight * result_index);
+    int top = list_top + static_cast<int>(scroll_position) - (fontheight * result_index);
 
     // we need one command button for each possible line. This is at most one for each fontheight pixels, plus one for the top and one for the bottom.
     size_t desired_buttons = (list_top - list_bottom) / fontheight + 2;
@@ -273,7 +273,7 @@ void ViewerWindowList::updateCommandButtons() {
             CommandRefRecord * crr = dynamic_cast<CommandRefRecord *>((*results)[result_index]);
             if(nullptr != crr) {
                 float command_name_width = XPLMMeasureString(font, crr->getName().c_str(), int(crr->getName().size()));
-                cbr->showAtPosition(list_left + std::ceil(command_name_width), top, list_right, bottom);
+                cbr->showAtPosition(list_left + static_cast<int>(std::ceil(command_name_width)), top, list_right, bottom);
                 cbr->setCommand(crr);
             } else {
                 cbr->hide();
