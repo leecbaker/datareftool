@@ -12,6 +12,8 @@
 #include "search.h"
 #include "viewer_window_command_button.h"
 
+#include "modelview_to_window.h"
+
 class RefRecord;
 class CommandRefRecord;
 class DataRefRecord;
@@ -78,6 +80,8 @@ class ViewerWindowList {
     XPWidgetID list_widget = nullptr;
 	XPWidgetID scroll_bar_widget = nullptr;
 	XPWidgetID edit_field = nullptr;
+
+    ModelviewToWindowCoordinateConverter scissor_coordinate_converter;
 
 	DataRefRecord * select_edit_dataref = nullptr;
 	CommandRefRecord * selected_command = nullptr;
