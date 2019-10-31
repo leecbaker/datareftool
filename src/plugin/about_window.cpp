@@ -42,7 +42,7 @@ void showAboutWindow() {
 		int width = XPLMGetDatai(window_width_ref);
 		int height = XPLMGetDatai(window_height_ref);
 
-		const int window_width = 250;
+		const int window_width = 350;
 		const int window_height = 150;
 
 		int x = width/2 - window_width / 2, x2 = width/2 + window_width / 2;
