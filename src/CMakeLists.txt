@@ -106,9 +106,9 @@ elseif(WIN32)
 	set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "..\\lib\\xplane_sdk\\Libraries\\Win\\")
 	FIND_LIBRARY(XPLM_LIBRARY XPLM_64 "..\\lib\\xplane_sdk\\Libraries\\Win\\")
 	FIND_LIBRARY(XPWIDGETS_LIBRARY XPWidgets_64 "..\\lib\\xplane_sdk\\Libraries\\Win\\")
-	target_link_libraries(plugin PUBLIC ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY} OpenGL32.lib)
-	target_link_libraries(plugin_custom_dataref PUBLIC ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
-	target_link_libraries(plugin_crasher PUBLIC ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY})
+	target_link_libraries(plugin PUBLIC ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY} OpenGL32.lib MinCore_Downlevel.lib)
+	target_link_libraries(plugin_custom_dataref PUBLIC ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY} MinCore_Downlevel.lib)
+	target_link_libraries(plugin_crasher PUBLIC ${XPLM_LIBRARY} ${XPWIDGETS_LIBRARY} MinCore_Downlevel.lib)
 endif()
 
 #output
