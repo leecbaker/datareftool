@@ -1,9 +1,3 @@
-project(datareftool CXX)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED on)
-set(CMAKE_CXX_EXTENSIONS off)
-
 SET(LIB_SRC lib/allrefs.cpp lib/refscanner.cpp lib/dataref.cpp lib/commandref.cpp lib/dataref_files.cpp lib/find_datarefs_in_files.cpp lib/search.cpp lib/string_util.cpp)
 SET(LIB_HDR lib/allrefs.h lib/refscanner.h lib/dataref.h lib/commandref.h lib/ref.h lib/dataref_files.h lib/find_datarefs_in_files.h lib/search.h lib/string_util.h)
 

@@ -1,3 +1,9 @@
+project(datareftool C CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
+set(CMAKE_CXX_EXTENSIONS off)
+
 if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
