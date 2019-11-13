@@ -4,6 +4,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(CMAKE_CXX_EXTENSIONS off)
 
+# X-Plane 11's minimum OS version is 10.10
+set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)
+
 if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)

@@ -147,7 +147,7 @@ bool DataRefUpdater::operator()(std::nullptr_t&) const {
 
 bool DataRefRecord::update(DataRefUpdater & updater) {
     updater.setDataref(this);
-    return std::visit(updater, value);
+    return lb::visit(updater, value);
 }
 
 std::string DataRefRecord::getLabelString() const {
@@ -234,10 +234,10 @@ std::string DataRefRecord::getDisplayString(size_t display_length) const {
     if(isBlacklisted()) {
         return "blacklisted";
     } else {
-        return std::visit(DatarefDisplayStringifier(display_length), value);
+        return lb::visit(DatarefDisplayStringifier(display_length), value);
     }
 }
 
 std::string DataRefRecord::getEditString() const {
-    return std::visit(DatarefEditStringifier(), value);
+    return lb::visit(DatarefEditStringifier(), value);
 }

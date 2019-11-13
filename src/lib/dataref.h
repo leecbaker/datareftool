@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "ref.h"
+#include "visit_backport.h"
 
 class DataRefUpdater;
 
@@ -49,7 +50,7 @@ public:
     bool isData() const { return 0 != (xplmType_Data & type); }
 
     bool isArray() const { return isFloatArray() || isIntArray(); }
-    int getArrayLength() const { assert(isArray()); return std::visit(GetArraySize(),value); }
+    int getArrayLength() const { assert(isArray()); return lb::visit(GetArraySize(),value); }
 
     void setDouble(double d) { assert(isDouble()); XPLMSetDatad(ref, d); }
     void setFloat(float f) { assert(isFloat()); XPLMSetDataf(ref, f); }
