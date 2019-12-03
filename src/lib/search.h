@@ -62,10 +62,15 @@ public:
     void setSearchTerms(const std::string & terms);
     void setChangeDetection(bool detection_on, bool only_big) { change_detection_ = detection_on; only_large_changes_ = only_big; }
     void setIncludeRefs(bool include_crs, bool include_drs) { include_crs_ = include_crs; include_drs_ = include_drs; }
-    void setCaseSensitive(bool sensitive) { case_sensitive_ = sensitive; }
-    void setUseRegex(bool use_regex) { 
+    void setCaseSensitive(bool sensitive) {
+        case_sensitive_ = sensitive;
+        if(use_regex_) {
+            buildRegex();
+        }
+    }
+    void setUseRegex(bool use_regex) {
         regex_fail_ = false;
-        use_regex_ = use_regex; 
+        use_regex_ = use_regex;
         if(use_regex_) {
             buildRegex();
         }
