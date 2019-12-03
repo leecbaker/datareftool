@@ -28,7 +28,7 @@ DataRefRecord::DataRefRecord(const std::string & name, XPLMDataRef ref, ref_src_
 }
 
 bool DataRefRecord::writable() const {
-    if(isInt() || isDouble() || isFloat() || isFloatArray() || isIntArray()) {
+    if(isInt() || isDouble() || isFloat() || isFloatArray() || isIntArray() || isData()) {
         return 0 != XPLMCanWriteDataRef(ref);
     }
     
@@ -223,7 +223,7 @@ public:
         return makeArrayString<int>(stringify_func, iv, std::numeric_limits<size_t>::max());
     }
     std::string operator()(const std::vector<uint8_t> & iv) const {
-        return "\"" + printableFromByteArray(iv) + "\"";
+        return printableFromByteArray(iv);
     }
     std::string operator()(const std::nullptr_t ) const {
         return "(null)";

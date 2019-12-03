@@ -96,6 +96,7 @@ class ViewerWindowList {
 
     bool saveEditField();
     std::string getEditText() const;
+    void setEditText(const std::string & text);
 
     intptr_t getEditSelectionStart() const;
     intptr_t getEditSelectionStop() const;

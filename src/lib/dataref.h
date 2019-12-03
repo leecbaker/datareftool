@@ -58,6 +58,12 @@ public:
     
     void setIntArray(const std::vector<int> & i) { assert(isIntArray()); XPLMSetDatavi(ref, const_cast<int *>(i.data()), 0, static_cast<int>(i.size())); }
     void setFloatArray(const std::vector<float> & f) { assert(isFloatArray()); XPLMSetDatavf(ref, const_cast<float *>(f.data()), 0, static_cast<int>(f.size())); }
+    void setData(const std::string & data_str) {
+        // In some applications we may need to implement this as well:
+        // void setData(const std::vector<uint8_t> &)
+        // but taking a string fits best with our use case.
+        assert(isDataArray());
+        XPLMSetDatab(ref, reinterpret_cast<void *>(const_cast<char *>(data_str.c_str())), 0, data_str.size() + 1); }
 };
 
 class DataRefUpdater {

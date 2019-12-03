@@ -44,6 +44,9 @@ ViewerWindowList::ViewerWindowList(XPWidgetID window, std::shared_ptr<SearchResu
     XPHideWidget(edit_field);
 }
 
+void ViewerWindowList::setEditText(const std::string & text) {
+    XPSetWidgetDescriptor(edit_field, text.data());
+}
 
 std::string ViewerWindowList::getEditText() const {
     char editfield_text[1024];
@@ -125,6 +128,8 @@ bool ViewerWindowList::leftClick(int x, int y, MouseButton button) {
     constexpr int edit_field_x_margin = 5;
     switch(button) {
         case MouseButton::LEFT:
+            selected_command = nullptr;
+            select_edit_dataref = nullptr;
             if(nullptr != dr_record) {
                 if(x < dataref_name_width) {
                     XPSetWidgetGeometry(edit_field, list_left - edit_field_x_margin, element_top + box_padding_y, list_left + static_cast<int>(std::ceil(dataref_name_width)), element_bottom - box_padding_y);
@@ -133,7 +138,6 @@ bool ViewerWindowList::leftClick(int x, int y, MouseButton button) {
                 } else {
                     const std::string value_str = dr_record->getEditString();
                     select_edit_dataref = dr_record;
-                    selected_command = nullptr;
                     XPSetWidgetGeometry(edit_field, list_left + static_cast<int>(std::ceil(dataref_name_width_plus_eq)) - edit_field_x_margin, element_top + box_padding_y, list_right, element_bottom - box_padding_y);
                     XPSetWidgetDescriptor(edit_field, value_str.c_str());
                     setEditSelection(0, value_str.size());
@@ -142,7 +146,6 @@ bool ViewerWindowList::leftClick(int x, int y, MouseButton button) {
                 edit_modified = false;
             } else  if(nullptr != cr_record) {
                 selected_command = cr_record;
-                select_edit_dataref = nullptr;
 
                 XPSetWidgetGeometry(edit_field, list_left - edit_field_x_margin, element_top + box_padding_y, list_left + static_cast<int>(std::ceil(dataref_name_width)), element_bottom - box_padding_y);
                 XPSetWidgetDescriptor(edit_field, name.c_str());
@@ -150,8 +153,6 @@ bool ViewerWindowList::leftClick(int x, int y, MouseButton button) {
                 XPShowWidget(edit_field);
                 edit_modified = false;
             } else {
-                selected_command = nullptr;
-                select_edit_dataref = nullptr;
                 XPHideWidget(edit_field);
             }
             break;
@@ -300,6 +301,7 @@ void ViewerWindowList::moveScroll(int amount) {
 
 bool ViewerWindowList::saveEditField() {
     if(edit_modified) {
+        assert(select_edit_dataref);
         const std::string edit_txt = getEditText();
 
         if(select_edit_dataref->isDouble()) {
@@ -335,6 +337,8 @@ bool ViewerWindowList::saveEditField() {
                 return false;
             }
             select_edit_dataref->setIntArray(array);
+        } else if(select_edit_dataref->isData()) {
+            select_edit_dataref->setData(edit_txt);
         }
     }
 
@@ -358,6 +362,19 @@ int ViewerWindowList::editFieldCallback(XPWidgetMessage  inMessage, XPWidgetID  
                         return 1;
                     }
                     case XPLM_VK_X:	//cut
+                    {
+                        size_t start = obj->getEditSelectionStart();
+                        size_t stop = obj->getEditSelectionStop();
+                        std::string search_text = obj->getEditText();
+                        std::string cut_text = search_text.substr(start, stop - start);
+                        if(obj->select_edit_dataref) {
+                            search_text.erase(search_text.begin() + start, search_text.begin() + stop);
+                            obj->setEditText(search_text);
+                            obj->setEditSelection(start, start);
+                        }
+                        setClipboard(cut_text);
+                        return 1;
+                    }
                     case XPLM_VK_C:	//copy 
                     {
                         size_t start = obj->getEditSelectionStart();
@@ -365,6 +382,19 @@ int ViewerWindowList::editFieldCallback(XPWidgetMessage  inMessage, XPWidgetID  
                         std::string search_text = obj->getEditText();
                         std::string cut_text = search_text.substr(start, stop - start);
                         setClipboard(cut_text);
+                        return 1;
+                    }
+                    case XPLM_VK_V:	//paste 
+                    {
+                        if(obj->select_edit_dataref) {
+                            std::string pasted_text = getClipboard();
+                            size_t start = obj->getEditSelectionStart();
+                            size_t stop = obj->getEditSelectionStop();
+                            std::string search_text = obj->getEditText();
+                            search_text.replace(search_text.begin() + start, search_text.begin() + stop, pasted_text.begin(), pasted_text.end());
+                            obj->setEditText(search_text);
+                            obj->setEditSelection(start + pasted_text.size(), start + pasted_text.size());
+                        }
                         return 1;
                     }
                 }
@@ -375,10 +405,10 @@ int ViewerWindowList::editFieldCallback(XPWidgetMessage  inMessage, XPWidgetID  
                     default:
                         if(nullptr == obj->select_edit_dataref || false == obj->select_edit_dataref->writable()) {
                             return 1;
-                        } else if(std::isalpha(key) || (obj->select_edit_dataref->isInt() && key == '.')) {
+                        } else if((std::isalpha(key) && !obj->select_edit_dataref->isData()) || (obj->select_edit_dataref->isInt() && key == '.')) {
                             return 1;
                         } else if(key == ',') {
-                            return obj->select_edit_dataref->isArray() ? 0 : 1;
+                            return (obj->select_edit_dataref->isArray() || obj->select_edit_dataref->isData()) ? 0 : 1;
                         } else {
                             obj->edit_modified = true;
                             return 0;
