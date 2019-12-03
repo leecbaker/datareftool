@@ -118,22 +118,23 @@ bool ViewerWindowList::leftClick(int x, int y, MouseButton button) {
     float dataref_name_width = XPLMMeasureString(font, name.c_str(), int(name.size()) + 1);
     float dataref_name_width_plus_eq = XPLMMeasureString(font, (name + "=").c_str(), int(name.size()) + 2);
 
-    const int box_padding_x = 2, box_padding_y = 2;
+    const int box_padding_y = 2;
 
     DataRefRecord * dr_record = dynamic_cast<DataRefRecord *>(record);
     CommandRefRecord * cr_record = dynamic_cast<CommandRefRecord *>(record);
+    constexpr int edit_field_x_margin = 5;
     switch(button) {
         case MouseButton::LEFT:
             if(nullptr != dr_record) {
                 if(x < dataref_name_width) {
-                    XPSetWidgetGeometry(edit_field, list_left, element_top + box_padding_y, list_left + static_cast<int>(std::ceil(dataref_name_width)) + box_padding_x, element_bottom - box_padding_y);
+                    XPSetWidgetGeometry(edit_field, list_left - edit_field_x_margin, element_top + box_padding_y, list_left + static_cast<int>(std::ceil(dataref_name_width)), element_bottom - box_padding_y);
                     XPSetWidgetDescriptor(edit_field, name.c_str());
                     setEditSelection(0, name.size());
                 } else {
                     const std::string value_str = dr_record->getEditString();
                     select_edit_dataref = dr_record;
                     selected_command = nullptr;
-                    XPSetWidgetGeometry(edit_field, list_left + static_cast<int>(std::ceil(dataref_name_width_plus_eq)) - box_padding_x, element_top + box_padding_y, list_right, element_bottom - box_padding_y);
+                    XPSetWidgetGeometry(edit_field, list_left + static_cast<int>(std::ceil(dataref_name_width_plus_eq)) - edit_field_x_margin, element_top + box_padding_y, list_right, element_bottom - box_padding_y);
                     XPSetWidgetDescriptor(edit_field, value_str.c_str());
                     setEditSelection(0, value_str.size());
                 }
@@ -143,7 +144,7 @@ bool ViewerWindowList::leftClick(int x, int y, MouseButton button) {
                 selected_command = cr_record;
                 select_edit_dataref = nullptr;
 
-                XPSetWidgetGeometry(edit_field, list_left, element_top + box_padding_y, list_left + static_cast<int>(std::ceil(dataref_name_width)) + box_padding_x, element_bottom - box_padding_y);
+                XPSetWidgetGeometry(edit_field, list_left - edit_field_x_margin, element_top + box_padding_y, list_left + static_cast<int>(std::ceil(dataref_name_width)), element_bottom - box_padding_y);
                 XPSetWidgetDescriptor(edit_field, name.c_str());
                 setEditSelection(0, name.size());
                 XPShowWidget(edit_field);
