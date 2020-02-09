@@ -56,7 +56,7 @@ bool loadPrefs(const boost::filesystem::path & path) {
     bool logging_enabled_loaded = true;
     try {
         auto_reload_plugins = prefs.value<bool>(auto_reload_plugin_key, true);
-        impersonate_dre = prefs.value<bool>(impersonate_dre_key, false);
+        impersonate_dre = prefs.value<bool>(impersonate_dre_key, true);
         logging_enabled_loaded = prefs.value<bool>(logging_enabled_key, true);
     } catch(nlohmann::json::exception) {
 
