@@ -62,7 +62,7 @@ public:
         // In some applications we may need to implement this as well:
         // void setData(const std::vector<uint8_t> &)
         // but taking a string fits best with our use case.
-        assert(isDataArray());
+        assert(isData());
         XPLMSetDatab(ref, reinterpret_cast<void *>(const_cast<char *>(data_str.c_str())), 0, data_str.size() + 1); }
 };
 
