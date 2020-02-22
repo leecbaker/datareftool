@@ -18,5 +18,5 @@ public:
     ModelviewToWindowCoordinateConverter();
 
     // Convert rectangle coordinates in X-Plane's order: left top right bottom
-    std::array<float, 4> convert(std::array<float, 4> mv_coords);
+    std::array<float, 4> convert(std::array<float, 4> mv_coords) const;
 };

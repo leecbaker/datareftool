@@ -265,7 +265,7 @@ void ViewerWindowList::updateCommandButtons() {
     // we need one command button for each possible line. This is at most one for each fontheight pixels, plus one for the top and one for the bottom.
     size_t desired_buttons = (list_top - list_bottom) / fontheight + 2;
     while(desired_buttons > command_buttons.size()) {
-        command_buttons.emplace_back(std::make_unique<CommandButtonRow>(list_widget));
+        command_buttons.emplace_back(std::make_unique<CommandButtonRow>(list_widget, scissor_coordinate_converter));
     }
 
     for(std::unique_ptr<CommandButtonRow> & cbr : command_buttons) {

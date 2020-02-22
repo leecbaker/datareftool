@@ -23,15 +23,19 @@ class CommandButtonRow {
     XPWidgetID command_once_button = nullptr;
     XPWidgetID command_press_button = nullptr;
     XPWidgetID command_begin_button = nullptr;
+
+    CommandRefRecord * command = nullptr;
+    ModelviewToWindowCoordinateConverter & scissor_coordinate_converter;
 public:
-    CommandButtonRow(XPWidgetID window) {
+    CommandButtonRow(XPWidgetID window, ModelviewToWindowCoordinateConverter & scissor_coordinate_converter) 
+    : scissor_coordinate_converter(scissor_coordinate_converter) {
         assert(nullptr != window);
         command_once_button = XPCreateCustomWidget(0, 0, 1, 1, 1,"Once", 0, window, commandOnceButtonCallback);
         command_press_button = XPCreateCustomWidget(0, 0, 1, 1, 1,"Press", 0, window, commandPressButtonCallback);
         command_begin_button = XPCreateCustomWidget(0, 0, 1, 1, 1,"Begin", 0, window, commandHoldButtonCallback);
-        XPSetWidgetProperty(command_once_button, xpProperty_Object, reinterpret_cast<intptr_t>(nullptr));
-        XPSetWidgetProperty(command_press_button, xpProperty_Object, reinterpret_cast<intptr_t>(nullptr));
-        XPSetWidgetProperty(command_begin_button, xpProperty_Object, reinterpret_cast<intptr_t>(nullptr));
+        XPSetWidgetProperty(command_once_button, xpProperty_Object, reinterpret_cast<intptr_t>(this));
+        XPSetWidgetProperty(command_press_button, xpProperty_Object, reinterpret_cast<intptr_t>(this));
+        XPSetWidgetProperty(command_begin_button, xpProperty_Object, reinterpret_cast<intptr_t>(this));
     }
 
     ~CommandButtonRow() {
@@ -63,16 +67,18 @@ public:
     }
 
     void setCommand(CommandRefRecord * new_command) {
-        XPSetWidgetProperty(command_once_button, xpProperty_Object, reinterpret_cast<intptr_t>(new_command));
-        XPSetWidgetProperty(command_press_button, xpProperty_Object, reinterpret_cast<intptr_t>(new_command));
-        XPSetWidgetProperty(command_begin_button, xpProperty_Object, reinterpret_cast<intptr_t>(new_command));
+        command = new_command;
     }
+
+    CommandRefRecord * getCommand() const { return command; }
 
     void hide() {
         XPHideWidget(command_once_button);
         XPHideWidget(command_press_button);
         XPHideWidget(command_begin_button);
     }
+
+    const ModelviewToWindowCoordinateConverter & getScissorCoordinateConverter() const { return scissor_coordinate_converter; }
 };
 
 class ViewerWindowList {

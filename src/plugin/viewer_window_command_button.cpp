@@ -5,6 +5,8 @@
 
 #include "commandref.h"
 
+#include "viewer_window_list.h"
+
 #include <array>
 
 #if IBM || LIN
@@ -25,7 +27,7 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
     switch(inMessage) {
         case xpMsg_Draw:
             {
-			    CommandRefRecord * crr = reinterpret_cast<CommandRefRecord *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
+                CommandButtonRow * button_row = reinterpret_cast<CommandButtonRow *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
                 int left, top, right, bottom;
                 XPGetWidgetGeometry(inWidget, &left, &top, &right, &bottom);
 
@@ -33,15 +35,19 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
                 int list_left, list_top, list_right, list_bottom;
                 XPGetWidgetGeometry(list, &list_left, &list_top, &list_right, &list_bottom);
 
+                std::array<float, 4> scissor_box = button_row->getScissorCoordinateConverter().convert({static_cast<float>(list_left), static_cast<float>(list_top), static_cast<float>(list_right), static_cast<float>(list_bottom)});
+
                 XPLMSetGraphicsState(0, 0, 0, 0, 1, 0, 0);
                 glDisable(GL_TEXTURE_2D);
 
+                bool is_activated = button_row->getCommand()->isActivated();
+
 				std::array<float,3> color_active = {{1.f, 1.f, 0.f}};
 				std::array<float,3> color_inactive = {{0.f, 1.f, 0.f}};
-                const std::array<float,3> & color = crr->isActivated() ? color_active : color_inactive;
+                const std::array<float,3> & color = is_activated ? color_active : color_inactive;
 
                 glColor4f(color[0], color[1], color[2], 1.f);
-                glScissor(list_left, list_bottom, list_right - list_left, list_top - list_bottom);
+                glScissor(scissor_box[0], scissor_box[3], scissor_box[2] - scissor_box[0], scissor_box[1] - scissor_box[3]);
                 glEnable(GL_SCISSOR_TEST);
 
                 glBegin(GL_LINE_STRIP);
@@ -62,10 +68,10 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
                         XPLMDrawString(const_cast<float *>(color.data()), left + 5, bottom + 2, const_cast<char *>("Once"), nullptr, xplmFont_Basic);
                         break;
                     case CommandButtonType::PRESS:
-                        XPLMDrawString(const_cast<float *>(color.data()), left + 5, bottom + 2, const_cast<char *>(crr->isActivated() ? "Holding" : "Press"), nullptr, xplmFont_Basic);
+                        XPLMDrawString(const_cast<float *>(color.data()), left + 5, bottom + 2, const_cast<char *>(is_activated ? "Holding" : "Press"), nullptr, xplmFont_Basic);
                         break;
                     case CommandButtonType::HOLD:
-                        XPLMDrawString(const_cast<float *>(color.data()), left + 5, bottom + 2, const_cast<char *>(crr->isActivated() ? "End" : "Begin"), nullptr, xplmFont_Basic);
+                        XPLMDrawString(const_cast<float *>(color.data()), left + 5, bottom + 2, const_cast<char *>(is_activated ? "End" : "Begin"), nullptr, xplmFont_Basic);
                         break;
                 }
 
@@ -75,7 +81,8 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
 
         case xpMsg_MouseDown:
             {
-			    CommandRefRecord * crr = reinterpret_cast<CommandRefRecord *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
+                CommandButtonRow * button_row = reinterpret_cast<CommandButtonRow *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
+                CommandRefRecord * crr = button_row->getCommand();
                 if(nullptr != crr) {
 
                 switch(button_type) {
@@ -99,7 +106,8 @@ int commandButtonCallback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr
 
         case xpMsg_MouseUp:
             {
-			    CommandRefRecord * crr = reinterpret_cast<CommandRefRecord *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
+                CommandButtonRow * button_row = reinterpret_cast<CommandButtonRow *>(XPGetWidgetProperty(inWidget, xpProperty_Object, nullptr));
+                CommandRefRecord * crr = button_row->getCommand();
                 if(nullptr != crr) {
 
                     switch(button_type) {

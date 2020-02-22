@@ -15,6 +15,7 @@
 #include "XPLMGraphics.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <cmath>
 #include <cstdint>
@@ -34,15 +35,25 @@ ViewerWindow::ViewerWindow(bool show_dr, bool show_cr, RefRecords & refs) : View
         { KEY_HAS_CR, show_cr}
     }, refs) {}
 
+// Center the window on monitor 0. Ignore all other callbacks.
+void getFirstMonitorSize(int inMonitorIndex, int inLeftBx, int inTopBx, int inRightBx, int inBottomBx,  void * inRefcon) {
+    if(0 == inMonitorIndex) {
+        std::array<int, 4> * coordinates = reinterpret_cast<std::array<int, 4> *>(inRefcon);
+
+        *coordinates = {inLeftBx, inTopBx, inRightBx, inBottomBx};
+    }
+
+}
+
 ViewerWindow::ViewerWindow(const nlohmann::json & window_details, RefRecords & refs) : refs(refs) {
     // Decode parameters from json
-    int screen_width, screen_height;
-    XPLMGetScreenSize(&screen_width, &screen_height);
+    std::array<int, 4> screen0_coordinates_boxels;
+    XPLMGetAllMonitorBoundsGlobal(getFirstMonitorSize, &screen0_coordinates_boxels);
 
     int window_width = 500;
     int window_height = 400;
-    int l = screen_width / 2 - window_width / 2;
-    int b = screen_height / 2 - window_height / 2;
+    int l = (screen0_coordinates_boxels[0] + screen0_coordinates_boxels[2]) / 2 - window_width / 2;
+    int b = (screen0_coordinates_boxels[1] + screen0_coordinates_boxels[3]) / 2 - window_height / 2;
 
     bool is_case_sensitive = false;
     bool is_regex = true;
@@ -135,6 +146,8 @@ ViewerWindow::ViewerWindow(const nlohmann::json & window_details, RefRecords & r
 
     // Clamp window bounds to screen size. This could happen if, e.g.,
     // a window is closed in VR, and then re-opened in non-VR.
+    int screen_width = screen0_coordinates_boxels[2] - screen0_coordinates_boxels[0];
+    int screen_height = screen0_coordinates_boxels[3] - screen0_coordinates_boxels[1];
     if(l < 0 || window_width < 100 || l + window_width > screen_width || b < 0 || window_height < 100 || window_height > screen_height) {
         setDefaultPosition();
     } else {

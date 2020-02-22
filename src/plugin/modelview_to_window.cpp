@@ -30,7 +30,7 @@ static std::array<float, 2> modelview_to_window_coords(const std::array<float, 2
     return out_w;
 }
 
-std::array<float, 4> ModelviewToWindowCoordinateConverter::convert(std::array<float, 4> coordinates) {
+std::array<float, 4> ModelviewToWindowCoordinateConverter::convert(std::array<float, 4> coordinates) const {
     std::array<float, 16> mv, pr;
     std::array<int, 4> vp;
     XPLMGetDatavf(mv_dref, mv.data(), 0, 16);
