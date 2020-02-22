@@ -7,7 +7,9 @@
 
 #include <json.hpp>
 
-#include "refscanner.h"
+#include "search/allrefs.h"
+
+#include "threaded_scanner.h"
 
 #include "XPLMProcessing.h"
 
@@ -69,7 +71,8 @@ protected:
     std::vector<std::unique_ptr<ViewerWindow>> viewer_windows;
     boost::filesystem::path prefs_path;
 
-    RefScanner refs;
+    RefRecords refs;
+    ThreadedScanner scanner;
 public:
     PluginData();
     ~PluginData();

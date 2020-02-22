@@ -2,8 +2,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include "XPLMUtilities.h"
-
 
 template <typename T>
 inline T parseElement(const std::string &s);
@@ -19,8 +17,6 @@ inline int parseElement<int>(const std::string &s) {
 
 template <class T>
 bool parseArray(std::ostream & log, const std::string & txt, std::vector<T> & data_out, int length) {
-    std::vector<std::string> txt_fields;
-    
     std::string trimmed_txt = txt;
     if(trimmed_txt.front() == '[') {
         trimmed_txt.erase(trimmed_txt.begin());
@@ -29,7 +25,8 @@ bool parseArray(std::ostream & log, const std::string & txt, std::vector<T> & da
     if(trimmed_txt.back() == '[') {
         trimmed_txt.pop_back();
     }
-    
+
+    std::vector<std::string> txt_fields;
     boost::split(txt_fields, trimmed_txt, boost::is_any_of(","));
     
     if(length != int(txt_fields.size())) {

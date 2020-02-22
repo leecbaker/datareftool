@@ -3,7 +3,7 @@
 #include "XPLMGraphics.h"
 #include "XPWidgets.h"
 
-#include "commandref.h"
+#include "search/commandref.h"
 
 #include "viewer_window_list.h"
 

@@ -1,9 +1,9 @@
 #include "clipboard.h"
-#include "commandref.h"
+#include "search/commandref.h"
 #include "logging.h"
 #include "plugin.h"
-#include "search.h"
-#include "string_util.h"
+#include "search/search.h"
+#include "util/string_util.h"
 #include "viewer_window.h"
 
 #include "viewer_window_list.h"

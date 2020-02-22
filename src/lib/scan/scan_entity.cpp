@@ -1,4 +1,8 @@
-#include "find_datarefs_in_files.h"
+#include "scan_entity.h"
+
+#include "scan_files.h"
+
+#include "deduplicate_vector.h"
 
 #include <algorithm>
 #include <cctype>
@@ -8,58 +12,10 @@
 #include <unordered_set>
 
 #include <boost/filesystem.hpp>
-#include <boost/iostreams/device/mapped_file.hpp>
 #include <boost/algorithm/string.hpp>
 
-// + character is necessary for A320neo
-inline char isValidDatarefChar(char c) {
-	return std::isalnum(static_cast<unsigned char>(c)) || '_' == c || '/' == c || '-' == c || '.' == c || '+' == c;
-}
 
-const size_t min_dataref_length = 8;
-
-std::vector<std::string> getDatarefsFromFile(std::ostream & log, const boost::filesystem::path & filename) {
-    boost::iostreams::mapped_file_source file;
-    
-    try {
-        file.open(filename);
-    } catch(std::exception &) {
-		return {};
-    }
-
-	std::vector<std::string> all_refs;
-	size_t start_pos = 0;
-	const char * file_data = file.data();
-	bool last_char_valid = false;
-    for(size_t i = 0; i < file.size(); i++) {
-    	if(isValidDatarefChar(file_data[i])) {
-    		if(false == last_char_valid) {
-    			start_pos = i;
-    		}
-    		last_char_valid = true;
-    		continue;
-    	} else {
-    		 if(last_char_valid && (i - start_pos) > min_dataref_length) {
-    			std::string new_dataref(file_data + start_pos, file_data + i);
-
-    			//get rid of some obvious false positives
-    			if('/' != new_dataref.front() && std::string::npos != new_dataref.find('/')) {
-    				all_refs.push_back(new_dataref);
-    			}
-	    	}
-
-    		last_char_valid = false;
-    	}
-    }
-	
-	removeVectorUniques(all_refs);
-
-	log << "Found " << all_refs.size() << " unique possible datarefs in file " << filename << "\n";
-
-	return all_refs;
-}
-
-std::vector<std::string> getDatarefsFromAircraft(std::ostream & log, const boost::filesystem::path & acf_path) {
+std::vector<std::string> scanAircraft(std::ostream & log, const boost::filesystem::path & acf_path) {
 	boost::filesystem::path aircraft_dir = boost::filesystem::path(acf_path).parent_path();
 
 	std::vector<std::string> all_refs;
@@ -67,7 +23,7 @@ std::vector<std::string> getDatarefsFromAircraft(std::ostream & log, const boost
 	// list file
 	boost::filesystem::path list_file_path = aircraft_dir / "dataref.txt";
 	if(boost::filesystem::exists(list_file_path)) {
-		std::vector<std::string> refs = getDatarefsFromFile(log, list_file_path);
+		std::vector<std::string> refs = loadListFile(log, list_file_path);
 		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 	}
 
@@ -87,6 +43,7 @@ std::vector<std::string> getDatarefsFromAircraft(std::ostream & log, const boost
 		}
 
 		//remove empty lines
+		const size_t min_dataref_length = 8;
 		cdataref_entries.erase(std::remove_if(cdataref_entries.begin(), cdataref_entries.end(), [](const std::string & a)-> bool { return a.size() < min_dataref_length; }), cdataref_entries.end());
 
 		all_refs.insert(all_refs.begin(), cdataref_entries.begin(), cdataref_entries.end());
@@ -101,7 +58,7 @@ std::vector<std::string> getDatarefsFromAircraft(std::ostream & log, const boost
 	if(boost::filesystem::exists(plugin_dir_path)) {
 		boost::filesystem::directory_iterator dir_end_it;
 		for(boost::filesystem::directory_iterator dir_it(plugin_dir_path); dir_it != dir_end_it; dir_it++) {
-			std::vector<std::string> refs = getDatarefsFromPluginFolder(log, dir_it->path());
+			std::vector<std::string> refs = scanPluginFolder(log, dir_it->path());
 			all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 		}
 	}
@@ -121,7 +78,7 @@ std::vector<std::string> getDatarefsFromAircraft(std::ostream & log, const boost
     
     paths.push_back(aircraft_dir / "Custom Avionics");  // apparently SASL / LUA code is often in this directory
     paths.push_back(aircraft_dir / "objects");
-    boost::filesystem::path xlua_scripts_dir = aircraft_dir / "plugins/xlua/scripts"; // find xlua LUA scripts from X-Plane 11.00+
+    boost::filesystem::path xlua_scripts_dir = aircraft_dir / "plugins" / "xlua" / "scripts"; // find xlua LUA scripts from X-Plane 11.00+
     if(boost::filesystem::exists(xlua_scripts_dir)) {
 	    paths.push_back(xlua_scripts_dir);
     }
@@ -143,22 +100,32 @@ std::vector<std::string> getDatarefsFromAircraft(std::ostream & log, const boost
             boost::algorithm::to_lower(extension);
             
 			if(extensions_to_scan.cend() != extensions_to_scan.find(extension)) {
-				std::vector<std::string> refs = getDatarefsFromFile(log, path);
+				std::vector<std::string> refs = scanFileForDatarefStrings(log, path);
 				all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 			}
 		}
 	}
-	removeVectorUniques(all_refs);
+	deduplicate_vector(all_refs);
 	log << "Found " << all_refs.size() << " unique possible datarefs for aircraft " << acf_path << "\n";
 
 	return all_refs;
 }
 
-std::vector<std::string> getDatarefsFromListFile(std::ostream & log, const boost::filesystem::path & filename) {
-	return getDatarefsFromFile(log, filename);
+std::vector<std::string> scanLuaFolder(std::ostream & log, const boost::filesystem::path & lua_dir_path) {
+	std::vector<std::string> lua_folder_datarefs;
+	if(boost::filesystem::is_directory(lua_dir_path)) { // if this is true, it also exists
+		for(auto& file_de : boost::make_iterator_range(boost::filesystem::directory_iterator(lua_dir_path), {})) {
+			if(file_de.path().extension() == ".lua") {
+				std::vector<std::string> this_script_datarefs = scanFileForDatarefStrings(log, file_de.path());
+				lua_folder_datarefs.insert(lua_folder_datarefs.cend(), this_script_datarefs.begin(), this_script_datarefs.end());
+			}
+		}
+	}
+
+	return lua_folder_datarefs;
 }
 
-std::vector<std::string> getDatarefsFromPluginFolder(std::ostream & log, const boost::filesystem::path & plugin_dir_path) {
+std::vector<std::string> scanPluginFolder(std::ostream & log, const boost::filesystem::path & plugin_dir_path) {
 #ifdef __APPLE__
 	static const std::string plugin_name = "mac.xpl";
 #elif defined _WIN32 || defined _WIN64
@@ -173,15 +140,15 @@ std::vector<std::string> getDatarefsFromPluginFolder(std::ostream & log, const b
 	boost::filesystem::path plugin_new_path = plugin_dir / "64" / plugin_name;
 
 	if(boost::filesystem::exists(plugin_old_path)) {
-		std::vector<std::string> refs = getDatarefsFromFile(log, plugin_old_path);
+		std::vector<std::string> refs = scanFileForDatarefStrings(log, plugin_old_path);
 		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 	}
 	if(boost::filesystem::exists(plugin_new_path)) {
-		std::vector<std::string> refs = getDatarefsFromFile(log, plugin_new_path);
+		std::vector<std::string> refs = scanFileForDatarefStrings(log, plugin_new_path);
 		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 	}
 
-	removeVectorUniques(all_refs);
+	deduplicate_vector(all_refs);
 
 	return all_refs;
 }

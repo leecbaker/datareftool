@@ -48,14 +48,30 @@ boost::filesystem::path getCurrentAircraftPath() {
 
 //callback so we can load new aircraft datarefs when the aircraft is reloaded
 void PluginData::load_acf_dr_callback() {
-    refs.scanAircraft(getCurrentAircraftPath());
+    scanner.scanAircraft(getCurrentAircraftPath());
 }
 
 void PluginData::update_dr_callback() {
+    // Collect new datarefs
+    while(true) {
+        std::optional<ScanResults> results = scanner.getResults();
+        if(results) {
+            // Check if the strings represent commands or datarefs or nothing
+            std::vector<RefRecord *> new_refs = refs.add(results->strings, results->source);
+
+            // Add them to the list of updated this frame, so the UI is updated
+            refs.addNewRefsThisFrame(new_refs.cbegin(), new_refs.cend());
+        } else {
+            break;
+        }
+    }
+
+    // Update values of all datarefs
     if(false == viewer_windows.empty()) {
         refs.update();
     }
 
+    // Update results windows
     for(std::unique_ptr<ViewerWindow> & window: viewer_windows) {
         window->update();
     }
@@ -65,7 +81,7 @@ void PluginData::load_dr_callback() {
     int num_plugins = XPLMCountPlugins();
     XPLMPluginID this_plugin_id = XPLMGetMyID();
 
-    std::vector<boost::filesystem::path> all_plugin_datarefs;
+    scanner.scanInitial();
 
     for(int i = 0; i < num_plugins; i++) {
         XPLMPluginID plugin_id = XPLMGetNthPlugin(i);
@@ -78,12 +94,13 @@ void PluginData::load_dr_callback() {
         char signature[512] = {0};
         char description[512] = {0};
         XPLMGetPluginInfo(plugin_id, name, path, signature, description);
-        all_plugin_datarefs.push_back(path);
+
+        scanner.scanPlugin(path);
 
         xplog << "Found plugin with name=\"" << name << "\" desc=\"" << description << "\" signature=\"" << signature << "\"";
     }
 
-    refs.scanInitial(all_plugin_datarefs, getCurrentAircraftPath());
+    scanner.scanAircraft(getCurrentAircraftPath());
 }
 
 namespace std {
@@ -253,15 +270,6 @@ PluginData::PluginData()
         XPLMGetPrefsPath(prefs_dir_c);
         prefs_path = boost::filesystem::path(prefs_dir_c).parent_path() / "datareftool.json";
     }
-
-    { //load blacklist first, before everything else
-        char system_path_c[1000];
-        XPLMGetSystemPath(system_path_c);
-        boost::filesystem::path system_path(system_path_c);
-
-        boost::filesystem::path blacklist_path = system_path / "Resources" / "plugins" / "drt_blacklist.txt";
-        refs.loadBlacklist(blacklist_path);
-    }
 }
 
 PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
@@ -302,7 +310,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
     XPLMAppendMenuItem(plugin_menu, "View Datarefs", reinterpret_cast<void *>(0), 1);
     XPLMAppendMenuItem(plugin_menu, "View Commands", reinterpret_cast<void *>(1), 1);
     XPLMAppendMenuSeparator(plugin_menu);
-    XPLMAppendMenuItem(plugin_menu, "Rescan for datarefs and commands", reinterpret_cast<void *>(2), 1);
+    XPLMAppendMenuItem(plugin_menu, "Rescan datarefs and commands", reinterpret_cast<void *>(2), 1);
     XPLMAppendMenuSeparator(plugin_menu);
     XPLMAppendMenuItem(plugin_menu, "Reload aircraft", reinterpret_cast<void *>(3), 1);
     XPLMAppendMenuItem(plugin_menu, "Reload plugins", reinterpret_cast<void *>(4), 1);

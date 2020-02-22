@@ -1,8 +1,15 @@
-SET(LIB_SRC lib/allrefs.cpp lib/refscanner.cpp lib/dataref.cpp lib/commandref.cpp lib/dataref_files.cpp lib/find_datarefs_in_files.cpp lib/search.cpp lib/string_util.cpp)
-SET(LIB_HDR lib/allrefs.h lib/refscanner.h lib/dataref.h lib/commandref.h lib/ref.h lib/dataref_files.h lib/find_datarefs_in_files.h lib/search.h lib/string_util.h)
+SET(LIB_SCAN_SRC lib/scan/scan_entity.cpp lib/scan/scan_files.cpp)
+SET(LIB_SCAN_HDR lib/scan/scan_entity.h lib/scan/scan_files.h)
+SET(LIB_SEARCH_SRC lib/search/allrefs.cpp lib/search/commandref.cpp lib/search/dataref.cpp lib/search/search.cpp)
+SET(LIB_SEARCH_HDR lib/search/allrefs.h lib/search/commandref.h lib/search/dataref.h lib/search/ref.h lib/search/search.h)
+SET(LIB_UTIL_SRC lib/util/string_util.cpp)
+SET(LIB_UTIL_HDR lib/util/visit_backport.h lib/util/string_util.h)
 
-SET(PLUGIN_SRC plugin/about_window.cpp plugin/plugin.cpp plugin/viewer_window.cpp plugin/viewer_window_list.cpp plugin/viewer_window_command_button.cpp plugin/prefs.cpp plugin/logging.cpp plugin/modelview_to_window.cpp)
-SET(PLUGIN_HDR plugin/about_window.h plugin/plugin.h plugin/viewer_window.h plugin/viewer_window_list.h plugin/viewer_window_command_button.h plugin/prefs.h plugin/logging.h plugin/modelview_to_window.h)
+SET(LIB_HDR ${LIB_SCAN_HDR} ${LIB_SEARCH_HDR} ${LIB_UTIL_HDR})
+SET(LIB_SRC ${LIB_SCAN_SRC} ${LIB_SEARCH_SRC} ${LIB_UTIL_SRC})
+
+SET(PLUGIN_SRC plugin/about_window.cpp plugin/plugin.cpp plugin/viewer_window.cpp plugin/viewer_window_list.cpp plugin/viewer_window_command_button.cpp plugin/prefs.cpp plugin/logging.cpp plugin/modelview_to_window.cpp plugin/threaded_scanner.cpp)
+SET(PLUGIN_HDR plugin/about_window.h plugin/plugin.h plugin/viewer_window.h plugin/viewer_window_list.h plugin/viewer_window_command_button.h plugin/prefs.h plugin/logging.h plugin/modelview_to_window.h plugin/threaded_scanner.h)
 
 SET(SRC_PLUGIN_EXAMPLE tools/plugin_custom_dataref.cpp)
 SET(SRC_PLUGIN_CRASHER tools/plugin_crasher.cpp)

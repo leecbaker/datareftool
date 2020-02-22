@@ -8,7 +8,6 @@
 #include <vector>
 #include <string>
 #include <unordered_set>
-#include "XPLMDataAccess.h"
 
 #include <boost/filesystem/path.hpp>
 

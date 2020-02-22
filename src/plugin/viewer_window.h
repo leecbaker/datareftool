@@ -6,7 +6,7 @@
 #include "XPLMDisplay.h"
 #include "XPWidgetDefs.h"
 
-#include "search.h"
+#include "search/search.h"
 
 class RefRecord;
 class RefRecords;

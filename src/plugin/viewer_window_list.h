@@ -9,7 +9,7 @@
 #include "XPWidgets.h"
 #include "XPStandardWidgets.h"
 
-#include "search.h"
+#include "search/search.h"
 #include "viewer_window_command_button.h"
 
 #include "modelview_to_window.h"

@@ -1,9 +1,9 @@
 #include "viewer_window_list.h"
 
-#include "allrefs.h"
+#include "search/allrefs.h"
 #include "clipboard.h"
-#include "commandref.h"
-#include "string_util.h"
+#include "search/commandref.h"
+#include "util/string_util.h"
 
 #include "logging.h"
 
