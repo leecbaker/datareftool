@@ -81,6 +81,5 @@ void showAboutWindow() {
 		row_top -= row_sep;
 		widget = XPCreateWidget(left_bound, row_top, right_bound, row_top - 20, 1,compile_date.c_str(), 0, about_window, xpWidgetClass_Caption);
 		XPSetWidgetProperty(widget, xpProperty_CaptionLit, 1);
-		row_top -= row_sep;
 	}
 }
