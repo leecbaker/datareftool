@@ -35,25 +35,15 @@ ViewerWindow::ViewerWindow(bool show_dr, bool show_cr, RefRecords & refs) : View
         { KEY_HAS_CR, show_cr}
     }, refs) {}
 
-// Center the window on monitor 0. Ignore all other callbacks.
-void getFirstMonitorSize(int inMonitorIndex, int inLeftBx, int inTopBx, int inRightBx, int inBottomBx,  void * inRefcon) {
-    if(0 == inMonitorIndex) {
-        std::array<int, 4> * coordinates = reinterpret_cast<std::array<int, 4> *>(inRefcon);
-
-        *coordinates = {inLeftBx, inTopBx, inRightBx, inBottomBx};
-    }
-
-}
-
-ViewerWindow::ViewerWindow(const nlohmann::json & window_details, RefRecords & refs) : refs(refs) {
+ViewerWindow::ViewerWindow(const nlohmann::json & window_details, RefRecords & refs) : desired_bounds(300,400, 500, 400), refs(refs) {
     // Decode parameters from json
-    std::array<int, 4> screen0_coordinates_boxels;
-    XPLMGetAllMonitorBoundsGlobal(getFirstMonitorSize, &screen0_coordinates_boxels);
+    std::array<int, 4> desktop_coordinates_boxels = {0};
+    XPLMGetScreenBoundsGlobal(&desktop_coordinates_boxels[0], &desktop_coordinates_boxels[1], &desktop_coordinates_boxels[2], &desktop_coordinates_boxels[3]);
 
     int window_width = 500;
     int window_height = 400;
-    int l = (screen0_coordinates_boxels[0] + screen0_coordinates_boxels[2]) / 2 - window_width / 2;
-    int b = (screen0_coordinates_boxels[1] + screen0_coordinates_boxels[3]) / 2 - window_height / 2;
+    int l = (desktop_coordinates_boxels[0] + desktop_coordinates_boxels[2]) / 2 - window_width / 2;
+    int b = (desktop_coordinates_boxels[1] + desktop_coordinates_boxels[3]) / 2 - window_height / 2;
 
     bool is_case_sensitive = false;
     bool is_regex = true;
@@ -78,6 +68,8 @@ ViewerWindow::ViewerWindow(const nlohmann::json & window_details, RefRecords & r
     } catch(nlohmann::json::exception) {
 
     }
+
+    desired_bounds = WindowBounds(l, b + window_height, l + window_width, b);
 
     if(false == has_datarefs && false == has_commandrefs) {
         has_datarefs = has_commandrefs = true;
@@ -144,15 +136,7 @@ ViewerWindow::ViewerWindow(const nlohmann::json & window_details, RefRecords & r
     XPAddWidgetCallback(search_field, searchFieldCallback);
     XPSetWidgetProperty(search_field, xpProperty_Object, reinterpret_cast<intptr_t>(this));
 
-    // Clamp window bounds to screen size. This could happen if, e.g.,
-    // a window is closed in VR, and then re-opened in non-VR.
-    int screen_width = screen0_coordinates_boxels[2] - screen0_coordinates_boxels[0];
-    int screen_height = screen0_coordinates_boxels[3] - screen0_coordinates_boxels[1];
-    if(l < 0 || window_width < 100 || l + window_width > screen_width || b < 0 || window_height < 100 || window_height > screen_height) {
-        setDefaultPosition();
-    } else {
-        resize();
-    }
+    resize();
 
     params_changed = true;
     list->updateScroll();
@@ -193,7 +177,7 @@ void ViewerWindow::setInVr(bool in_vr) {
         
         //resize is needed to position the window onscreen. Unfortunately this puts
         //all windows at the same place
-        setDefaultPosition();
+        resize();
     }
 }
 #endif
@@ -250,40 +234,22 @@ void ViewerWindow::updateTitle() { //update title
     XPSetWidgetDescriptor(window, window_title.str().c_str());
 }
 void ViewerWindow::resize() {
-    int left, top, right, bottom;
-    XPGetWidgetGeometry(window, &left, &top, &right, &bottom);
-    resize(left, top, right, bottom);
-}
+    WindowBounds screen_bounds = WindowBounds::screenBoundsGlobal();
 
-void ViewerWindow::resize(int left, int top, int right, int bottom) {
-
-    int screen_width, screen_height;
     const constexpr int menu_bar_height = 28;
-    XPLMGetScreenSize(&screen_width, &screen_height);
-    if(screen_height - top < menu_bar_height) { //xp11 title bar height
-        top = screen_height - menu_bar_height;
-        bottom = top - 100; //min window height?
-        XPSetWidgetGeometry(window, left, top, right, bottom);
-    }
+    screen_bounds.top() -= menu_bar_height;
 
-    //handle minimum window size
-    int min_width = 140;
-    int min_height = 60;
+    WindowBounds actual_bounds = desired_bounds;
+    actual_bounds.constrainMinSize(140, 60);
+    actual_bounds.constrainMaxSize(screen_bounds.getWidth(), screen_bounds.getHeight());
+    actual_bounds.constrainToBounds(screen_bounds);
 
-    if(top - bottom < min_height) {
-        bottom = top - min_height;
-        XPSetWidgetGeometry(window, left, top, right, bottom);
-    }
+    actual_bounds.setWidgetGeometry(window);
 
-    if(right - left < min_width) {
-        right = left + min_width;
-        XPSetWidgetGeometry(window, left, top, right, bottom);
-    }
-
-    top -= title_bar_height;
-    left += mouse_drag_margin;
-    right -= mouse_drag_margin;
-    bottom += mouse_drag_margin;
+    int top = actual_bounds.top() - title_bar_height;
+    int left = actual_bounds.left() + mouse_drag_margin;
+    int right = actual_bounds.right() - mouse_drag_margin;
+    int bottom = actual_bounds.bottom() + mouse_drag_margin;
 
     XPSetWidgetGeometry(regex_toggle_button, left + 0 * toggle_button_width, bottom + bottom_row_height, left + 1 * toggle_button_width, bottom);
     XPSetWidgetGeometry(case_sensitive_button, left + 1 * toggle_button_width, bottom + bottom_row_height, left + 2 * toggle_button_width, bottom);
@@ -449,8 +415,15 @@ int ViewerWindow::viewerWindowCallback(XPWidgetMessage inMessage, XPWidgetID inW
             int left_delta = obj->in_resize_left ? delta_x : 0;
             int right_delta = obj->in_resize_right ? delta_x : 0;
             int bottom_delta = obj->in_resize_bottom ? delta_y : 0;
-            
-            XPSetWidgetGeometry(obj->window, obj->drag_start_window_left + left_delta, obj->drag_start_window_top, obj->drag_start_window_right + right_delta, obj->drag_start_window_bottom + bottom_delta);
+
+            obj->desired_bounds = WindowBounds(obj->drag_start_window_left + left_delta, obj->drag_start_window_top, obj->drag_start_window_right + right_delta, obj->drag_start_window_bottom + bottom_delta);
+            obj->desired_bounds.constrainMinSize(140, 60);
+
+
+            WindowBounds screen_bounds = WindowBounds::screenBoundsGlobal();
+
+            obj->desired_bounds.constrainMaxSize(screen_bounds.getWidth(), screen_bounds.getHeight());
+            obj->desired_bounds.constrainToBounds(screen_bounds);
             obj->resize();
             return 1;
     }

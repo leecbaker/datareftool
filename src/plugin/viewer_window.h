@@ -8,6 +8,8 @@
 
 #include "search/search.h"
 
+#include "window_bounds.h"
+
 class RefRecord;
 class RefRecords;
 class ViewerWindowList;
@@ -29,6 +31,8 @@ class ViewerWindow {
     bool in_resize_right = false;
     bool in_resize_bottom = false;
 
+    WindowBounds desired_bounds;
+
     static const int mouse_drag_margin = 7;
 
     int change_filter_state = 0;	//0, 1, 2 for off, changes, only big changes
@@ -48,18 +52,6 @@ class ViewerWindow {
 public:
     ViewerWindow(const nlohmann::json & window_params, RefRecords & refs);
     ViewerWindow(bool show_dr, bool show_cr, RefRecords & refs);
-
-    void setDefaultPosition() {
-        int width, height;
-        XPLMGetScreenSize(&width, &height);
-        const int window_width = 500;
-        const int window_height = 400;
-        const int left = width/2 - window_width / 2;
-        const int top = height / 2 + window_height / 2;
-        const int right = width / 2 + window_width / 2;
-        const int bottom = height/2 - window_height / 2;
-        resize(left, top, right, bottom);
-    }
 
 #ifdef XPLM301
     void setInVr(bool in_vr);
@@ -86,7 +78,6 @@ public:
     void updateTitle();
 
     void resize();
-    void resize(int left, int top, int right, int bottom);
 
     void setCaseSensitive(bool is_case_sensitive);
     void setIsRegex(bool is_regex);
