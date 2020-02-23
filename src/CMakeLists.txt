@@ -8,8 +8,8 @@ SET(LIB_UTIL_HDR lib/util/visit_backport.h lib/util/string_util.h)
 SET(LIB_HDR ${LIB_SCAN_HDR} ${LIB_SEARCH_HDR} ${LIB_UTIL_HDR})
 SET(LIB_SRC ${LIB_SCAN_SRC} ${LIB_SEARCH_SRC} ${LIB_UTIL_SRC})
 
-SET(PLUGIN_SRC plugin/about_window.cpp plugin/plugin.cpp plugin/viewer_window.cpp plugin/viewer_window_list.cpp plugin/viewer_window_command_button.cpp plugin/prefs.cpp plugin/logging.cpp plugin/modelview_to_window.cpp plugin/threaded_scanner.cpp)
-SET(PLUGIN_HDR plugin/about_window.h plugin/plugin.h plugin/viewer_window.h plugin/viewer_window_list.h plugin/viewer_window_command_button.h plugin/prefs.h plugin/logging.h plugin/modelview_to_window.h plugin/threaded_scanner.h)
+SET(PLUGIN_SRC plugin/about_window.cpp plugin/plugin.cpp plugin/viewer_window.cpp plugin/viewer_window_list.cpp plugin/viewer_window_command_button.cpp plugin/prefs.cpp plugin/logging.cpp plugin/modelview_to_window.cpp plugin/threaded_scanner.cpp plugin/menu.cpp)
+SET(PLUGIN_HDR plugin/about_window.h plugin/plugin.h plugin/viewer_window.h plugin/viewer_window_list.h plugin/viewer_window_command_button.h plugin/prefs.h plugin/logging.h plugin/modelview_to_window.h plugin/threaded_scanner.h plugin/menu.h)
 
 SET(SRC_PLUGIN_EXAMPLE tools/plugin_custom_dataref.cpp)
 SET(SRC_PLUGIN_CRASHER tools/plugin_crasher.cpp)

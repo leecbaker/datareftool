@@ -17,12 +17,13 @@
 #include "prefs.h"
 
 #include "XPWidgets.h"
-#include "XPLMMenus.h"
 #include "XPLMDisplay.h"
 #include "XPLMUtilities.h"
 #include "XPLMPlugin.h"
 #include "XPLMProcessing.h"
 #include "XPLMPlanes.h"
+
+#include "menu.h"
 
 
 void load_acf_dr_callback();
@@ -36,8 +37,6 @@ void PluginData::rescanDatarefs() {
 }
 
 std::optional<PluginData> plugin_data;
-
-XPLMMenuID plugin_menu = nullptr;
 
 boost::filesystem::path getCurrentAircraftPath() {
     char filename[256] = {0};
@@ -157,13 +156,6 @@ void reloadAircraft() {
     XPLMGetNthAircraftModel(0, acf_filename, acf_path);
     XPLMSetUsersAircraft(acf_path);
 }
-int impersonate_dre_menu_item = -1;
-int reload_on_plugin_change_item = -1;
-
-void updateMenus() {
-    XPLMCheckMenuItem(plugin_menu, impersonate_dre_menu_item, getImpersonateDRE() ? xplm_Menu_Checked : xplm_Menu_Unchecked);
-    XPLMCheckMenuItem(plugin_menu, reload_on_plugin_change_item, getAutoReloadPlugins() ? xplm_Menu_Checked : xplm_Menu_Unchecked);
-}
 
 PluginData::~PluginData() {
     {
@@ -182,11 +174,6 @@ PluginData::~PluginData() {
     }
 }
 
-void PluginData::plugin_menu_handler(void * /* refcon */, void * inItemRef) {
-    // TODO: can we replace plugin_data with the refcon?
-    plugin_data->handleMenu(inItemRef);
-}
-
 
 void PluginData::showViewerWindow(bool show_dr, bool show_cr) {
     viewer_windows.push_back(std::make_unique<ViewerWindow>(show_dr, show_cr, refs));
@@ -194,42 +181,6 @@ void PluginData::showViewerWindow(bool show_dr, bool show_cr) {
 void PluginData::showViewerWindow(const nlohmann::json & window_details) {
     viewer_windows.push_back(std::make_unique<ViewerWindow>(window_details, refs));
 }
-
-void PluginData::handleMenu(void * item_ref) {
-    switch (reinterpret_cast<intptr_t>(item_ref))
-    {
-        case 0: showViewerWindow(true, false); break;	
-        case 1: showViewerWindow(false, true); break;	
-        case 2:
-            rescanDatarefs();
-            break;
-        case 3: 
-            xplog << "Reloaded aircraft\n";
-            reloadAircraft();
-            break;
-        case 4: 
-            xplog << "Reloading plugins\n";
-            XPLMReloadPlugins(); 
-            break;
-        case 5: 
-            xplog << "Reloading scenery\n";
-            XPLMReloadScenery(); 
-            break;
-        case 6: 
-            showAboutWindow(); 
-            break;
-        case 7:
-            setAutoReloadPlugins(!getAutoReloadPlugins());
-            updateMenus();
-            break;
-        case 8:
-            setImpersonateDRE(!getImpersonateDRE());
-            updateMenus();
-            break;
-        default:
-            break;
-    }
-}	
 
 XPLMCommandRef reload_aircraft_command = nullptr;
 XPLMCommandRef reload_plugins_command = nullptr;
@@ -303,39 +254,6 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
         strcpy(outSig, "com.leecbaker.datareftool");
         strcpy(outDesc, "View and edit X-Plane Datarefs");
     }
-    
-    int plugin_submenu = XPLMAppendMenuItem(XPLMFindPluginsMenu(), "DataRefTool", nullptr, 1);
-    plugin_menu = XPLMCreateMenu("DataRefTool", XPLMFindPluginsMenu(), plugin_submenu, &PluginData::plugin_menu_handler, reinterpret_cast<void *>(&plugin_data));
-
-    XPLMAppendMenuItem(plugin_menu, "View Datarefs", reinterpret_cast<void *>(0), 1);
-    XPLMAppendMenuItem(plugin_menu, "View Commands", reinterpret_cast<void *>(1), 1);
-    XPLMAppendMenuSeparator(plugin_menu);
-    XPLMAppendMenuItem(plugin_menu, "Rescan datarefs and commands", reinterpret_cast<void *>(2), 1);
-    XPLMAppendMenuSeparator(plugin_menu);
-    XPLMAppendMenuItem(plugin_menu, "Reload aircraft", reinterpret_cast<void *>(3), 1);
-    XPLMAppendMenuItem(plugin_menu, "Reload plugins", reinterpret_cast<void *>(4), 1);
-    XPLMAppendMenuItem(plugin_menu, "Reload scenery", reinterpret_cast<void *>(5), 1);
-    XPLMAppendMenuSeparator(plugin_menu);
-    reload_on_plugin_change_item = XPLMAppendMenuItem(plugin_menu, "Reload plugins on modification", reinterpret_cast<void *>(7), 1);
-    XPLMAppendMenuSeparator(plugin_menu);
-    impersonate_dre_menu_item = XPLMAppendMenuItem(plugin_menu, "Impersonate DRE (requires reload)", reinterpret_cast<void *>(8), 1);
-    XPLMAppendMenuSeparator(plugin_menu);
-    XPLMAppendMenuItem(plugin_menu, "About DataRefTool", reinterpret_cast<void *>(6), 1);
-
-    XPLMEnableMenuItem(plugin_menu, 0, 1);
-    XPLMEnableMenuItem(plugin_menu, 1, 1);
-    XPLMEnableMenuItem(plugin_menu, 2, 1);	//sep
-    XPLMEnableMenuItem(plugin_menu, 3, 1);
-    XPLMEnableMenuItem(plugin_menu, 4, 1);	//sep
-    XPLMEnableMenuItem(plugin_menu, 5, 1);
-    XPLMEnableMenuItem(plugin_menu, 6, 1);
-    XPLMEnableMenuItem(plugin_menu, 7, 1);
-    XPLMEnableMenuItem(plugin_menu, 8, 1);	//sep
-    XPLMEnableMenuItem(plugin_menu, 9, 1);
-    XPLMEnableMenuItem(plugin_menu, 10, 1);	//sep
-    XPLMEnableMenuItem(plugin_menu, 11, 1);
-    XPLMEnableMenuItem(plugin_menu, 12, 1);	//sep
-    XPLMEnableMenuItem(plugin_menu, 13, 1);
 
     //commands
     reload_aircraft_command = XPLMCreateCommand("datareftool/reload_aircraft", "Reload the current aircraft");
@@ -348,7 +266,7 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
     XPLMRegisterCommandHandler(reload_scenery_command, command_handler, 0, nullptr);
     XPLMRegisterCommandHandler(show_datarefs_command, command_handler, 0, nullptr);
 
-    updateMenus();
+    plugin_data->updateMenu();
     
     return 1;
 }
@@ -361,7 +279,7 @@ PLUGIN_API void XPluginDisable(void) {
 }
 
 PLUGIN_API int XPluginEnable(void) {
-    updateMenus();
+    plugin_data->updateMenu();
     return 1;
 }
 
