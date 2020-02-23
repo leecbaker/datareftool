@@ -14,23 +14,31 @@ class SynchronizedQueue {
     std::condition_variable cv_;
     std::mutex lock_;
     std::queue<T> q_;
+    std::atomic_uint64_t input_count{0}, output_count{0};
 public:
 
     void push(T && t) {
         std::unique_lock l(lock_);
         q_.push(std::move(t));
+        input_count++;
         cv_.notify_one();
     }
 
     std::optional<T> get() {
-        std::unique_lock l(lock_);
-        if(q_.empty()) {
+        if(input_count == output_count) {
             return std::nullopt;
         }
+        {
+            std::unique_lock l(lock_);
+            if(q_.empty()) {
+                return std::nullopt;
+            }
 
-        T t = std::move(q_.front());
-        q_.pop();
-        return t;
+            output_count++;
+            T t = std::move(q_.front());
+            q_.pop();
+            return t;
+        }
     }
 
     T get_blocking() {
@@ -39,6 +47,7 @@ public:
             cv_.wait(l);
         }
 
+        output_count++;
         T t = std::move(q_.front());
         q_.pop();
         return std::move(t);
