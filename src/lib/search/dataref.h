@@ -63,7 +63,7 @@ public:
         // void setData(const std::vector<uint8_t> &)
         // but taking a string fits best with our use case.
         assert(isData());
-        XPLMSetDatab(ref, reinterpret_cast<void *>(const_cast<char *>(data_str.c_str())), 0, data_str.size() + 1); }
+        XPLMSetDatab(ref, reinterpret_cast<void *>(const_cast<char *>(data_str.c_str())), 0, static_cast<int>(data_str.size() + 1)); }
 };
 
 class DataRefUpdater {

@@ -43,8 +43,7 @@ std::vector<std::string> scanAircraft(std::ostream & log, const boost::filesyste
 		}
 
 		//remove empty lines
-		const size_t min_dataref_length = 8;
-		cdataref_entries.erase(std::remove_if(cdataref_entries.begin(), cdataref_entries.end(), [](const std::string & a)-> bool { return a.size() < min_dataref_length; }), cdataref_entries.end());
+		cdataref_entries.erase(std::remove_if(cdataref_entries.begin(), cdataref_entries.end(), [](const std::string & a)-> bool { return a.size() < 8; }), cdataref_entries.end());
 
 		all_refs.insert(all_refs.begin(), cdataref_entries.begin(), cdataref_entries.end());
 
