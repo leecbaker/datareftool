@@ -15,20 +15,20 @@ ThreadedScanner::ThreadedScanner() {
 }
 
 ThreadedScanner::~ThreadedScanner() {
-    task_queue.push(ScanTaskMessage{.type = ScanMessageType::QUIT, .path={}});
+    task_queue.push(ScanTaskMessage{ScanMessageType::QUIT, {}});
     worker_thread.join();
 }
 
 void ThreadedScanner::scanInitial() {
-    task_queue.push(ScanTaskMessage{.type = ScanMessageType::SCAN_INITIAL, .path={}});
+    task_queue.push(ScanTaskMessage{ScanMessageType::SCAN_INITIAL, {}});
 }
 
 void ThreadedScanner::scanAircraft(boost::filesystem::path aircraft_directory) {
-    task_queue.push(ScanTaskMessage{.type = ScanMessageType::SCAN_AIRCRAFT, .path=std::move(aircraft_directory)});
+    task_queue.push(ScanTaskMessage{ScanMessageType::SCAN_AIRCRAFT, std::move(aircraft_directory)});
 }
 
 void ThreadedScanner::scanPlugin(boost::filesystem::path plugin_directory) {
-    task_queue.push(ScanTaskMessage{.type = ScanMessageType::SCAN_PLUGIN, .path=std::move(plugin_directory)});
+    task_queue.push(ScanTaskMessage{ScanMessageType::SCAN_PLUGIN, std::move(plugin_directory)});
 }
 
 void ThreadedScanner::thread_proc() {
