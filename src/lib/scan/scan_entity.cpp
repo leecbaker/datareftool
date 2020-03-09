@@ -124,7 +124,7 @@ std::vector<std::string> scanLuaFolder(std::ostream & log, const boost::filesyst
 	return lua_folder_datarefs;
 }
 
-std::vector<std::string> scanPluginFolder(std::ostream & log, const boost::filesystem::path & plugin_dir_path) {
+std::vector<std::string> scanPluginFolder(std::ostream & log, const boost::filesystem::path & plugin_xpl_path) {
 #ifdef __APPLE__
 	static const std::string plugin_name = "mac.xpl";
 #elif defined _WIN32 || defined _WIN64
@@ -134,7 +134,7 @@ std::vector<std::string> scanPluginFolder(std::ostream & log, const boost::files
 #endif
 
 	std::vector<std::string> all_refs;
-	boost::filesystem::path plugin_dir(plugin_dir_path);
+	boost::filesystem::path plugin_dir(plugin_xpl_path.parent_path());
 	boost::filesystem::path plugin_old_path = plugin_dir / plugin_name;
 	boost::filesystem::path plugin_new_path = plugin_dir / "64" / plugin_name;
 

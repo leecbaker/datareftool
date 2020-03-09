@@ -78,13 +78,12 @@ void PluginData::update_dr_callback() {
 
 void PluginData::load_dr_callback() {
     int num_plugins = XPLMCountPlugins();
-    XPLMPluginID this_plugin_id = XPLMGetMyID();
 
     scanner.scanInitial();
 
     for(int i = 0; i < num_plugins; i++) {
         XPLMPluginID plugin_id = XPLMGetNthPlugin(i);
-        if(plugin_id == this_plugin_id || 0 == plugin_id) {
+        if(0 == plugin_id) {
             continue;
         }
 

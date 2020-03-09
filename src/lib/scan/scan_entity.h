@@ -13,7 +13,7 @@
 std::vector<std::string> scanAircraft(std::ostream & log, const boost::filesystem::path & acf_path);
 
 
-std::vector<std::string> scanPluginFolder(std::ostream & log, const boost::filesystem::path & plugin_dir_path);
+std::vector<std::string> scanPluginFolder(std::ostream & log, const boost::filesystem::path & plugin_xpl_path);
 
 // Scan only the lua files in a directory
 std::vector<std::string> scanLuaFolder(std::ostream & log, const boost::filesystem::path & lua_dir_path);
