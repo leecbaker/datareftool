@@ -127,16 +127,20 @@ std::vector<std::string> scanLuaFolder(std::ostream & log, const boost::filesyst
 std::vector<std::string> scanPluginFolder(std::ostream & log, const boost::filesystem::path & plugin_xpl_path) {
 #ifdef __APPLE__
 	static const std::string plugin_name = "mac.xpl";
+	static const std::string xp11_plugin_dir_name = "mac_x64";
 #elif defined _WIN32 || defined _WIN64
 	static const std::string plugin_name = "win.xpl";
+	static const std::string xp11_plugin_dir_name = "win_x64";
 #else
 	static const std::string plugin_name = "lin.xpl";
+	static const std::string xp11_plugin_dir_name = "lin_x64";
 #endif
 
 	std::vector<std::string> all_refs;
 	boost::filesystem::path plugin_dir(plugin_xpl_path.parent_path());
 	boost::filesystem::path plugin_old_path = plugin_dir / plugin_name;
 	boost::filesystem::path plugin_new_path = plugin_dir / "64" / plugin_name;
+	boost::filesystem::path plugin_xp11_path = plugin_dir / xp11_plugin_dir_name / (plugin_dir.filename().string() + ".xpl");
 
 	if(boost::filesystem::exists(plugin_old_path)) {
 		std::vector<std::string> refs = scanFileForDatarefStrings(log, plugin_old_path);
@@ -144,6 +148,10 @@ std::vector<std::string> scanPluginFolder(std::ostream & log, const boost::files
 	}
 	if(boost::filesystem::exists(plugin_new_path)) {
 		std::vector<std::string> refs = scanFileForDatarefStrings(log, plugin_new_path);
+		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
+	}
+	if(boost::filesystem::exists(plugin_xp11_path)) {
+		std::vector<std::string> refs = scanFileForDatarefStrings(log, plugin_xp11_path);
 		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 	}
 
