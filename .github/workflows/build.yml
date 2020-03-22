@@ -97,7 +97,7 @@ jobs:
         dumpbin.exe /dependents bin/datareftool/Release/win.xpl
         
   build-zip:
-   runs-on: ubuntu-latest
+   runs-on: macOS-latest
    needs: [build-mac, build-lin, build-win]
    steps:
      - uses: actions/checkout@v1
@@ -120,6 +120,8 @@ jobs:
          ls -l binaries/
          mv binaries/ DataRefTool_`date +%Y_%m_%d`
          zip DataRefTool_build.zip DataRefTool_`date +%Y_%m_%d`/*
+     - name: Notarize ZIP
+       run: xcrun altool --notarize-app --primary-bundle-id "com.leecbaker.datareftool.zip" --username "lee@leecbaker.com" --password "${{ secrets. APP_STORE_CONNECT_PASSWORD }}" --file DataRefTool_build.zip
      - uses: actions/upload-artifact@master
        with:
          name: datareftool_build
