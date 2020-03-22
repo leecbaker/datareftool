@@ -150,3 +150,8 @@ set_target_properties(plugin_custom_dataref PROPERTIES OUTPUT_NAME "${PLUGIN_OUT
 set_target_properties(plugin_crasher PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/datareftool_crasher" )
 set_target_properties(plugin_crasher PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/datareftool_crasher" )
 set_target_properties(plugin_crasher PROPERTIES OUTPUT_NAME "${PLUGIN_OUTPUT_FILENAME}")
+
+IF(APPLE)
+	# Code sign always; it's fast
+	ADD_CUSTOM_COMMAND(TARGET plugin POST_BUILD COMMAND codesign -s 55926HEH54 $<TARGET_FILE:plugin> --timestamp  --options runtime)
+ENDIF()
