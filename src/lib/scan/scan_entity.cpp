@@ -14,6 +14,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
+using namespace std::string_literals;
+
 
 std::vector<std::string> scanAircraft(std::ostream & log, const boost::filesystem::path & acf_path) {
 	boost::filesystem::path aircraft_dir = boost::filesystem::path(acf_path).parent_path();
@@ -55,11 +57,8 @@ std::vector<std::string> scanAircraft(std::ostream & log, const boost::filesyste
 
 	//for each directory inside plugin path
 	if(boost::filesystem::exists(plugin_dir_path)) {
-		boost::filesystem::directory_iterator dir_end_it;
-		for(boost::filesystem::directory_iterator dir_it(plugin_dir_path); dir_it != dir_end_it; dir_it++) {
-			std::vector<std::string> refs = scanPluginFolder(log, dir_it->path());
-			all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
-		}
+		std::vector<std::string> refs = scanPluginFolder(log, plugin_dir_path);
+		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 	}
 
 	//object files in aircraft directory
@@ -124,39 +123,30 @@ std::vector<std::string> scanLuaFolder(std::ostream & log, const boost::filesyst
 	return lua_folder_datarefs;
 }
 
-std::vector<std::string> scanPluginFolder(std::ostream & log, const boost::filesystem::path & plugin_xpl_path) {
-#ifdef __APPLE__
-	static const std::string plugin_name = "mac.xpl";
-	static const std::string xp11_plugin_dir_name = "mac_x64";
-#elif defined _WIN32 || defined _WIN64
-	static const std::string plugin_name = "win.xpl";
-	static const std::string xp11_plugin_dir_name = "win_x64";
-#else
-	static const std::string plugin_name = "lin.xpl";
-	static const std::string xp11_plugin_dir_name = "lin_x64";
-#endif
+std::vector<std::string> scanPluginFolder(std::ostream & log, const boost::filesystem::path & plugin_dir_path) {
+	// make a list of all XPL files in the plugin folder
+	using recursive_directory_iterator = boost::filesystem::recursive_directory_iterator;
 
+	std::vector<boost::filesystem::path> xpl_paths;
 	std::vector<std::string> all_refs;
-	boost::filesystem::path plugin_dir(plugin_xpl_path.parent_path());
-	boost::filesystem::path plugin_old_path = plugin_dir / plugin_name;
-	boost::filesystem::path plugin_new_path = plugin_dir / "64" / plugin_name;
-	boost::filesystem::path plugin_xp11_path = plugin_dir / xp11_plugin_dir_name / (plugin_dir.filename().string() + ".xpl");
-
-	if(boost::filesystem::exists(plugin_old_path)) {
-		std::vector<std::string> refs = scanFileForDatarefStrings(log, plugin_old_path);
-		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
-	}
-	if(boost::filesystem::exists(plugin_new_path)) {
-		std::vector<std::string> refs = scanFileForDatarefStrings(log, plugin_new_path);
-		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
-	}
-	if(boost::filesystem::exists(plugin_xp11_path)) {
-		std::vector<std::string> refs = scanFileForDatarefStrings(log, plugin_xp11_path);
-		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
+	for (const boost::filesystem::directory_entry & dir_entry : recursive_directory_iterator(plugin_dir_path)) {
+		boost::filesystem::path path(dir_entry);
+		if(boost::filesystem::is_regular_file(path) && ".xpl"s == path.extension()) {
+			std::vector<std::string> refs = scanFileForDatarefStrings(log, path);
+			all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
+		}
 	}
 
 	deduplicate_vector(all_refs);
 
 	return all_refs;
+}
+
+std::vector<std::string> scanPluginXPL(std::ostream & log, const boost::filesystem::path & plugin_xpl_path) {
+	std::vector<std::string> refs = scanFileForDatarefStrings(log, plugin_xpl_path);
+
+	deduplicate_vector(refs);
+
+	return refs;
 }
 

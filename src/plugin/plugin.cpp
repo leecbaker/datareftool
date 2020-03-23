@@ -93,7 +93,16 @@ void PluginData::load_dr_callback() {
         char description[512] = {0};
         XPLMGetPluginInfo(plugin_id, name, path, signature, description);
 
-        scanner.scanPlugin(path);
+        //find plugin directory path
+        boost::filesystem::path xpl_path(path);
+        boost::filesystem::path xpl_dir = xpl_path.parent_path();
+        boost::filesystem::path plugin_dir = xpl_dir;
+        std::string parent_dir_name = xpl_dir.filename().string();
+        if(parent_dir_name == "64" || parent_dir_name == "mac_x64" || parent_dir_name == "win_x64" || parent_dir_name == "lin_x64") {
+            plugin_dir = plugin_dir.parent_path();
+        }
+
+        scanner.scanPlugin(plugin_dir);
 
         xplog << "Found plugin with name=\"" << name << "\" desc=\"" << description << "\" signature=\"" << signature << "\"";
     }
