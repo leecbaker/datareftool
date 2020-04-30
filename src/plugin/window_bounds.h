@@ -63,7 +63,7 @@ public:
     void constrainToBounds(WindowBounds constraint) {
         // positive 'distance' values signify correction needed.
         int distance_left = std::max(0, constraint.left() - left());
-        int distance_top = std::max(0, top() - constraint.top());
+        int distance_top = -std::max(0, top() - constraint.top());
         int distance_right = -std::max(0, right() - constraint.right());
         int distance_bottom = std::max(0, constraint.bottom() - bottom());
 
