@@ -19,7 +19,13 @@ public:
 
     static WindowBounds screenBoundsGlobal() {
         int left, top, right, bottom;
+#if defined(XPLM300)
         XPLMGetScreenBoundsGlobal(&left, &top, &right, &bottom);
+#else
+        left = 0;
+        bottom = 0;
+        XPLMGetScreenSize(&right, &top);
+#endif
         return WindowBounds(left, top, right, bottom);
     }
 

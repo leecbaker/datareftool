@@ -38,7 +38,13 @@ ViewerWindow::ViewerWindow(bool show_dr, bool show_cr, RefRecords & refs) : View
 ViewerWindow::ViewerWindow(const nlohmann::json & window_details, RefRecords & refs) : desired_bounds(300,400, 500, 400), refs(refs) {
     // Decode parameters from json
     std::array<int, 4> desktop_coordinates_boxels = {0};
+#if defined(XPLM300)
     XPLMGetScreenBoundsGlobal(&desktop_coordinates_boxels[0], &desktop_coordinates_boxels[1], &desktop_coordinates_boxels[2], &desktop_coordinates_boxels[3]);
+#else
+    desktop_coordinates_boxels[0] = 0;
+    desktop_coordinates_boxels[3] = 0;
+    XPLMGetScreenSize(&desktop_coordinates_boxels[2], &desktop_coordinates_boxels[1]);
+#endif
 
     int window_width = 500;
     int window_height = 400;
