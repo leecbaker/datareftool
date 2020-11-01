@@ -40,12 +40,12 @@ jobs:
         codesign --display --verbose=4 build/src/plugin/datareftool.xpl
 
   build-lin:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - name: Install dependencies
       run: |
         sudo apt-get update -qq
-        sudo apt-get install -y cmake libx11-dev libbz2-dev libglu1-mesa-dev g++-8
+        sudo apt-get install -y cmake libx11-dev libbz2-dev libglu1-mesa-dev g++-10
     - name: Install boost
       run: |
         export BOOST_DIR=~/boost_install
@@ -82,7 +82,7 @@ jobs:
     steps:
       
     - name: Install static boost
-      run: vcpkg install boost-regex:x64-windows-static boost-system:x64-windows-static boost-iostreams:x64-windows-static boost-filesystem:x64-windows-static boost-functional:x64-windows-static boost-algorithm:x64-windows-static
+      run: vcpkg install boost-regex:x64-windows-static boost-system:x64-windows-static boost-iostreams:x64-windows-static boost-filesystem:x64-windows-static boost-functional:x64-windows-static boost-algorithm:x64-windows-static libpng:x64-windows-static
     - uses: actions/checkout@v2
       with:
         submodules: recursive
