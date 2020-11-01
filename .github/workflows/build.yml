@@ -6,7 +6,7 @@ jobs:
   build-mac:
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
     - name: Developer certificate
@@ -55,7 +55,7 @@ jobs:
         ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system,regex --prefix=${BOOST_DIR}
         ./b2 link=static threading=multi runtime-link=shared cxxflags=-fPIC
         ./b2 install --prefix=${BOOST_DIR}
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
     - name: CMake
@@ -83,7 +83,7 @@ jobs:
       
     - name: Install static boost
       run: vcpkg install boost-regex:x64-windows-static boost-system:x64-windows-static boost-iostreams:x64-windows-static boost-filesystem:x64-windows-static boost-functional:x64-windows-static boost-algorithm:x64-windows-static
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
     - name: Prebuild
@@ -119,7 +119,7 @@ jobs:
    runs-on: macOS-latest
    needs: [build-mac, build-lin, build-win]
    steps:
-     - uses: actions/checkout@v1
+     - uses: actions/checkout@v2
      - run: |
          mkdir -p binaries
          cp LICENSE binaries/
