@@ -4,3 +4,6 @@
 [submodule "lib/json"]
 	path = lib/json
 	url = https://github.com/nlohmann/json.git
+[submodule "lib/xplane_sdk"]
+	path = lib/xplane_sdk
+	url = git@github.com:leecbaker/xplane_sdk.git

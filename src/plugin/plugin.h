@@ -13,8 +13,8 @@ class AboutWindow;
 class SearchWindow;
 
 class Plugin {
-    std::weak_ptr<AboutWindow> about_window;
-    std::vector<std::weak_ptr<SearchWindow>> search_windows;
+    std::weak_ptr<AboutWindow> about_window_ref;
+    std::vector<std::weak_ptr<SearchWindow>> search_window_refs;
     lb::filesystem::path prefs_path;
 public:
     Plugin() = default;

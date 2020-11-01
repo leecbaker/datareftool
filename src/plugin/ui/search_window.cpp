@@ -64,7 +64,7 @@ SearchWindow::SearchWindow(RefRecords & refs)
     {
         selection_list = std::make_shared<ResultsList>(results);
         selection_list->setPaddingBetweenElements(0);
-        selection_list->setSelectionChangeAction([this](ResultLine * old_selection, ResultLine * new_selection) {
+        selection_list->setSelectionChangeAction([this](ResultLine * /* old_selection */, ResultLine * new_selection) {
             if(nullptr == new_selection) {
                 setSelectionAvailable(false, false);
             } else {
@@ -242,24 +242,24 @@ void SearchWindow::setChangeFilter(ChangeFilterType new_filter_type) {
     params.setChangeDetection(ChangeFilterType::ALL != change_filter_mode, ChangeFilterType::BIG_CHANGES == change_filter_mode);
 }
 
-void SearchWindow::setUseRegex(bool use_regex) {
-    this->use_regex = use_regex;
-    if(use_regex) {
+void SearchWindow::setUseRegex(bool new_use_regex) {
+    this->use_regex = new_use_regex;
+    if(new_use_regex) {
         filter_regex->setButtonStyle(Widget11Button::ButtonStyle::PRIMARY);
     } else {
         filter_regex->setButtonStyle(Widget11Button::ButtonStyle::SECONDARY);
     }
-    params.setUseRegex(use_regex);
+    params.setUseRegex(new_use_regex);
 }
 
-void SearchWindow::setIsCaseSensitive(bool case_sensitive) {
-    this->case_sensitive = case_sensitive;
-    if(case_sensitive) {
+void SearchWindow::setIsCaseSensitive(bool case_sensitive_now) {
+    this->case_sensitive = case_sensitive_now;
+    if(case_sensitive_now) {
         filter_case->setButtonStyle(Widget11Button::ButtonStyle::PRIMARY);
     } else {
         filter_case->setButtonStyle(Widget11Button::ButtonStyle::SECONDARY);
     }
-    params.setCaseSensitive(case_sensitive);
+    params.setCaseSensitive(case_sensitive_now);
 }
 
 void SearchWindow::setCommandDatarefFilter(CommandDatarefFilterType new_filter_type) {

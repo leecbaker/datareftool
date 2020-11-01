@@ -8,7 +8,7 @@
 #include <XPLMGraphics.h>
 
 
-bool VerticalScrollBar::mouseClick(Point point, XPLMMouseStatus status) {
+bool VerticalScrollBar::mouseClick(Point point, XPLMMouseStatus /* status */) {
     float half_scroll_handle_height = 0.5 * 20;
 
     float draggable_top = getBounds().top - half_scroll_handle_height;
@@ -23,7 +23,7 @@ bool VerticalScrollBar::mouseClick(Point point, XPLMMouseStatus status) {
     return true;
 }
 
-void VerticalScrollBar::draw(Rect draw_bounds) {
+void VerticalScrollBar::draw(Rect /* draw_bounds */) {
     const float min_handle_height = 20; //px
     float bar_travel = getHeight() - min_handle_height;
 

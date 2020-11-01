@@ -120,9 +120,6 @@ void ScrollContainer::draw(Rect draw_bounds) {
 
     //draw scroll bar if necessary?
 
-    int contents_height = object_->getMinimumSize().height;
-    int scroll_bar_height = getHeight();
-
     if(shows_scroll_bar_) {
         scroll_bar_->draw(draw_bounds);
     }

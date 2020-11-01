@@ -6,7 +6,7 @@ using namespace std::string_literals;
 
 PluginMenu::PluginMenu() {
     XPLMMenuID xp_plugin_menu = XPLMFindPluginsMenu();
-    datareftool_menu.emplace("DataRefTool2"s, xp_plugin_menu);
+    datareftool_menu.emplace("DataRefTool"s, xp_plugin_menu);
 
     search_item = datareftool_menu->appendItem("Search...", [](){plugin->openSearchWindow();});
     datareftool_menu->appendSeparator();

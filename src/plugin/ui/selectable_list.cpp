@@ -55,7 +55,7 @@ std::shared_ptr<Widget11> SelectableListBase::mouseClick(Point point, XPLMMouseS
     return nullptr;
 }
 
-void SelectableListBase::keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) {
+void SelectableListBase::keyPress(char /* key */, XPLMKeyFlags flags, uint8_t virtual_key) {
     SelectableListBase::widget_iterator_type selected_it = std::find(begin(), end(), selected_element.lock());
 
     if(flags & xplm_DownFlag) {
@@ -90,7 +90,7 @@ void ResultLine::setRecord(RefRecord * rr) {
     this->record = rr;
 }
 
-void ResultLine::draw(Rect draw_bounds) {
+void ResultLine::draw(Rect /* draw_bounds */) {
     float timediff = 0.001f * std::chrono::duration_cast<std::chrono::milliseconds>(*last_update_timestamp - record->getLastUpdateTime()).count();
     float timediff_fraction = std::min<float>(1.f, timediff / 10.f);
     const DataRefRecord * dr_record = dynamic_cast<const DataRefRecord *>(record);

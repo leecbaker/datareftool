@@ -17,4 +17,5 @@ find_package(Boost 1.54.0 REQUIRED COMPONENTS filesystem system iostreams regex)
 target_link_libraries(drt PUBLIC Boost::filesystem Boost::system Boost::iostreams)
 target_include_directories(drt INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_xplane_sdk_definitions(drt 301)
+# define the minimum X-Plane SDK version that gives us the functions we need for the API
+add_xplane_sdk_definitions(drt 210)

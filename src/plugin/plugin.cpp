@@ -15,8 +15,8 @@ const char * dre_description = "A plugin that shows all data refs!.";
 
 PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
     // Plugin details
-	strcpy(outName, "DataRefTool2");
-	strcpy(outSig, "com.leecbaker.datareftool2");
+	strcpy(outName, "DataRefTool");
+	strcpy(outSig, "com.leecbaker.datareftool");
 	strcpy(outDesc, "More information https://github.com/leecbaker/datareftool");
 
     xplog.setPrefix("DataRefTool: ");

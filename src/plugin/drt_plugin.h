@@ -15,8 +15,8 @@ class DRTPlugin: public Plugin {
     NextFlightLoopCallback plugin_changed_flcb;
     NextFlightLoopCallback load_acf_dr_flcb;
 
-    std::weak_ptr<AboutWindow> about_window;
-    std::vector<std::weak_ptr<SearchWindow>> search_windows;
+    std::weak_ptr<AboutWindow> about_window_ref;
+    std::vector<std::weak_ptr<SearchWindow>> search_window_refs;
     PluginMenu menu;
     lb::filesystem::path prefs_path;
 

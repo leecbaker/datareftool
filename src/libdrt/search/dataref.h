@@ -70,8 +70,8 @@ class DataRefUpdater {
     std::chrono::system_clock::time_point current_time;
     DataRefRecord * dr;
 public:
-    void setDataref(DataRefRecord * dr) { this->dr = dr; }
-    void updateTime(const std::chrono::system_clock::time_point current_time) { this->current_time = current_time; }
+    void setDataref(DataRefRecord * new_dataref) { this->dr = new_dataref; }
+    void updateTime(const std::chrono::system_clock::time_point new_time) { this->current_time = new_time; }
     bool operator()(float&) const;
     bool operator()(double&) const;
     bool operator()(int&) const;

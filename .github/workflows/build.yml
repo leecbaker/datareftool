@@ -24,12 +24,20 @@ jobs:
       run: make -C build
     - uses: actions/upload-artifact@master
       with:
-        name: drt_mac
-        path: bin/datareftool/mac.xpl
+        name: drt_mac_xp10
+        path: build/src/plugin/mac.xpl
+    - uses: actions/upload-artifact@master
+      with:
+        name: drt_mac_xp11
+        path: build/src/plugin/datareftool.xpl
     - name: Dependencies
-      run: otool -L bin/datareftool/mac.xpl
+      run: |
+        otool -L build/src/plugin/mac.xpl
+        otool -L build/src/plugin/datareftool.xpl
     - name: Code signing info
-      run: codesign --display --verbose=4 bin/datareftool/mac.xpl
+      run: |
+        codesign --display --verbose=4 build/src/plugin/mac.xpl
+        codesign --display --verbose=4 build/src/plugin/datareftool.xpl
 
   build-lin:
     runs-on: ubuntu-latest
@@ -58,10 +66,16 @@ jobs:
       run: make -C build
     - uses: actions/upload-artifact@master
       with:
-        name: drt_lin
-        path: bin/datareftool/lin.xpl
+        name: drt_lin_xp10
+        path: build/src/plugin/lin.xpl
+    - uses: actions/upload-artifact@master
+      with:
+        name: drt_lin_xp11
+        path: build/src/plugin/datareftool.xpl
     - name: Dependencies
-      run: ldd bin/datareftool/lin.xpl
+      run: |
+        ldd build/src/plugin/lin.xpl
+        ldd build/src/plugin/datareftool.xpl
 
   build-win:
     runs-on: windows-latest
@@ -88,13 +102,18 @@ jobs:
       
     - uses: actions/upload-artifact@master
       with:
-        name: drt_win
-        path: bin/datareftool/Release/win.xpl
+        name: drt_win_xp10
+        path: build/src/plugin/Release/win.xpl
+    - uses: actions/upload-artifact@master
+      with:
+        name: drt_win_xp11
+        path: build/src/plugin/Release/datareftool.xpl
     - name: Dependencies
       shell: cmd
       run: |
         call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        dumpbin.exe /dependents bin/datareftool/Release/win.xpl
+        dumpbin.exe /dependents build/src/plugin/Release/win.xpl
+        dumpbin.exe /dependents build/src/plugin/Release/datareftool.xpl
         
   build-zip:
    runs-on: macOS-latest
@@ -106,16 +125,28 @@ jobs:
          cp LICENSE binaries/
      - uses: actions/download-artifact@master
        with:
-         name: drt_lin
-         path: binaries/
+         name: drt_lin_xp10
+         path: binaries/64/
      - uses: actions/download-artifact@master
        with:
-         name: drt_mac
-         path: binaries/
+         name: drt_lin_xp11
+         path: binaries/lin_x64/
      - uses: actions/download-artifact@master
        with:
-         name: drt_win
-         path: binaries/
+         name: drt_mac_xp10
+         path: binaries/64/
+     - uses: actions/download-artifact@master
+       with:
+         name: drt_mac_xp11
+         path: binaries/mac_x64/
+     - uses: actions/download-artifact@master
+       with:
+         name: drt_win_xp10
+         path: binaries/64/
+     - uses: actions/download-artifact@master
+       with:
+         name: drt_win_xp11
+         path: binaries/win_x64/
      - run: |
          ls -l binaries/
          mv binaries/ DataRefTool_`date +%Y_%m_%d`

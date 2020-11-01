@@ -57,16 +57,16 @@ void DRTPlugin::update_dr_callback() {
     }
 
     // remove expired windows
-    auto new_end = std::remove_if(search_windows.begin(), search_windows.end(), [](std::weak_ptr<SearchWindow> & wpw) -> bool { return wpw.expired(); });
-    search_windows.erase(new_end, search_windows.end());
+    auto new_end = std::remove_if(search_window_refs.begin(), search_window_refs.end(), [](std::weak_ptr<SearchWindow> & wpw) -> bool { return wpw.expired(); });
+    search_window_refs.erase(new_end, search_window_refs.end());
 
     // Update values of all datarefs
-    if(false == search_windows.empty()) {
+    if(false == search_window_refs.empty()) {
         refs.update();
     }
 
     // Update results windows
-    for(std::weak_ptr<SearchWindow> & window_weak: search_windows) {
+    for(std::weak_ptr<SearchWindow> & window_weak: search_window_refs) {
         std::shared_ptr<SearchWindow> window_lock = window_weak.lock();
         if(window_lock) {
             window_lock->update();
@@ -158,9 +158,9 @@ void DRTPlugin::setDebugMode(bool debug_mode) {
 
 DRTPlugin::~DRTPlugin() {
     std::vector<nlohmann::json> window_params;
-    for(const std::weak_ptr<SearchWindow> & window: search_windows) {
-        const std::shared_ptr<SearchWindow> window_locked = window.lock();
-        window_params.push_back(dumpSearchWindow(window_locked));
+    for(const std::weak_ptr<SearchWindow> & window_ref: search_window_refs) {
+        const std::shared_ptr<SearchWindow> window = window_ref.lock();
+        window_params.push_back(dumpSearchWindow(window));
     }
 
     if(savePrefs(prefs_path, window_params)) {
@@ -173,13 +173,13 @@ DRTPlugin::~DRTPlugin() {
 void DRTPlugin::openAboutWindow() {
     std::shared_ptr<AboutWindow> about_window = AboutWindow::make();
     about_window->show();
-    this->about_window = std::move(about_window);
+    this->about_window_ref = std::move(about_window);
 }
 
 std::shared_ptr<SearchWindow> DRTPlugin::openSearchWindow() {
     std::shared_ptr<SearchWindow> new_window = SearchWindow::make(std::ref(refs));
     new_window->show();
-    search_windows.push_back(new_window);
+    search_window_refs.push_back(new_window);
     return new_window;
 }
 
@@ -327,17 +327,21 @@ void DRTPlugin::handleMessage(intptr_t inMessage, void * inParam) {
 
         case XPLM_MSG_WILL_WRITE_PREFS:
             break;
-#ifdef XPLM301
+#if defined(XPLM301)
         case XPLM_MSG_ENTERED_VR:
-            for(const std::weak_ptr<SearchWindow> & window: search_windows) {
+            for(const std::weak_ptr<SearchWindow> & window: search_window_refs) {
                 const std::shared_ptr<SearchWindow> window_locked = window.lock();
-                window_locked->setVR(true);
+                if(window_locked) {
+                    window_locked->setVR(true);
+                }
             }
             break;
         case XPLM_MSG_EXITING_VR:
-            for(const std::weak_ptr<SearchWindow> & window: search_windows) {
+            for(const std::weak_ptr<SearchWindow> & window: search_window_refs) {
                 const std::shared_ptr<SearchWindow> window_locked = window.lock();
-                window_locked->setVR(false);
+                if(window_locked) {
+                    window_locked->setVR(false);
+                }
             }
             break;
 #endif
@@ -361,8 +365,8 @@ void DRTPlugin::plugin_changed_check_callback() {
     int num_plugins = XPLMCountPlugins();
     char plugin_path_array[256 + 1];
     for(int plugin_ix = 0; plugin_ix < num_plugins; plugin_ix++) {
-        XPLMPluginID plugin = XPLMGetNthPlugin(plugin_ix);
-        XPLMGetPluginInfo(plugin, nullptr, plugin_path_array, nullptr, nullptr);
+        XPLMPluginID plugin_id = XPLMGetNthPlugin(plugin_ix);
+        XPLMGetPluginInfo(plugin_id, nullptr, plugin_path_array, nullptr, nullptr);
 
         boost::filesystem::path plugin_path(plugin_path_array);
         if(xplane_plugin_path == plugin_path) {

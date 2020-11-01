@@ -23,9 +23,9 @@ Window11Base::Window11Base()
     }
     return 1.f;
 })
+#endif
 #ifdef XPLM301
 , currently_in_vr("sim/graphics/VR/enabled")
-#endif
 #endif
 {
 #ifdef XPLM300
