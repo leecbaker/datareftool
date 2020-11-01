@@ -43,38 +43,38 @@ void ThreadedScanner::thread_proc() {
 
                 { // Blacklist
                     boost::filesystem::path blacklist_path = system_path / "Resources" / "plugins" / "drt_blacklist.txt";
-                    blacklist = loadListFile(xplog, blacklist_path);
+                    blacklist = loadListFile(xplog_debug, blacklist_path);
                     results_queue.push(ScanResults{ref_src_t::BLACKLIST, blacklist});
                 }
 
                 { // DR file
                     boost::filesystem::path dr_file = system_path / "Resources" / "plugins" / "DataRefs.txt";
-                    std::vector<std::string> dr_refs = loadListFile(xplog, dr_file);
+                    std::vector<std::string> dr_refs = loadListFile(xplog_debug, dr_file);
                     results_queue.push(ScanResults{ref_src_t::FILE, dr_refs});
                 }
 
                 { // CR file
                     boost::filesystem::path cr_file = system_path / "Resources" / "plugins" / "Commands.txt";
-                    std::vector<std::string> cr_refs = loadListFile(xplog, cr_file);
+                    std::vector<std::string> cr_refs = loadListFile(xplog_debug, cr_file);
                     results_queue.push(ScanResults{ref_src_t::FILE, cr_refs});
                 }
 
                 { // FWL
                     boost::filesystem::path fwl_scripts_dir = system_path / "Resources" / "plugins" / "FlyWithLua" / "Scripts";
-                    std::vector<std::string> script_refs = scanLuaFolder(xplog, fwl_scripts_dir);
+                    std::vector<std::string> script_refs = scanLuaFolder(xplog_debug, fwl_scripts_dir);
                     results_queue.push(ScanResults{ref_src_t::FILE, script_refs});
                 }
             }
                 break;
             case ScanMessageType::SCAN_PLUGIN: {
                 results_queue.push(ScanResults{ref_src_t::BLACKLIST, blacklist});
-                std::vector<std::string> plugin_refs = ::scanPluginFolder(xplog, message.path);
+                std::vector<std::string> plugin_refs = ::scanPluginFolder(xplog_debug, message.path);
                 results_queue.push(ScanResults{ref_src_t::PLUGIN, plugin_refs});
             }
                 break;
             case ScanMessageType::SCAN_AIRCRAFT: {
                 results_queue.push(ScanResults{ref_src_t::BLACKLIST, blacklist});
-                std::vector<std::string> aircraft_refs = ::scanAircraft(xplog, message.path);
+                std::vector<std::string> aircraft_refs = ::scanAircraft(xplog_debug, message.path);
                 results_queue.push(ScanResults{ref_src_t::AIRCRAFT, aircraft_refs});
             }
                 break;

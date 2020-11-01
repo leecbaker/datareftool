@@ -34,6 +34,8 @@ class ThreadedScanner {
     // load the blacklist again as well in case the aircraft added new DR or CR.
     std::vector<std::string> blacklist;
 
+    void thread_proc();
+
 public:
     ThreadedScanner();
     ~ThreadedScanner();
@@ -43,6 +45,4 @@ public:
     void scanInitial();
     void scanAircraft(boost::filesystem::path aircraft_directory);
     void scanPlugin(boost::filesystem::path plugin_directory);
-
-    void thread_proc();
 };

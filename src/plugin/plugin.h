@@ -1,62 +1,28 @@
 #pragma once
 
-#include <cstdint>
-#include <functional>
-#include <optional>
+#include <memory>
 #include <vector>
 
-#include <json.hpp>
+#include "nlohmann/json.hpp"
 
-#include "search/allrefs.h"
+#include "filesystem.h"
 
-#include "threaded_scanner.h"
+#include "plugin_menu.h"
 
-#include "menu.h"
+class AboutWindow;
+class SearchWindow;
 
-#include "flight_loop_callback.h"
-
-class ViewerWindow;
-
-// Plugin state
-class PluginData {
-protected:
-    NextFlightLoopCallback load_dr_flcb;
-    NextFlightLoopCallback update_dr_flcb;
-    NextFlightLoopCallback plugin_changed_flcb;
-    NextFlightLoopCallback load_acf_dr_flcb;
-
-    std::vector<std::unique_ptr<ViewerWindow>> viewer_windows;
-    boost::filesystem::path prefs_path;
-
-    RefRecords refs;
-    ThreadedScanner scanner;
-    PluginMenu menu;
+class Plugin {
+    std::weak_ptr<AboutWindow> about_window;
+    std::vector<std::weak_ptr<SearchWindow>> search_windows;
+    lb::filesystem::path prefs_path;
 public:
-    PluginData();
-    ~PluginData();
+    Plugin() = default;
+    ~Plugin() = default;
 
-    void aircraftIsBeingLoaded();
-    void rescanDatarefs();
+    void openAboutWindow();
+    std::shared_ptr<SearchWindow> openSearchWindow();
+    std::shared_ptr<SearchWindow> openSearchWindow(const nlohmann::json & window_params);
 
-    // Callbacks
-    void load_dr_callback();
-    void update_dr_callback();
-    void load_acf_dr_callback();
-    void plugin_changed_check_callback();
-
-    void closeViewerWindow(const ViewerWindow * window);
-
-    void showViewerWindow(bool show_dr, bool show_cr);
-    void showViewerWindow(const nlohmann::json & window_details = {});
-    
-    nlohmann::json getViewerWindowsDetails();
-
-    void updateMenu() { menu.update(); }
-
-    const boost::filesystem::path getPrefsPath() const { return prefs_path; }
-public:
-    void handleMessage(intptr_t inMessage, void * inParam);
+    nlohmann::json dumpSearchWindow(const std::shared_ptr<SearchWindow> & search_window) const;
 };
-
-extern std::optional<PluginData> plugin_data;
-void reloadAircraft();
