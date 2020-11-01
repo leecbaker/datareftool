@@ -8,7 +8,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
       with:
-        submodule: recursive
+        submodules: recursive
     - name: Developer certificate
       env:
         CERTIFICATE: ${{ secrets.APPLE_SIGNING_CERTIFICATE }}
@@ -57,7 +57,7 @@ jobs:
         ./b2 install --prefix=${BOOST_DIR}
     - uses: actions/checkout@v1
       with:
-        submodule: recursive
+        submodules: recursive
     - name: CMake
       run: |
         mkdir -p build
@@ -85,7 +85,7 @@ jobs:
       run: vcpkg install boost-regex:x64-windows-static boost-system:x64-windows-static boost-iostreams:x64-windows-static boost-filesystem:x64-windows-static boost-functional:x64-windows-static boost-algorithm:x64-windows-static
     - uses: actions/checkout@v1
       with:
-        submodule: recursive
+        submodules: recursive
     - name: Prebuild
       run: mkdir -p build
     - name: CMake
