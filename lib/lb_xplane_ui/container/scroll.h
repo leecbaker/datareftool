@@ -2,6 +2,8 @@
 
 #include "container.h"
 
+#include <algorithm>
+
 class VerticalScrollBar;
 
 // Simple scrollview. Has a scrollbar, and scrolls content inside if the size of the content is greater than the

@@ -2,6 +2,8 @@
 
 #include "geometry.h"
 
+#include <algorithm>
+
 #include "XPLMDisplay.h"
 
 ///
