@@ -15,6 +15,7 @@
 #include "XPLMPlugin.h"
 
 #include <boost/functional/hash.hpp>
+#include <boost/filesystem/operations.hpp>
 
 using namespace std::string_literals;
 
