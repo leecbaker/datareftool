@@ -51,9 +51,9 @@ jobs:
     - name: Install boost
       run: |
         export BOOST_DIR=~/boost_install
-        wget -nv http://downloads.sourceforge.net/project/boost/boost/1.68.0/boost_1_68_0.tar.bz2
-        tar --bzip2 -xf boost_1_68_0.tar.bz2
-        cd boost_1_68_0/
+        wget -nv https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
+        tar --bzip2 -xf boost_1_74_0.tar.bz2
+        cd boost_1_74_0/
         ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system,regex --prefix=${BOOST_DIR}
         ./b2 link=static threading=multi runtime-link=shared cxxflags=-fPIC
         ./b2 install --prefix=${BOOST_DIR}
