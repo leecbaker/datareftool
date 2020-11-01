@@ -22,6 +22,12 @@ jobs:
         cd build && cmake -DCMAKE_BUILD_TYPE=Release ..; cd ..
     - name: Make
       run: make -C build
+    - name: Code signing
+      run: |
+        codesign --sign --verbose=4 --identity "Lee Baker" build/src/plugin/mac.xpl
+        codesign --sign --verbose=4 --identity "Lee Baker" build/src/plugin/datareftool.xpl
+        codesign --display --verbose=4 build/src/plugin/mac.xpl
+        codesign --display --verbose=4 build/src/plugin/datareftool.xpl
     - uses: actions/upload-artifact@master
       with:
         name: drt_mac_xp10
@@ -34,10 +40,6 @@ jobs:
       run: |
         otool -L build/src/plugin/mac.xpl
         otool -L build/src/plugin/datareftool.xpl
-    - name: Code signing info
-      run: |
-        codesign --display --verbose=4 build/src/plugin/mac.xpl
-        codesign --display --verbose=4 build/src/plugin/datareftool.xpl
 
   build-lin:
     runs-on: ubuntu-20.04
