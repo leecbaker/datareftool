@@ -19,3 +19,7 @@ target_include_directories(drt INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # define the minimum X-Plane SDK version that gives us the functions we need for the API
 add_xplane_sdk_definitions(drt 210)
+
+if(UNIX AND NOT APPLE)
+    set_property(TARGET drt PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif()
