@@ -24,8 +24,8 @@ jobs:
       run: make -C build
     - name: Code signing
       run: |
-        codesign --sign --verbose=4 "Lee Baker" build/src/plugin/mac.xpl
-        codesign --sign --verbose=4 "Lee Baker" build/src/plugin/datareftool.xpl
+        codesign --sign "Lee Baker" --verbose=4 build/src/plugin/mac.xpl
+        codesign --sign "Lee Baker" --verbose=4 build/src/plugin/datareftool.xpl
         codesign --display --verbose=4 build/src/plugin/mac.xpl
         codesign --display --verbose=4 build/src/plugin/datareftool.xpl
     - uses: actions/upload-artifact@master
