@@ -74,7 +74,7 @@ struct RectGeneric {
             return std::nullopt;
         }
 
-        return RectGeneric{.left = std::max(left, other.left), .top = std::min(top, other.top), .right = std::min(right, other.right), .bottom = std::max(bottom, other.bottom)};
+        return RectGeneric{std::max(left, other.left), std::min(top, other.top), std::min(right, other.right), std::max(bottom, other.bottom)};
     }
 };
 

@@ -12,6 +12,10 @@ if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -ftemplate-backtrace-limit=0 -ferror-limit=100 -Wold-style-cast")
 endif()
 
+if(WIN32)
+    add_compile_definitions(NOMINMAX)
+endif()
+
 add_subdirectory(lib)
 add_subdirectory(src)
 

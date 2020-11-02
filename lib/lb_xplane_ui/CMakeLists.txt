@@ -9,6 +9,9 @@ target_include_directories(lb_xplane_ui_xp11 INTERFACE ${CMAKE_CURRENT_SOURCE_DI
 if(WIN32)
     TARGET_COMPILE_OPTIONS(lb_xplane_ui_xp10 PRIVATE "/MT$<$<CONFIG:Debug>:d>")
     TARGET_COMPILE_OPTIONS(lb_xplane_ui_xp11 PRIVATE "/MT$<$<CONFIG:Debug>:d>")
+
+    target_link_libraries(lb_xplane_ui_xp10 INTERFACE Opengl32.lib)
+    target_link_libraries(lb_xplane_ui_xp11 INTERFACE Opengl32.lib)
 endif(WIN32)
 
 if(UNIX AND NOT APPLE)

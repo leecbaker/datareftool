@@ -1,8 +1,9 @@
 #pragma once
 
-#include <array>
-
 #include "geometry.h"
+
+#include <array>
+#include <string>
 
 void drawRect(Rectf bounds);
 void drawRoundRect(Rectf bounds);
