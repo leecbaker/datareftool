@@ -121,8 +121,13 @@ jobs:
    runs-on: macOS-latest
    needs: [build-mac, build-lin, build-win]
    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y tree
      - uses: actions/checkout@v2
-     - run: |
+     - name: Create directories
+       run: |
          mkdir -p binaries
          cp LICENSE binaries/
      - uses: actions/download-artifact@master
@@ -149,8 +154,13 @@ jobs:
        with:
          name: drt_win_xp11
          path: binaries/win_x64/
-     - run: |
+     - name: Zip the distribution
+       run: |
          ls -l binaries/
+         tree binaries/
+         mv binaries/lin_x64/datareftool.xpl DataRefTool_`date +%Y_%m_%d`.xpl
+         mv binaries/mac_x64/datareftool.xpl DataRefTool_`date +%Y_%m_%d`.xpl
+         mv binaries/win_x64/datareftool.xpl DataRefTool_`date +%Y_%m_%d`.xpl
          mv binaries/ DataRefTool_`date +%Y_%m_%d`
          zip DataRefTool_build.zip DataRefTool_`date +%Y_%m_%d`/*
      - name: Notarize ZIP
