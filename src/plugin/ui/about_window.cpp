@@ -9,7 +9,14 @@
 AboutWindow::AboutWindow() {
     std::stringstream text;
 
-    text << "DataRefTool\nby Lee Baker\n\nhttps://datareftool.com";
+    text << "DataRefTool\n";
+    text << "by Lee Baker\n";
+    text << "\n";
+    text << "https://datareftool.com\n";
+    text << "\n";
+    text << "Compiled at " << __DATE__ << " " << __TIME__ << "\n";
+    text << "\n";
+    text << "(c) 2014-2020 Lee C. Baker";
 
     std::shared_ptr<Widget11Text> text_widget = std::make_shared<Widget11Text>();
 
