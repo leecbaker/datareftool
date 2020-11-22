@@ -19,7 +19,7 @@ jobs:
     - name: CMake
       run: |
         mkdir -p build
-        cd build && cmake -DCMAKE_BUILD_TYPE=Release -G Ninja..; cd ..
+        cd build && cmake -DCMAKE_BUILD_TYPE=Release -G Ninja ..; cd ..
     - name: Build
       run: ninja -C build
     - name: Code signing
