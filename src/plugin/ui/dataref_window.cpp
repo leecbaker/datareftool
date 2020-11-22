@@ -123,6 +123,8 @@ DatarefWindow::DatarefWindow(DataRefRecord * drr) : drr(drr) {
             setValue();
         });
 
+        edit_field->setContents(drr->getEditString());
+
         std::shared_ptr<Widget11Spacer> edit_spacer = std::make_shared<Widget11Spacer>(Size{20, 1});
 
         set_button = std::make_shared<Widget11Button>();
@@ -147,8 +149,11 @@ DatarefWindow::DatarefWindow(DataRefRecord * drr) : drr(drr) {
     window_container->add(current_value, false, true);
     window_container->add(dr_type, false, true);
     window_container->add(last_change, false, true);
-    window_container->add(std::make_shared<Widget11HorizontalBar>(), false, true);
-    window_container->add(edit_container, false, true);
+
+    if(drr->writable()) {
+        window_container->add(std::make_shared<Widget11HorizontalBar>(), false, true);
+        window_container->add(edit_container, false, true);
+    }
 
     std::string title = drr->getName();
     size_t last_slash = title.rfind("/");
