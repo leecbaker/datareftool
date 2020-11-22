@@ -125,7 +125,9 @@ DRTPlugin::DRTPlugin()
 
     load_dr_flcb.scheduleNextFlightLoop();
     update_dr_flcb.scheduleEveryFlightLoop();
-    plugin_changed_flcb.schedule(1.f, 1.f);
+    if(getAutoReloadPlugins()) {
+        plugin_changed_flcb.schedule(1.f, 1.f);
+    }
 }
 
 void DRTPlugin::loadPrefs() {
@@ -137,6 +139,8 @@ void DRTPlugin::loadPrefs() {
     }
 
     setDebugMode(getDebugMode());
+
+    menu.update();
 }
 
 void DRTPlugin::setDebugMode(bool debug_mode) {
@@ -157,18 +161,22 @@ void DRTPlugin::setDebugMode(bool debug_mode) {
     xplog << "* Change the preferences file at " << prefs_path << "\n";
 }
 
-DRTPlugin::~DRTPlugin() {
+void DRTPlugin::savePrefs() {
     std::vector<nlohmann::json> window_params;
     for(const std::weak_ptr<SearchWindow> & window_ref: search_window_refs) {
         const std::shared_ptr<SearchWindow> window = window_ref.lock();
         window_params.push_back(dumpSearchWindow(window));
     }
 
-    if(savePrefs(prefs_path, window_params)) {
+    if(::savePrefs(prefs_path, window_params)) {
         xplog << "Prefs saved to " << prefs_path << "\n";
     } else {
         xplog << "Failed to save prefs to " << prefs_path << "\n";
     }
+}
+
+DRTPlugin::~DRTPlugin() {
+    savePrefs();
 }
 
 void DRTPlugin::openAboutWindow() {
@@ -296,6 +304,7 @@ void DRTPlugin::reloadAircraft() {
 }
 
 void DRTPlugin::reloadPlugins() {
+    savePrefs();
     XPLMReloadPlugins();
 }
 
@@ -401,4 +410,19 @@ void DRTPlugin::plugin_changed_check_callback() {
 
 void DRTPlugin::rescan() {
     load_dr_flcb.scheduleNextFlightLoop();
+}
+
+void DRTPlugin::toggleImpersonateDRE() {
+    setImpersonateDRE(!getImpersonateDRE());
+    plugin->reloadPlugins();
+}
+
+void DRTPlugin::toggleAutoReloadPlugins() {
+    setAutoReloadPlugins(!getAutoReloadPlugins());
+    savePrefs();
+    if(getAutoReloadPlugins()) {
+        plugin_changed_flcb.schedule(1.f, 1.f);
+    } else {
+        plugin_changed_flcb.unschedule();
+    }
 }

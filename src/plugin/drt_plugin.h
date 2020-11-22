@@ -34,6 +34,7 @@ public:
     ~DRTPlugin();
 
     void loadPrefs();
+    void savePrefs();
     void setDebugMode(bool debug_mode);
 
     void openAboutWindow();
@@ -50,6 +51,9 @@ public:
 
     void rescanDatarefs();
     void aircraftIsBeingLoaded();
+
+    void toggleImpersonateDRE();
+    void toggleAutoReloadPlugins();
 
     void handleMessage(intptr_t inMessage, void * inParam);
 

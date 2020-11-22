@@ -45,4 +45,8 @@ public:
         XPLMScheduleFlightLoop(flight_loop, this_call, 1);
         reschedule_time = next_call;
     }
+
+    void unschedule() {
+        reschedule_time = 0;
+    }
 };
