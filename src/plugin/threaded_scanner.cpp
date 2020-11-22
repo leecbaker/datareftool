@@ -23,11 +23,11 @@ void ThreadedScanner::scanInitial() {
     task_queue.push(ScanTaskMessage{ScanMessageType::SCAN_INITIAL, {}});
 }
 
-void ThreadedScanner::scanAircraft(boost::filesystem::path aircraft_directory) {
+void ThreadedScanner::scanAircraft(lb::filesystem::path aircraft_directory) {
     task_queue.push(ScanTaskMessage{ScanMessageType::SCAN_AIRCRAFT, std::move(aircraft_directory)});
 }
 
-void ThreadedScanner::scanPlugin(boost::filesystem::path plugin_directory) {
+void ThreadedScanner::scanPlugin(lb::filesystem::path plugin_directory) {
     task_queue.push(ScanTaskMessage{ScanMessageType::SCAN_PLUGIN, std::move(plugin_directory)});
 }
 
@@ -39,28 +39,28 @@ void ThreadedScanner::thread_proc() {
             case ScanMessageType::SCAN_INITIAL: {
                 char system_path_c[1000];
                 XPLMGetSystemPath(system_path_c);
-                boost::filesystem::path system_path(system_path_c);
+                lb::filesystem::path system_path(system_path_c);
 
                 { // Blacklist
-                    boost::filesystem::path blacklist_path = system_path / "Resources" / "plugins" / "drt_blacklist.txt";
+                    lb::filesystem::path blacklist_path = system_path / "Resources" / "plugins" / "drt_blacklist.txt";
                     blacklist = loadListFile(xplog_debug, blacklist_path);
                     results_queue.push(ScanResults{ref_src_t::BLACKLIST, blacklist});
                 }
 
                 { // DR file
-                    boost::filesystem::path dr_file = system_path / "Resources" / "plugins" / "DataRefs.txt";
+                    lb::filesystem::path dr_file = system_path / "Resources" / "plugins" / "DataRefs.txt";
                     std::vector<std::string> dr_refs = loadListFile(xplog_debug, dr_file);
                     results_queue.push(ScanResults{ref_src_t::FILE, dr_refs});
                 }
 
                 { // CR file
-                    boost::filesystem::path cr_file = system_path / "Resources" / "plugins" / "Commands.txt";
+                    lb::filesystem::path cr_file = system_path / "Resources" / "plugins" / "Commands.txt";
                     std::vector<std::string> cr_refs = loadListFile(xplog_debug, cr_file);
                     results_queue.push(ScanResults{ref_src_t::FILE, cr_refs});
                 }
 
                 { // FWL
-                    boost::filesystem::path fwl_scripts_dir = system_path / "Resources" / "plugins" / "FlyWithLua" / "Scripts";
+                    lb::filesystem::path fwl_scripts_dir = system_path / "Resources" / "plugins" / "FlyWithLua" / "Scripts";
                     std::vector<std::string> script_refs = scanLuaFolder(xplog_debug, fwl_scripts_dir);
                     results_queue.push(ScanResults{ref_src_t::FILE, script_refs});
                 }

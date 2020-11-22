@@ -15,13 +15,13 @@
 #include "XPLMPlugin.h"
 
 #include <boost/functional/hash.hpp>
-#include <boost/filesystem/operations.hpp>
+#include <filesystem.h>
 
 using namespace std::string_literals;
 
 std::unique_ptr<DRTPlugin> plugin;
 
-boost::filesystem::path getCurrentAircraftPath() {
+lb::filesystem::path getCurrentAircraftPath() {
     char filename[256] = {0};
     char path[512] = {0};
     XPLMGetNthAircraftModel(0, filename, path);
@@ -93,9 +93,9 @@ void DRTPlugin::load_dr_callback() {
         XPLMGetPluginInfo(plugin_id, name, path, signature, description);
 
         //find plugin directory path
-        boost::filesystem::path xpl_path(path);
-        boost::filesystem::path xpl_dir = xpl_path.parent_path();
-        boost::filesystem::path plugin_dir = xpl_dir;
+        lb::filesystem::path xpl_path(path);
+        lb::filesystem::path xpl_dir = xpl_path.parent_path();
+        lb::filesystem::path plugin_dir = xpl_dir;
         std::string parent_dir_name = xpl_dir.filename().string();
         if(parent_dir_name == "64" || parent_dir_name == "mac_x64" || parent_dir_name == "win_x64" || parent_dir_name == "lin_x64") {
             plugin_dir = plugin_dir.parent_path();
@@ -359,15 +359,15 @@ void DRTPlugin::handleMessage(intptr_t inMessage, void * inParam) {
 }
 
 namespace std {
-    template<> struct hash<boost::filesystem::path> {
-        size_t operator()(const boost::filesystem::path& p) const { 
-            return boost::filesystem::hash_value(p); 
+    template<> struct hash<lb::filesystem::path> {
+        size_t operator()(const lb::filesystem::path& p) const { 
+            return lb::filesystem::hash_value(p); 
         }
     };
 }
 
 
-typedef std::unordered_map<boost::filesystem::path, std::time_t> plugin_last_modified_t;
+typedef std::unordered_map<lb::filesystem::path, lb::filesystem::file_time_type> plugin_last_modified_t;
 plugin_last_modified_t plugin_last_modified;
 
 void DRTPlugin::plugin_changed_check_callback() {
@@ -378,24 +378,24 @@ void DRTPlugin::plugin_changed_check_callback() {
         XPLMPluginID plugin_id = XPLMGetNthPlugin(plugin_ix);
         XPLMGetPluginInfo(plugin_id, nullptr, plugin_path_array, nullptr, nullptr);
 
-        boost::filesystem::path plugin_path(plugin_path_array);
+        lb::filesystem::path plugin_path(plugin_path_array);
         if(xplane_plugin_path == plugin_path) {
             continue;
         }
 
-        std::time_t modification_date;
+        lb::filesystem::file_time_type modification_date;
         try {
-            // We can't use boost::filesystem::canonical because it will make the path invalid. It doesn't seem to work properly
+            // We can't use lb::filesystem::canonical because it will make the path invalid. It doesn't seem to work properly
             // with windows paths.
             plugin_path = plugin_path.make_preferred();
-            modification_date = boost::filesystem::last_write_time(plugin_path);
-        } catch (boost::filesystem::filesystem_error & ec) {
+            modification_date = lb::filesystem::last_write_time(plugin_path);
+        } catch (lb::filesystem::filesystem_error & ec) {
             xplog << "Error reading modification date. Msg: " << ec.what() << " file:" << plugin_path << "\n";
             continue;
         }
         plugin_last_modified_t::iterator plugin_entry_it = plugin_last_modified.find(plugin_path);
         if(plugin_last_modified.end() == plugin_entry_it) {	// First sighting of this plugin; 
-            plugin_last_modified.insert(std::make_pair<boost::filesystem::path, std::time_t>(std::move(plugin_path), std::move(modification_date)));
+            plugin_last_modified.insert(std::make_pair<lb::filesystem::path, lb::filesystem::file_time_type>(std::move(plugin_path), std::move(modification_date)));
         } else {
             if(plugin_entry_it->second != modification_date) {
                 plugin_entry_it->second = modification_date;

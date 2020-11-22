@@ -9,7 +9,7 @@
 #include <string>
 #include <unordered_set>
 
-#include <boost/filesystem/path.hpp>
+#include <filesystem.h>
 
 #include "dataref.h"
 #include "commandref.h"
@@ -65,7 +65,7 @@ public:
     }
 
     void update();
-    void saveToFile(const boost::filesystem::path & dataref_filename, const boost::filesystem::path & commandref_filename) const;
+    void saveToFile(const lb::filesystem::path & dataref_filename, const lb::filesystem::path & commandref_filename) const;
 
     const RecordPointerType & getAllCommandrefs() const { return cr_pointers; }
     const RecordPointerType & getAllDatarefs() const { return dr_pointers; }

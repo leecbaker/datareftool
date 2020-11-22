@@ -1,7 +1,7 @@
 #include <optional>
 #include <thread>
 
-#include <boost/filesystem/path.hpp>
+#include <filesystem.h>
 
 #include "search/ref.h"
 #include "synchronized_queue.h"
@@ -22,7 +22,7 @@ class ThreadedScanner {
 
     struct ScanTaskMessage {
         ScanMessageType type;
-        boost::filesystem::path path;
+        lb::filesystem::path path;
     };
 
     std::thread worker_thread;
@@ -43,6 +43,6 @@ public:
     std::optional<ScanResults> getResults() { return results_queue.get(); }
 
     void scanInitial();
-    void scanAircraft(boost::filesystem::path aircraft_directory);
-    void scanPlugin(boost::filesystem::path plugin_directory);
+    void scanAircraft(lb::filesystem::path aircraft_directory);
+    void scanPlugin(lb::filesystem::path plugin_directory);
 };

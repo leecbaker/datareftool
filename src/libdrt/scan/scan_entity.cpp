@@ -11,27 +11,27 @@
 #include <string>
 #include <unordered_set>
 
-#include <boost/filesystem.hpp>
+#include <filesystem.h>
 #include <boost/algorithm/string.hpp>
 
 using namespace std::string_literals;
 
 
-std::vector<std::string> scanAircraft(std::ostream & log, const boost::filesystem::path & acf_path) {
-	boost::filesystem::path aircraft_dir = boost::filesystem::path(acf_path).parent_path();
+std::vector<std::string> scanAircraft(std::ostream & log, const lb::filesystem::path & acf_path) {
+	lb::filesystem::path aircraft_dir = lb::filesystem::path(acf_path).parent_path();
 
 	std::vector<std::string> all_refs;
 
 	// list file
-	boost::filesystem::path list_file_path = aircraft_dir / "dataref.txt";
-	if(boost::filesystem::exists(list_file_path)) {
+	lb::filesystem::path list_file_path = aircraft_dir / "dataref.txt";
+	if(lb::filesystem::exists(list_file_path)) {
 		std::vector<std::string> refs = loadListFile(log, list_file_path);
 		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 	}
 
 	//cdataref.txt
-	boost::filesystem::path cdataref_path = aircraft_dir / "cdataref.txt";
-	if(boost::filesystem::exists(cdataref_path) && boost::filesystem::is_regular_file(cdataref_path)) {
+	lb::filesystem::path cdataref_path = aircraft_dir / "cdataref.txt";
+	if(lb::filesystem::exists(cdataref_path) && lb::filesystem::is_regular_file(cdataref_path)) {
 		std::ifstream inFile(cdataref_path.string());
 
         std::stringstream file_contents_ss;
@@ -53,21 +53,21 @@ std::vector<std::string> scanAircraft(std::ostream & log, const boost::filesyste
 	}
 
 	//plugins
-	boost::filesystem::path plugin_dir_path = aircraft_dir / "plugins";
+	lb::filesystem::path plugin_dir_path = aircraft_dir / "plugins";
 
 	//for each directory inside plugin path
-	if(boost::filesystem::exists(plugin_dir_path)) {
+	if(lb::filesystem::exists(plugin_dir_path)) {
 		std::vector<std::string> refs = scanPluginFolder(log, plugin_dir_path);
 		all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 	}
 
 	//object files in aircraft directory
-	std::vector<boost::filesystem::path> paths;
-	boost::filesystem::directory_iterator dir_end_it;
-	for(boost::filesystem::directory_iterator dir_it(aircraft_dir); dir_it != dir_end_it; dir_it++) {
-		boost::filesystem::path file_path = dir_it->path();
+	std::vector<lb::filesystem::path> paths;
+	lb::filesystem::directory_iterator dir_end_it;
+	for(lb::filesystem::directory_iterator dir_it(aircraft_dir); dir_it != dir_end_it; dir_it++) {
+		lb::filesystem::path file_path = dir_it->path();
 
-		if(boost::filesystem::is_regular_file(file_path)) {
+		if(lb::filesystem::is_regular_file(file_path)) {
 			if(".obj" == file_path.extension() || ".acf" == file_path.extension()) {
 				paths.push_back(file_path);
 			}
@@ -76,24 +76,24 @@ std::vector<std::string> scanAircraft(std::ostream & log, const boost::filesyste
     
     paths.push_back(aircraft_dir / "Custom Avionics");  // apparently SASL / LUA code is often in this directory
     paths.push_back(aircraft_dir / "objects");
-    boost::filesystem::path xlua_scripts_dir = aircraft_dir / "plugins" / "xlua" / "scripts"; // find xlua LUA scripts from X-Plane 11.00+
-    if(boost::filesystem::exists(xlua_scripts_dir)) {
+    lb::filesystem::path xlua_scripts_dir = aircraft_dir / "plugins" / "xlua" / "scripts"; // find xlua LUA scripts from X-Plane 11.00+
+    if(lb::filesystem::exists(xlua_scripts_dir)) {
 	    paths.push_back(xlua_scripts_dir);
     }
 
     std::unordered_set<std::string> extensions_to_scan = {".obj", ".acf", ".lua"};
 	while(false == paths.empty()) {
-		boost::filesystem::path path = paths.back();
+		lb::filesystem::path path = paths.back();
 		paths.pop_back();
 
-		if(boost::filesystem::is_directory(path)) {
+		if(lb::filesystem::is_directory(path)) {
 			//iterate over directory, pushing back
-			for(boost::filesystem::directory_iterator dir_it(path); dir_it != dir_end_it; dir_it++) {
+			for(lb::filesystem::directory_iterator dir_it(path); dir_it != dir_end_it; dir_it++) {
 				paths.push_back(dir_it->path());
 			}
 		}
 
-		if(boost::filesystem::is_regular_file(path)) {
+		if(lb::filesystem::is_regular_file(path)) {
             std::string extension = path.extension().string();
             boost::algorithm::to_lower(extension);
             
@@ -109,10 +109,10 @@ std::vector<std::string> scanAircraft(std::ostream & log, const boost::filesyste
 	return all_refs;
 }
 
-std::vector<std::string> scanLuaFolder(std::ostream & log, const boost::filesystem::path & lua_dir_path) {
+std::vector<std::string> scanLuaFolder(std::ostream & log, const lb::filesystem::path & lua_dir_path) {
 	std::vector<std::string> lua_folder_datarefs;
-	if(boost::filesystem::is_directory(lua_dir_path)) { // if this is true, it also exists
-		for(auto& file_de : boost::make_iterator_range(boost::filesystem::directory_iterator(lua_dir_path), {})) {
+	if(lb::filesystem::is_directory(lua_dir_path)) { // if this is true, it also exists
+		for(auto& file_de : boost::make_iterator_range(lb::filesystem::directory_iterator(lua_dir_path), {})) {
 			if(file_de.path().extension() == ".lua") {
 				std::vector<std::string> this_script_datarefs = scanFileForDatarefStrings(log, file_de.path());
 				lua_folder_datarefs.insert(lua_folder_datarefs.cend(), this_script_datarefs.begin(), this_script_datarefs.end());
@@ -123,15 +123,15 @@ std::vector<std::string> scanLuaFolder(std::ostream & log, const boost::filesyst
 	return lua_folder_datarefs;
 }
 
-std::vector<std::string> scanPluginFolder(std::ostream & log, const boost::filesystem::path & plugin_dir_path) {
+std::vector<std::string> scanPluginFolder(std::ostream & log, const lb::filesystem::path & plugin_dir_path) {
 	// make a list of all XPL files in the plugin folder
-	using recursive_directory_iterator = boost::filesystem::recursive_directory_iterator;
+	using recursive_directory_iterator = lb::filesystem::recursive_directory_iterator;
 
-	std::vector<boost::filesystem::path> xpl_paths;
+	std::vector<lb::filesystem::path> xpl_paths;
 	std::vector<std::string> all_refs;
-	for (const boost::filesystem::directory_entry & dir_entry : recursive_directory_iterator(plugin_dir_path)) {
-		boost::filesystem::path path(dir_entry);
-		if(boost::filesystem::is_regular_file(path) && ".xpl"s == path.extension()) {
+	for (const lb::filesystem::directory_entry & dir_entry : recursive_directory_iterator(plugin_dir_path)) {
+		lb::filesystem::path path(dir_entry);
+		if(lb::filesystem::is_regular_file(path) && ".xpl"s == path.extension()) {
 			std::vector<std::string> refs = scanFileForDatarefStrings(log, path);
 			all_refs.insert(all_refs.begin(), refs.begin(), refs.end());
 		}
@@ -142,7 +142,7 @@ std::vector<std::string> scanPluginFolder(std::ostream & log, const boost::files
 	return all_refs;
 }
 
-std::vector<std::string> scanPluginXPL(std::ostream & log, const boost::filesystem::path & plugin_xpl_path) {
+std::vector<std::string> scanPluginXPL(std::ostream & log, const lb::filesystem::path & plugin_xpl_path) {
 	std::vector<std::string> refs = scanFileForDatarefStrings(log, plugin_xpl_path);
 
 	deduplicate_vector(refs);

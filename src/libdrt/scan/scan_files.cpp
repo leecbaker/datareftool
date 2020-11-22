@@ -5,9 +5,10 @@
 #include <fstream>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/iostreams/device/mapped_file.hpp>
 
-std::vector<std::string> loadListFile(std::ostream & log, const boost::filesystem::path & filename) {
+#include "mio.hpp"
+
+std::vector<std::string> loadListFile(std::ostream & log, const lb::filesystem::path & filename) {
     log << "Loading datarefs from path " << filename << "\n";
     
     std::ifstream dr_file(filename.string());
@@ -46,20 +47,18 @@ inline char isValidDatarefChar(char c) {
 
 const size_t min_dataref_length = 8;
 
-std::vector<std::string> scanFileForDatarefStrings(std::ostream & log, const boost::filesystem::path & filename) {
-    boost::iostreams::mapped_file_source file;
-    
-    try {
-        file.open(filename);
-    } catch(std::exception &) {
+std::vector<std::string> scanFileForDatarefStrings(std::ostream & log, const lb::filesystem::path & filename) {
+    std::error_code ec;
+    mio::mmap_source mmap_file = mio::make_mmap_source(filename.string(), ec);
+    if(ec) {
 		return {};
     }
 
 	std::vector<std::string> all_refs;
 	size_t start_pos = 0;
-	const char * file_data = file.data();
+	const char * file_data = mmap_file.data();
 	bool last_char_valid = false;
-    for(size_t i = 0; i < file.size(); i++) {
+    for(size_t i = 0; i < mmap_file.size(); i++) {
     	if(isValidDatarefChar(file_data[i])) {
     		if(false == last_char_valid) {
     			start_pos = i;

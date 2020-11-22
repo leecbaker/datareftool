@@ -4,6 +4,7 @@ add_subdirectory(json EXCLUDE_FROM_ALL)
 add_subdirectory(xplane_sdk)
 
 add_subdirectory(glew)
+add_subdirectory(mio)
 
 add_subdirectory(lb_common)
 
