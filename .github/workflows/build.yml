@@ -19,7 +19,7 @@ jobs:
     - name: CMake
       run: |
         mkdir -p build
-        cd build && cmake -DCMAKE_BUILD_TYPE=Release ..; cd ..
+        cd build && cmake -DCMAKE_BUILD_TYPE=Release -G Ninja..; cd ..
     - name: Build
       run: ninja -C build
     - name: Code signing
@@ -63,7 +63,7 @@ jobs:
     - name: CMake
       run: |
         mkdir -p build
-        cd build && cmake -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=~/boost_install -DBOOST_INCLUDEDIR=~/boost_install/include ..; cd ..
+        cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=~/boost_install -DBOOST_INCLUDEDIR=~/boost_install/include ..; cd ..
     - name: Build
       run: ninja -C build
     - uses: actions/upload-artifact@master
