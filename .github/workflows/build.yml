@@ -95,7 +95,7 @@ jobs:
       shell: cmd
       run: cmake -G "Visual Studio 16 2019" -DVCPKG_TARGET_TRIPLET=x64-windows-static -A x64 -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake ..
     - name: Setup MSBuild.exe
-      uses: warrenbuckley/Setup-MSBuild@v1
+      uses: microsoft/setup-msbuild@v1.0.2
 
     - name: MSBuild
       working-directory: build
