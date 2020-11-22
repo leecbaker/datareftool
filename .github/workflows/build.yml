@@ -159,7 +159,7 @@ jobs:
           mv binaries/mac_x64/datareftool.xpl DataRefTool_`date +%Y_%m_%d`.xpl
           mv binaries/win_x64/datareftool.xpl DataRefTool_`date +%Y_%m_%d`.xpl
           mv binaries/ DataRefTool_`date +%Y_%m_%d`
-          zip DataRefTool_build.zip DataRefTool_`date +%Y_%m_%d`/*
+          zip -r DataRefTool_build.zip DataRefTool_`date +%Y_%m_%d`/*
       - name: Notarize ZIP
         run: xcrun altool --notarize-app --primary-bundle-id "com.leecbaker.datareftool.zip" --username "lee@leecbaker.com" --password "${{ secrets. APP_STORE_CONNECT_PASSWORD }}" --file DataRefTool_build.zip
       - uses: actions/upload-artifact@master
