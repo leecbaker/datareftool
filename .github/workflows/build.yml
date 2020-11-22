@@ -4,168 +4,165 @@ on: [push]
 
 jobs:
   build-mac:
-    runs-on: macOS-latest
+    runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-    - name: Developer certificate
-      env:
-        CERTIFICATE: ${{ secrets.APPLE_SIGNING_CERTIFICATE }}
-        CERTIFICATE_PASSWORD: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
-      run: ./scripts/make_keychain.sh
-    - name: Install boost
-      run: brew install boost ninja
-    - name: CMake
-      run: |
-        mkdir -p build
-        cd build && cmake -DCMAKE_BUILD_TYPE=Release -G Ninja ..; cd ..
-    - name: Build
-      run: ninja -C build
-    - name: Code signing
-      run: |
-        codesign --sign "Lee Baker" --verbose=4 build/src/plugin/mac.xpl
-        codesign --sign "Lee Baker" --verbose=4 build/src/plugin/datareftool.xpl
-        codesign --display --verbose=4 build/src/plugin/mac.xpl
-        codesign --display --verbose=4 build/src/plugin/datareftool.xpl
-    - uses: actions/upload-artifact@master
-      with:
-        name: drt_mac_xp10
-        path: build/src/plugin/mac.xpl
-    - uses: actions/upload-artifact@master
-      with:
-        name: drt_mac_xp11
-        path: build/src/plugin/datareftool.xpl
-    - name: Dependencies
-      run: |
-        otool -L build/src/plugin/mac.xpl
-        otool -L build/src/plugin/datareftool.xpl
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Developer certificate
+        env:
+          CERTIFICATE: ${{ secrets.APPLE_SIGNING_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_SIGNING_CERTIFICATE_PASSWORD }}
+        run: ./scripts/make_keychain.sh
+      - name: Install boost
+        run: brew install boost ninja
+      - name: CMake
+        run: |
+          mkdir -p build
+          cd build && cmake -DCMAKE_BUILD_TYPE=Release -G Ninja ..; cd ..
+      - name: Build
+        run: ninja -C build
+      - name: Code signing
+        run: |
+          codesign --sign "Lee Baker" --verbose=4 build/src/plugin/mac.xpl
+          codesign --sign "Lee Baker" --verbose=4 build/src/plugin/datareftool.xpl
+          codesign --display --verbose=4 build/src/plugin/mac.xpl
+          codesign --display --verbose=4 build/src/plugin/datareftool.xpl
+      - uses: actions/upload-artifact@master
+        with:
+          name: drt_mac_xp10
+          path: build/src/plugin/mac.xpl
+      - uses: actions/upload-artifact@master
+        with:
+          name: drt_mac_xp11
+          path: build/src/plugin/datareftool.xpl
+      - name: Dependencies
+        run: |
+          otool -L build/src/plugin/mac.xpl
+          otool -L build/src/plugin/datareftool.xpl
 
   build-lin:
     runs-on: ubuntu-20.04
     steps:
-    - name: Install dependencies
-      run: |
-        sudo apt-get update -qq
-        sudo apt-get install -y cmake libx11-dev libbz2-dev libglu1-mesa-dev g++-10 ninja-build
-    - name: Install boost
-      run: |
-        export BOOST_DIR=~/boost_install
-        wget -nv https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
-        tar --bzip2 -xf boost_1_74_0.tar.bz2
-        cd boost_1_74_0/
-        ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system,regex --prefix=${BOOST_DIR}
-        ./b2 link=static threading=multi runtime-link=shared cxxflags=-fPIC
-        ./b2 install --prefix=${BOOST_DIR}
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-    - name: CMake
-      run: |
-        mkdir -p build
-        cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=~/boost_install -DBOOST_INCLUDEDIR=~/boost_install/include ..; cd ..
-    - name: Build
-      run: ninja -C build
-    - uses: actions/upload-artifact@master
-      with:
-        name: drt_lin_xp10
-        path: build/src/plugin/lin.xpl
-    - uses: actions/upload-artifact@master
-      with:
-        name: drt_lin_xp11
-        path: build/src/plugin/datareftool.xpl
-    - name: Dependencies
-      run: |
-        ldd build/src/plugin/lin.xpl
-        ldd build/src/plugin/datareftool.xpl
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y cmake libx11-dev libbz2-dev libglu1-mesa-dev g++-10 ninja-build
+      - name: Install boost
+        run: |
+          export BOOST_DIR=~/boost_install
+          wget -nv https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
+          tar --bzip2 -xf boost_1_74_0.tar.bz2
+          cd boost_1_74_0/
+          ./bootstrap.sh ${BOOST_BOOTSTRAP_FLAGS} --with-libraries=iostreams,filesystem,system,regex --prefix=${BOOST_DIR}
+          ./b2 link=static threading=multi runtime-link=shared cxxflags=-fPIC
+          ./b2 install --prefix=${BOOST_DIR}
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: CMake
+        run: |
+          mkdir -p build
+          cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DBOOST_ROOT=~/boost_install -DBOOST_INCLUDEDIR=~/boost_install/include ..; cd ..
+      - name: Build
+        run: ninja -C build
+      - uses: actions/upload-artifact@master
+        with:
+          name: drt_lin_xp10
+          path: build/src/plugin/lin.xpl
+      - uses: actions/upload-artifact@master
+        with:
+          name: drt_lin_xp11
+          path: build/src/plugin/datareftool.xpl
+      - name: Dependencies
+        run: |
+          ldd build/src/plugin/lin.xpl
+          ldd build/src/plugin/datareftool.xpl
 
   build-win:
     runs-on: windows-latest
     steps:
-      
-    - name: Install static boost
-      run: vcpkg install boost-regex:x64-windows-static boost-system:x64-windows-static boost-iostreams:x64-windows-static boost-filesystem:x64-windows-static boost-functional:x64-windows-static boost-algorithm:x64-windows-static libpng:x64-windows-static
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-    - name: Prebuild
-      run: mkdir -p build
-    - name: CMake
-      working-directory: build
-      shell: cmd
-      run: cmake -G "Visual Studio 16 2019" -DVCPKG_TARGET_TRIPLET=x64-windows-static -A x64 -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake ..
-    - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v1.0.2
+      - name: Install static boost
+        run: vcpkg install boost-regex:x64-windows-static boost-system:x64-windows-static boost-iostreams:x64-windows-static boost-filesystem:x64-windows-static boost-functional:x64-windows-static boost-algorithm:x64-windows-static libpng:x64-windows-static
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Prebuild
+        run: mkdir -p build
+      - name: CMake
+        working-directory: build
+        shell: cmd
+        run: cmake -G "Visual Studio 16 2019" -DVCPKG_TARGET_TRIPLET=x64-windows-static -A x64 -DCMAKE_TOOLCHAIN_FILE=c:/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v1.0.2
 
-    - name: MSBuild
-      working-directory: build
-      shell: cmd
-      run: msbuild /p:Configuration=Release ALL_BUILD.vcxproj
-      
-    - uses: actions/upload-artifact@master
-      with:
-        name: drt_win_xp10
-        path: build/src/plugin/Release/win.xpl
-    - uses: actions/upload-artifact@master
-      with:
-        name: drt_win_xp11
-        path: build/src/plugin/Release/datareftool.xpl
-    - name: Dependencies
-      shell: cmd
-      run: |
-        call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        dumpbin.exe /dependents build/src/plugin/Release/win.xpl
-        dumpbin.exe /dependents build/src/plugin/Release/datareftool.xpl
-        
+      - name: MSBuild
+        working-directory: build
+        shell: cmd
+        run: msbuild /p:Configuration=Release ALL_BUILD.vcxproj
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: drt_win_xp10
+          path: build/src/plugin/Release/win.xpl
+      - uses: actions/upload-artifact@master
+        with:
+          name: drt_win_xp11
+          path: build/src/plugin/Release/datareftool.xpl
+      - name: Dependencies
+        shell: cmd
+        run: |
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          dumpbin.exe /dependents build/src/plugin/Release/win.xpl
+          dumpbin.exe /dependents build/src/plugin/Release/datareftool.xpl
+
   build-zip:
-   runs-on: macOS-latest
-   needs: [build-mac, build-lin, build-win]
-   steps:
-    - name: Install dependencies
-      run: |
-        sudo apt-get update -qq
-        sudo apt-get install -y tree
-     - uses: actions/checkout@v2
-     - name: Create directories
-       run: |
-         mkdir -p binaries
-         cp LICENSE binaries/
-     - uses: actions/download-artifact@master
-       with:
-         name: drt_lin_xp10
-         path: binaries/64/
-     - uses: actions/download-artifact@master
-       with:
-         name: drt_lin_xp11
-         path: binaries/lin_x64/
-     - uses: actions/download-artifact@master
-       with:
-         name: drt_mac_xp10
-         path: binaries/64/
-     - uses: actions/download-artifact@master
-       with:
-         name: drt_mac_xp11
-         path: binaries/mac_x64/
-     - uses: actions/download-artifact@master
-       with:
-         name: drt_win_xp10
-         path: binaries/64/
-     - uses: actions/download-artifact@master
-       with:
-         name: drt_win_xp11
-         path: binaries/win_x64/
-     - name: Zip the distribution
-       run: |
-         ls -l binaries/
-         tree binaries/
-         mv binaries/lin_x64/datareftool.xpl DataRefTool_`date +%Y_%m_%d`.xpl
-         mv binaries/mac_x64/datareftool.xpl DataRefTool_`date +%Y_%m_%d`.xpl
-         mv binaries/win_x64/datareftool.xpl DataRefTool_`date +%Y_%m_%d`.xpl
-         mv binaries/ DataRefTool_`date +%Y_%m_%d`
-         zip DataRefTool_build.zip DataRefTool_`date +%Y_%m_%d`/*
-     - name: Notarize ZIP
-       run: xcrun altool --notarize-app --primary-bundle-id "com.leecbaker.datareftool.zip" --username "lee@leecbaker.com" --password "${{ secrets. APP_STORE_CONNECT_PASSWORD }}" --file DataRefTool_build.zip
-     - uses: actions/upload-artifact@master
-       with:
-         name: datareftool_build
-         path: DataRefTool_build.zip
+    runs-on: macos-latest
+    needs: [build-mac, build-lin, build-win]
+    steps:
+      - name: Install dependencies
+        run: brew install tree
+      - uses: actions/checkout@v2
+      - name: Create directories
+        run: |
+          mkdir -p binaries
+          cp LICENSE binaries/
+      - uses: actions/download-artifact@master
+        with:
+          name: drt_lin_xp10
+          path: binaries/64/
+      - uses: actions/download-artifact@master
+        with:
+          name: drt_lin_xp11
+          path: binaries/lin_x64/
+      - uses: actions/download-artifact@master
+        with:
+          name: drt_mac_xp10
+          path: binaries/64/
+      - uses: actions/download-artifact@master
+        with:
+          name: drt_mac_xp11
+          path: binaries/mac_x64/
+      - uses: actions/download-artifact@master
+        with:
+          name: drt_win_xp10
+          path: binaries/64/
+      - uses: actions/download-artifact@master
+        with:
+          name: drt_win_xp11
+          path: binaries/win_x64/
+      - name: Zip the distribution
+        run: |
+          ls -l binaries/
+          tree binaries/
+          mv binaries/lin_x64/datareftool.xpl DataRefTool_`date +%Y_%m_%d`.xpl
+          mv binaries/mac_x64/datareftool.xpl DataRefTool_`date +%Y_%m_%d`.xpl
+          mv binaries/win_x64/datareftool.xpl DataRefTool_`date +%Y_%m_%d`.xpl
+          mv binaries/ DataRefTool_`date +%Y_%m_%d`
+          zip DataRefTool_build.zip DataRefTool_`date +%Y_%m_%d`/*
+      - name: Notarize ZIP
+        run: xcrun altool --notarize-app --primary-bundle-id "com.leecbaker.datareftool.zip" --username "lee@leecbaker.com" --password "${{ secrets. APP_STORE_CONNECT_PASSWORD }}" --file DataRefTool_build.zip
+      - uses: actions/upload-artifact@master
+        with:
+          name: datareftool_build
+          path: DataRefTool_build.zip
