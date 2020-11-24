@@ -7,7 +7,7 @@ struct Point {
     int x, y;
 
     [[nodiscard]] Point translated(int x_offset, int y_offset) const {
-        Point ret;
+        Point ret{x, y};
         ret.x += x_offset;
         ret.y += y_offset;
         return ret;
