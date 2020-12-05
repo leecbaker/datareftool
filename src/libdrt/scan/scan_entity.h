@@ -15,6 +15,8 @@ std::vector<std::string> scanAircraft(std::ostream & log, const lb::filesystem::
 std::vector<std::string> scanPluginFolder(std::ostream & log, const lb::filesystem::path & plugin_dir_path);
 std::vector<std::string> scanPluginXPL(std::ostream & log, const lb::filesystem::path & plugin_xpl_path);
 
+std::vector<std::string> scanXplaneBinary(std::ostream & log, const lb::filesystem::path & xplane_binary_path);
+
 // Scan only the lua files in a directory
 std::vector<std::string> scanLuaFolder(std::ostream & log, const lb::filesystem::path & lua_dir_path);
 

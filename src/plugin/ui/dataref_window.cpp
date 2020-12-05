@@ -110,7 +110,9 @@ DatarefWindow::DatarefWindow(DataRefRecord * drr) : drr(drr) {
     std::shared_ptr<Widget11Text> dr_type = std::make_shared<Widget11Text>();
 
     std::stringstream type_ss;
-    type_ss << "Type: " << getType(drr) << "\nWriteable: " << (drr->writable() ? "yes" : "no");
+    type_ss << "Type: " << getType(drr) << "\n";
+    type_ss << "Writeable: " << (drr->writable() ? "yes" : "no") << "\n";
+    type_ss << "Found in: " << drr->getSource();
     dr_type->setText(type_ss.str());
 
     std::shared_ptr<SingleAxisLayoutContainer> edit_container;

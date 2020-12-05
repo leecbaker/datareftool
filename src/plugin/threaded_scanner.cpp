@@ -47,6 +47,22 @@ void ThreadedScanner::thread_proc() {
                     results_queue.push(ScanResults{ref_src_t::BLACKLIST, blacklist});
                 }
 
+                { // Scan X-Plane binary
+#if __APPLE__
+                    lb::filesystem::path xplane_binary = system_path / "X-Plane.app" / "Contents" / "MacOS" / "X-Plane";
+#elif _WIN32
+                    lb::filesystem::path xplane_binary = system_path / "X-Plane.exe";
+#else
+                    lb::filesystem::path xplane_binary = system_path / "X-Plane";
+#endif
+                    if(lb::filesystem::exists(xplane_binary)) {
+                        std::vector<std::string> xplane_refs = scanXplaneBinary(xplog_debug, xplane_binary);
+                        results_queue.push(ScanResults{ref_src_t::X_PLANE, xplane_refs});
+                    } else {
+                        xplog_debug << "Expected to find X-Plane binary at " << xplane_binary << ", but no file was found at that location.";
+                    }
+                }
+
                 { // DR file
                     lb::filesystem::path dr_file = system_path / "Resources" / "plugins" / "DataRefs.txt";
                     std::vector<std::string> dr_refs = loadListFile(xplog_debug, dr_file);

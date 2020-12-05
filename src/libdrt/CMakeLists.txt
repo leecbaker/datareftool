@@ -1,6 +1,6 @@
 SET(LIB_SCAN_SRC scan/scan_entity.cpp scan/scan_files.cpp)
 SET(LIB_SCAN_HDR scan/scan_entity.h scan/scan_files.h)
-SET(LIB_SEARCH_SRC search/allrefs.cpp search/commandref.cpp search/dataref.cpp search/search.cpp)
+SET(LIB_SEARCH_SRC search/allrefs.cpp search/commandref.cpp search/dataref.cpp search/ref.cpp search/search.cpp)
 SET(LIB_SEARCH_HDR search/allrefs.h search/commandref.h search/dataref.h search/ref.h search/search.h)
 SET(LIB_UTIL_SRC util/string_util.cpp)
 SET(LIB_UTIL_HDR util/visit_backport.h util/string_util.h)

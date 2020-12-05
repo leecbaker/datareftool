@@ -1,15 +1,19 @@
 #pragma once
 
 #include <chrono>
+#include <ostream>
 #include <string>
 
 enum class ref_src_t {
-    FILE,
     AIRCRAFT,
+    BLACKLIST,
+    FILE,
     PLUGIN,
     USER_MSG,
-    BLACKLIST,
+    X_PLANE,
 };
+
+std::ostream & operator<<(std::ostream & o, const ref_src_t source);
 
 /// Superclass defining some common interface items for dataref and commandref.
 

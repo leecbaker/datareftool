@@ -150,3 +150,10 @@ std::vector<std::string> scanPluginXPL(std::ostream & log, const lb::filesystem:
 	return refs;
 }
 
+std::vector<std::string> scanXplaneBinary(std::ostream & log, const lb::filesystem::path & xplane_binary_path) {
+	std::vector<std::string> refs = scanFileForDatarefStrings(log, xplane_binary_path);
+
+	deduplicate_vector(refs);
+
+	return refs;
+}
