@@ -56,7 +56,7 @@ void ThreadedScanner::thread_proc() {
 #elif _WIN32
                     lb::filesystem::path xplane_binary = system_path / "X-Plane.exe";
 #else
-                    lb::filesystem::path xplane_binary = system_path / "X-Plane";
+                    lb::filesystem::path xplane_binary = system_path / "X-Plane-x86_64";
 #endif
                     if(lb::filesystem::exists(xplane_binary)) {
                         std::vector<std::string> xplane_refs = scanXplaneBinary(xplog_debug, xplane_binary);
