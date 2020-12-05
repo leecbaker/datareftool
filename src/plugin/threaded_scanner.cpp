@@ -44,6 +44,9 @@ void ThreadedScanner::thread_proc() {
                 { // Blacklist
                     lb::filesystem::path blacklist_path = system_path / "Resources" / "plugins" / "drt_blacklist.txt";
                     blacklist = loadListFile(xplog_debug, blacklist_path);
+
+                    // Work around bug in X-Plane 11
+                    blacklist.push_back("iphone/flightmodel/ground_status");
                     results_queue.push(ScanResults{ref_src_t::BLACKLIST, blacklist});
                 }
 
