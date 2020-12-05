@@ -1,9 +1,9 @@
 [submodule "lib/lb_common"]
 	path = lib/lb_common
-	url = git@github.com:leecbaker/lb_common.git
+	url = https://github.com/leecbaker/lb_common.git
 [submodule "lib/json"]
 	path = lib/json
 	url = https://github.com/nlohmann/json.git
 [submodule "lib/xplane_sdk"]
 	path = lib/xplane_sdk
-	url = git@github.com:leecbaker/xplane_sdk.git
+	url = https://github.com/leecbaker/xplane_sdk.git
