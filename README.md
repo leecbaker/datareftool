@@ -16,11 +16,7 @@ DRT is a work in progress; code contributions are welcome.
 
 ![Screenshot of data ref tool](doc/datareftool.png)
 
-### License
-
-DRT is available under the MIT license. See the LICENSE file for more details.
-
-### Feature list
+## Feature list
 
 * Read, write, and search for datarefs
 * Search for and execute commands
@@ -34,7 +30,12 @@ DRT is available under the MIT license. See the LICENSE file for more details.
 * Cut/copy/paste/select all in search field and for datarefs (uses standard keyboard shortcuts)
 * Multiple DRT windows viewable at once
 
+## How to install
+
+To install the plugin, download the latest release [on this page](https://github.com/leecbaker/datareftool/releases). Unzip the files, and copy the `DataRefTool_2020_12_06` directory to `X-Plane 11/Resources/plugins/DataRefTool_2020_12_06`.
+
 ## Frequently Asked Questions
+
 ### FAQ: What are the keyboard shortcuts?
 
 Glad you asked!
@@ -42,8 +43,6 @@ Glad you asked!
 * Ctrl-X / &#8984;-X : cut
 * Ctrl-C / &#8984;-C : copy
 * Ctrl-V / &#8984;-V : paste
-* Ctrl-N / &#8984;-N : new window (only works when a text field or search field is selected)
-* Ctrl-W / &#8984;-W : close current window (only works when a text field or search field is selected)
 
 ### FAQ: DRT can't find my dataref
 
@@ -69,8 +68,12 @@ The steps for how to build DRT can be seen in the [Github Actions file](.github/
 
 You can use DRT to display your plugin's custom datarefs. Just send a message of type 0x01000000 with a pointer to the name of the dataref as the payload. There is an example of how to do this in [plugin_custom_dataref.cpp](src/plugin_custom_dataref.cpp). (This is exactly the same method that you use to add a custom dataref to Data Ref Editor.)
 
-### Author
+## License
+
+DRT is available under the MIT license. See the LICENSE file for more details.
+
+## Author
 
 DRT is written by Lee C. Baker. If you benefitted from this plugin, please consider purchasing the [PlaneCommand](https://planecommand.com) voice recognition plugin.
 
-&copy; 2017-2019 Lee C. Baker.
+&copy; 2017-2020 Lee C. Baker.
