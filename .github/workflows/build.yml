@@ -42,16 +42,19 @@ jobs:
           otool -L build/src/plugin/datareftool.xpl
 
   build-lin:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
     steps:
       - name: Install dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y cmake libx11-dev libbz2-dev libglu1-mesa-dev g++-10 ninja-build libboost-all-dev
+          sudo apt-get install -y cmake libx11-dev libbz2-dev libgl-dev libglu1-mesa-dev g++-8 ninja-build libboost-all-dev
       - uses: actions/checkout@v2
         with:
           submodules: recursive
       - name: CMake
+        env:
+          CC: gcc-8
+          CXX: g++-8
         run: |
           mkdir -p build
           cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..; cd ..
