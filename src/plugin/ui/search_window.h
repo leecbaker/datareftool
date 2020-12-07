@@ -47,6 +47,8 @@ protected:
     std::shared_ptr<Widget11Button> filter_change;
     std::shared_ptr<Widget11Button> filter_dataref_command;
 
+    std::shared_ptr<Widget11Button> edit_button;
+
     std::shared_ptr<ResultsList> selection_list;
     std::shared_ptr<ScrollContainer> list_scroll_container;
 
@@ -56,7 +58,7 @@ protected:
     std::shared_ptr<SingleAxisLayoutContainer> window_vertical_container;
 
     void searchTermChangeHandler();
-    void setSelectionAvailable(bool dataref_selected, bool command_selected);
+    void setSelectionAvailable(RefRecord * new_ref_record);
 
     void updateTitle();
 public:

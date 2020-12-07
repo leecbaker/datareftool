@@ -66,11 +66,9 @@ SearchWindow::SearchWindow(RefRecords & refs)
         selection_list->setPaddingBetweenElements(0);
         selection_list->setSelectionChangeAction([this](ResultLine * /* old_selection */, ResultLine * new_selection) {
             if(nullptr == new_selection) {
-                setSelectionAvailable(false, false);
+                setSelectionAvailable(nullptr);
             } else {
-                CommandRefRecord * crr = dynamic_cast<CommandRefRecord*>(new_selection->getRecord());
-                DataRefRecord * drr = dynamic_cast<DataRefRecord*>(new_selection->getRecord());
-                setSelectionAvailable(bool(drr), bool(crr));
+                setSelectionAvailable(new_selection->getRecord());
             }
         });
 
@@ -106,7 +104,7 @@ SearchWindow::SearchWindow(RefRecords & refs)
             }
         });
 
-        std::shared_ptr<Widget11Button> edit_button = std::make_shared<Widget11Button>();
+        edit_button = std::make_shared<Widget11Button>();
         edit_button->setLabel("Edit...");
         edit_button->setMinimumSize({90, 0});
         edit_button->setAction([this](){
@@ -192,17 +190,28 @@ SearchWindow::SearchWindow(RefRecords & refs)
     setTopLevelWidget(window_vertical_container);
 }
 
-void SearchWindow::setSelectionAvailable(bool dataref_selected, bool command_selected) {
-    if(window_vertical_container->widgetCount() == 3) {
+void SearchWindow::setSelectionAvailable(RefRecord * new_ref_record) {
+
+    if(window_vertical_container->widgetCount() == 3) { // remove existing bar
         window_vertical_container->pop_back();
     }
 
-    if(dataref_selected) {
-        window_vertical_container->add(dataref_action_bar, false, true);
-    }
+    if(new_ref_record != nullptr) {
+        CommandRefRecord * crr = dynamic_cast<CommandRefRecord*>(new_ref_record);
+        DataRefRecord * drr = dynamic_cast<DataRefRecord*>(new_ref_record);
 
-    if(command_selected) {
-        window_vertical_container->add(command_action_bar, false, true);
+        if(nullptr != drr) {
+            window_vertical_container->add(dataref_action_bar, false, true);
+            if(drr->writable()) {
+                edit_button->setLabel("Edit...");
+            } else {
+                edit_button->setLabel("View...");
+            }
+        }
+
+        if(nullptr != crr) {
+            window_vertical_container->add(command_action_bar, false, true);
+        }
     }
 }
 
