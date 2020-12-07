@@ -203,6 +203,10 @@ const char * WINDOW_PARAMS_CHANGE_FILTER = "change_filter";
 const char * WINDOW_PARAMS_CHANGE_FILTER_ALL = "all";
 const char * WINDOW_PARAMS_CHANGE_FILTER_ALL_CHANGES = "all_changes";
 const char * WINDOW_PARAMS_CHANGE_FILTER_BIG_CHANGES = "big_changes";
+const char * WINDOW_PARAMS_POSITION_LEFT = "pos_left";
+const char * WINDOW_PARAMS_POSITION_TOP = "pos_top";
+const char * WINDOW_PARAMS_POSITION_RIGHT = "pos_right";
+const char * WINDOW_PARAMS_POSITION_BOTTOM = "pos_bottom";
 
 std::shared_ptr<SearchWindow> DRTPlugin::openSearchWindow(const nlohmann::json & window_params) {
     std::shared_ptr<SearchWindow> new_window = openSearchWindow();
@@ -256,6 +260,20 @@ std::shared_ptr<SearchWindow> DRTPlugin::openSearchWindow(const nlohmann::json &
         new_window->setCommandDatarefFilter(CommandDatarefFilterType::ALL);
     }
 
+    if(window_params.find(WINDOW_PARAMS_POSITION_LEFT) != window_params.end() &&
+        window_params.find(WINDOW_PARAMS_POSITION_TOP) != window_params.end() &&
+        window_params.find(WINDOW_PARAMS_POSITION_RIGHT) != window_params.end() &&
+        window_params.find(WINDOW_PARAMS_POSITION_BOTTOM) != window_params.end()) {
+        Rect bounds{
+            window_params[WINDOW_PARAMS_POSITION_LEFT].get<int>(),
+            window_params[WINDOW_PARAMS_POSITION_TOP].get<int>(),
+            window_params[WINDOW_PARAMS_POSITION_RIGHT].get<int>(),
+            window_params[WINDOW_PARAMS_POSITION_BOTTOM].get<int>(),
+        };
+
+        new_window->setWindowBounds(bounds);
+    }
+
     new_window->updateSearch();
 
 
@@ -269,6 +287,12 @@ nlohmann::json DRTPlugin::dumpSearchWindow(const std::shared_ptr<SearchWindow> &
     window_params[WINDOW_PARAMS_REGEX] = search_window->getUseRegex();
     window_params[WINDOW_PARAMS_CHANGE_FILTER] = search_window->getChangeFilter();
     window_params[WINDOW_PARAMS_CASE_SENSITIVE] = search_window->getIsCaseSensitive();
+
+    const Rect window_position = search_window->getWindowBounds();
+    window_params[WINDOW_PARAMS_POSITION_LEFT] = window_position.left;
+    window_params[WINDOW_PARAMS_POSITION_TOP] = window_position.top;
+    window_params[WINDOW_PARAMS_POSITION_RIGHT] = window_position.right;
+    window_params[WINDOW_PARAMS_POSITION_BOTTOM] = window_position.bottom;
 
     switch(search_window->getCommandDatarefFilter()) {
         case CommandDatarefFilterType::ALL:
