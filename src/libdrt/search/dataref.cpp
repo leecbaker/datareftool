@@ -235,7 +235,7 @@ public:
 
 std::string DataRefRecord::getDisplayString(size_t display_length) const {
     if(isBlacklisted()) {
-        return "blacklisted";
+        return "ignored";
     } else {
         return lb::visit(DatarefDisplayStringifier(display_length), value);
     }

@@ -89,7 +89,7 @@ void sig_handler(int) {
     XPLMDebugString("DataRefTool: Crash detected while reading dataref ");
     XPLMDebugString(current_dr_name);
     XPLMDebugString("\n");
-    XPLMDebugString("Please add this dataref to X-Plane 11/Resources/plugins/drt_blacklist.txt to prevent this happening again.\n");
+    XPLMDebugString("Please add this dataref to X-Plane 11/Resources/plugins/drt_ignore.txt to prevent this happening again.\n");
     exit(-1);
 }
 

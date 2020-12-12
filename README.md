@@ -56,7 +56,7 @@ DRT scans files to find datarefs. This might not work if your dataref is in an e
 
 DRT reads every dataref published by every aircraft and plugin, on every frame of the simulation. Sometimes, they haven't fully been debugged, and may crash. (If you're a developer, the best way to do this is to run X-Plane in a debugger and look at the backtrace of the crash- if you see RefRecords::update() in the backtrace, this is likely what happened.)
 
-If you can figure out which dataref caused the crash, the best way to work around this is to add the name of the dataref to a file called "drt_blacklist.txt" in the Resources/plugins directory. This will cause DRT to never read the value of the dataref, even if it does come up in search results.
+If you can figure out which dataref caused the crash, the best way to work around this is to add the name of the dataref to a file called "drt_ignore.txt" in the Resources/plugins directory. This will cause DRT to never read the value of the dataref, even if it does come up in search results.
 
 ## Development details
 

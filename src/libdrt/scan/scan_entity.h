@@ -20,5 +20,5 @@ std::vector<std::string> scanXplaneBinary(std::ostream & log, const lb::filesyst
 // Scan only the lua files in a directory
 std::vector<std::string> scanLuaFolder(std::ostream & log, const lb::filesystem::path & lua_dir_path);
 
-// For example, the blacklist
+// For example, the ignore list
 std::vector<std::string> loadListFile(std::ostream & log, const lb::filesystem::path & path);

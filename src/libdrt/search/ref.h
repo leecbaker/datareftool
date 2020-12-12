@@ -6,7 +6,7 @@
 
 enum class ref_src_t {
     AIRCRAFT,
-    BLACKLIST,
+    IGNORE,
     FILE,
     PLUGIN,
     USER_MSG,
@@ -31,7 +31,7 @@ public:
     ref_src_t getSource() const { return source; }
     virtual std::string getDisplayString(size_t display_length) const  = 0;
 
-    bool isBlacklisted() const { return ref_src_t::BLACKLIST == source; }
+    bool isBlacklisted() const { return ref_src_t::IGNORE == source; }
 
     const std::chrono::system_clock::time_point & getLastUpdateTime() const { return last_updated; }
     const std::chrono::system_clock::time_point & getLastBigUpdateTime() const { return last_updated_big; }

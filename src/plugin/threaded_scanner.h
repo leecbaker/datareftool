@@ -30,9 +30,9 @@ class ThreadedScanner {
     SynchronizedQueue<ScanTaskMessage> task_queue;
     SynchronizedQueue<ScanResults> results_queue;
 
-    // The blacklist must be stored. If we load a new aircraft, we need to try to 
-    // load the blacklist again as well in case the aircraft added new DR or CR.
-    std::vector<std::string> blacklist;
+    // The ignore list must be stored. If we load a new aircraft, we need to try to 
+    // load the ignore_list again as well in case the aircraft added new DR or CR.
+    std::vector<std::string> ignore_list;
 
     void thread_proc();
 

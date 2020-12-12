@@ -5,8 +5,8 @@ std::ostream & operator<<(std::ostream & o, const ref_src_t source) {
         case ref_src_t::AIRCRAFT:
             o << "aircraft";
             return o;
-        case ref_src_t::BLACKLIST:
-            o << "blacklist";
+        case ref_src_t::IGNORE:
+            o << "ignore";
             return o;
         case ref_src_t::FILE:
             o << "file";

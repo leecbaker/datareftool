@@ -41,13 +41,20 @@ void ThreadedScanner::thread_proc() {
                 XPLMGetSystemPath(system_path_c);
                 lb::filesystem::path system_path(system_path_c);
 
-                { // Blacklist
+                { 
+                    // Ignore list. This file was previous called blacklist, so that filename
+                    // is included for backwars compatibility.
                     lb::filesystem::path blacklist_path = system_path / "Resources" / "plugins" / "drt_blacklist.txt";
-                    blacklist = loadListFile(xplog_debug, blacklist_path);
+                    std::vector<std::string> ignore_list_1 = loadListFile(xplog_debug, blacklist_path);
+                    ignore_list.insert(ignore_list.end(), ignore_list_1.cbegin(), ignore_list_1.cend());
+
+                    lb::filesystem::path ignorelist_path = system_path / "Resources" / "plugins" / "drt_ignore.txt";
+                    std::vector<std::string> ignore_list_2 = loadListFile(xplog_debug, ignorelist_path);
+                    ignore_list.insert(ignore_list.end(), ignore_list_2.cbegin(), ignore_list_2.cend());
 
                     // Work around bug in X-Plane 11
-                    blacklist.push_back("iphone/flightmodel/ground_status");
-                    results_queue.push(ScanResults{ref_src_t::BLACKLIST, blacklist});
+                    ignore_list.push_back("iphone/flightmodel/ground_status");
+                    results_queue.push(ScanResults{ref_src_t::IGNORE, ignore_list});
                 }
 
                 { // Scan X-Plane binary
@@ -86,13 +93,13 @@ void ThreadedScanner::thread_proc() {
             }
                 break;
             case ScanMessageType::SCAN_PLUGIN: {
-                results_queue.push(ScanResults{ref_src_t::BLACKLIST, blacklist});
+                results_queue.push(ScanResults{ref_src_t::IGNORE, ignore_list});
                 std::vector<std::string> plugin_refs = ::scanPluginFolder(xplog_debug, message.path);
                 results_queue.push(ScanResults{ref_src_t::PLUGIN, plugin_refs});
             }
                 break;
             case ScanMessageType::SCAN_AIRCRAFT: {
-                results_queue.push(ScanResults{ref_src_t::BLACKLIST, blacklist});
+                results_queue.push(ScanResults{ref_src_t::IGNORE, ignore_list});
                 std::vector<std::string> aircraft_refs = ::scanAircraft(xplog_debug, message.path);
                 results_queue.push(ScanResults{ref_src_t::AIRCRAFT, aircraft_refs});
             }
