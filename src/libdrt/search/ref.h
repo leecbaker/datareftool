@@ -11,7 +11,7 @@ enum class ref_src_t {
     PLUGIN,
     USER_MSG,
     X_PLANE,
-    LUA,
+    LUA
 };
 
 std::ostream & operator<<(std::ostream & o, const ref_src_t source);
