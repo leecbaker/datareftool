@@ -5,7 +5,7 @@ std::ostream & operator<<(std::ostream & o, const ref_src_t source) {
         case ref_src_t::AIRCRAFT:
             o << "aircraft";
             return o;
-        case ref_src_t::IGNORE:
+        case ref_src_t::IGNORE_FILE:
             o << "ignore";
             return o;
         case ref_src_t::FILE:

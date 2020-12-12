@@ -54,7 +54,7 @@ void ThreadedScanner::thread_proc() {
 
                     // Work around bug in X-Plane 11
                     ignore_list.push_back("iphone/flightmodel/ground_status");
-                    results_queue.push(ScanResults{ref_src_t::IGNORE, ignore_list});
+                    results_queue.push(ScanResults{ref_src_t::IGNORE_FILE, ignore_list});
                 }
 
                 { // Scan X-Plane binary
@@ -93,13 +93,13 @@ void ThreadedScanner::thread_proc() {
             }
                 break;
             case ScanMessageType::SCAN_PLUGIN: {
-                results_queue.push(ScanResults{ref_src_t::IGNORE, ignore_list});
+                results_queue.push(ScanResults{ref_src_t::IGNORE_FILE, ignore_list});
                 std::vector<std::string> plugin_refs = ::scanPluginFolder(xplog_debug, message.path);
                 results_queue.push(ScanResults{ref_src_t::PLUGIN, plugin_refs});
             }
                 break;
             case ScanMessageType::SCAN_AIRCRAFT: {
-                results_queue.push(ScanResults{ref_src_t::IGNORE, ignore_list});
+                results_queue.push(ScanResults{ref_src_t::IGNORE_FILE, ignore_list});
                 std::vector<std::string> aircraft_refs = ::scanAircraft(xplog_debug, message.path);
                 results_queue.push(ScanResults{ref_src_t::AIRCRAFT, aircraft_refs});
             }
