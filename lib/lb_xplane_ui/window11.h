@@ -27,6 +27,9 @@ class LayoutObject;
 // This is an XPLM300 window
 class Window11Base {
 protected:
+    Rect last_frame_window_bounds;
+    std::shared_ptr<Window11Base> this_ref;
+
 #ifdef XPLM300
     XPLMWindowID window = nullptr;
 
@@ -39,9 +42,7 @@ protected:
     static int window_background_callback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t inParam2);
 	static int container_callback(XPWidgetMessage inMessage, XPWidgetID inWidget, intptr_t inParam1, intptr_t inParam2);
 #endif
-	std::shared_ptr<Window11Base> this_ref;
 
-    Rect last_frame_window_bounds;
 public:
     bool isVisible() const {
 #ifdef XPLM300
