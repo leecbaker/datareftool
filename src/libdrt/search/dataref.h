@@ -39,6 +39,7 @@ public:
     std::string getLabelString() const;
     virtual std::string getDisplayString(size_t display_length) const override;
     std::string getEditString() const;
+    std::string getArrayElementEditString(int index);
     [[nodiscard]] virtual bool update(DataRefUpdater & updater);
     bool writable() const;
     
@@ -57,7 +58,9 @@ public:
     void setInt(int i) { assert(isInt()); XPLMSetDatai(ref, i); }
     
     void setIntArray(const std::vector<int> & i) { assert(isIntArray()); XPLMSetDatavi(ref, const_cast<int *>(i.data()), 0, static_cast<int>(i.size())); }
+    void setIntArrayElement(const int i, size_t index) { assert(isIntArray()); XPLMSetDatavi(ref, const_cast<int *>(&i), index, 1); }
     void setFloatArray(const std::vector<float> & f) { assert(isFloatArray()); XPLMSetDatavf(ref, const_cast<float *>(f.data()), 0, static_cast<int>(f.size())); }
+    void setFloatArrayElement(const float f, size_t index) { assert(isFloatArray()); XPLMSetDatavf(ref, const_cast<float *>(&f), index, 1); }
     void setData(const std::string & data_str) {
         // In some applications we may need to implement this as well:
         // void setData(const std::vector<uint8_t> &)

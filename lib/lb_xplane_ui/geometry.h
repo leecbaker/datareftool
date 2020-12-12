@@ -65,6 +65,9 @@ struct RectGeneric {
         return Size{right - left, top - bottom};
     }
 
+    RectType width() const { return right - left; }
+    RectType height() const { return top - bottom; }
+
     bool operator!=(const RectGeneric & other) const {
         return left != other.left || right != other.right || top != other.top || bottom != other.bottom;
     }

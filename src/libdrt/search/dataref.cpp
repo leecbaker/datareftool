@@ -2,6 +2,7 @@
 
 #include "../util/string_util.h"
 
+#include <cassert>
 #include <cmath>
 #include <sstream>
 
@@ -222,8 +223,8 @@ public:
         std::string (*stringify_func)(int) = std::to_string;
         return makeArrayString<int>(stringify_func, iv, std::numeric_limits<size_t>::max());
     }
-    std::string operator()(const std::vector<uint8_t> & iv) const {
-        return printableFromByteArray(iv);
+    std::string operator()(const std::vector<uint8_t> & fv) const {
+        return printableFromByteArray(fv);
     }
     std::string operator()(const std::nullptr_t ) const {
         return "(null)";
@@ -240,4 +241,29 @@ std::string DataRefRecord::getDisplayString(size_t display_length) const {
 
 std::string DataRefRecord::getEditString() const {
     return lb::visit(DatarefEditStringifier(), value);
+}
+
+class DatarefArrayElementEditStringifier {
+    int element_index;
+public:
+    DatarefArrayElementEditStringifier(int element_index) : element_index(element_index) {}
+    std::string operator()(const float f) const { return compactFpString(f); }
+    std::string operator()(const double f) const { return compactFpString(f); }
+    std::string operator()(const int i) const { return std::to_string(i); }
+    std::string operator()(const std::vector<float> & fv) const {
+        return compactFpString<float>(fv[element_index]);
+    }
+    std::string operator()(const std::vector<int> & iv) const {
+        return std::to_string(iv[element_index]);
+    }
+    std::string operator()(const std::vector<uint8_t> & v) const {
+        return printableFromByteArray(v);
+    }
+    std::string operator()(const std::nullptr_t ) const {
+        return "(null)";
+    }
+};
+
+std::string DataRefRecord::getArrayElementEditString(int index) {
+    return lb::visit(DatarefArrayElementEditStringifier(index), value);
 }
