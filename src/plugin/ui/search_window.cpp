@@ -176,8 +176,8 @@ SearchWindow::SearchWindow(RefRecords & refs)
 
         command_action_bar->add(std::make_shared<Widget11Spacer>(), true, true);
 
-        command_action_bar->add(details_button, false, true);
         command_action_bar->add(once_button, false, true);
+        command_action_bar->add(details_button, false, true);
     }
 
     window_vertical_container = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::VERTICAL);
