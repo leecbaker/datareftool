@@ -13,7 +13,7 @@
 
 class SearchParams {
     std::vector<std::string> search_terms_;
-	std::vector<std::regex> search_regexes_;
+    std::vector<std::regex> search_regexes_;
     std::string search_field_;
     bool use_regex_ = false, case_sensitive_ = false, change_detection_ = false, only_large_changes_ = false, include_drs_ = false, include_crs_ = false;
 
@@ -37,10 +37,10 @@ public:
     /// @precondition: both inputs are sorted
     void inplace_union(std::vector<RefRecord *> & results_in_out, const std::vector<RefRecord *> & a) {
         results_in_out.reserve(results_in_out.size() + a.size());   //< ensure no iterators invalidated
-		size_t old_size = results_in_out.size();
+        size_t old_size = results_in_out.size();
 
         std::set_difference(a.cbegin(), a.cend(), results_in_out.begin(), results_in_out.end(), std::back_inserter(results_in_out), nameComparator);
-		std::vector<RefRecord *>::iterator midpoint = results_in_out.begin() + old_size;
+        std::vector<RefRecord *>::iterator midpoint = results_in_out.begin() + old_size;
         std::inplace_merge(results_in_out.begin(), midpoint, results_in_out.end(), nameComparator);
     }
 

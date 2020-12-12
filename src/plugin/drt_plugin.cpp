@@ -353,7 +353,7 @@ void DRTPlugin::handleMessage(intptr_t inMessage, void * inParam) {
         case XPLM_MSG_PLANE_LOADED: {
             int64_t plane_num = int64_t(inParam);
             xplog << "Plane loaded #: " << plane_num << "\n";
-            if(0 == plane_num) {	//user's plane
+            if(0 == plane_num) { //user's plane
                 aircraftIsBeingLoaded();
             }
             break;
@@ -418,7 +418,7 @@ void DRTPlugin::plugin_changed_check_callback() {
             continue;
         }
         plugin_last_modified_t::iterator plugin_entry_it = plugin_last_modified.find(plugin_path);
-        if(plugin_last_modified.end() == plugin_entry_it) {	// First sighting of this plugin; 
+        if(plugin_last_modified.end() == plugin_entry_it) { // First sighting of this plugin; 
             plugin_last_modified.insert(std::make_pair<lb::filesystem::path, lb::filesystem::file_time_type>(std::move(plugin_path), std::move(modification_date)));
         } else {
             if(plugin_entry_it->second != modification_date) {

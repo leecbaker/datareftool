@@ -15,15 +15,15 @@ const char * dre_description = "A plugin that shows all data refs!.";
 
 PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
     // Plugin details
-	strcpy(outName, "DataRefTool");
-	strcpy(outSig, "com.leecbaker.datareftool");
-	strcpy(outDesc, "More information https://github.com/leecbaker/datareftool");
+    strcpy(outName, "DataRefTool");
+    strcpy(outSig, "com.leecbaker.datareftool");
+    strcpy(outDesc, "More information https://github.com/leecbaker/datareftool");
 
     xplog.setPrefix("DataRefTool: ");
     xplog_debug.setPrefix("DataRefTool: ");
 
     // You probably want this on
-	XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
+    XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
 
     plugin = std::make_unique<DRTPlugin>();
 
@@ -43,10 +43,10 @@ PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
         strcpy(outDesc, "View and edit X-Plane Datarefs");
     }
 
-	return 1;
+    return 1;
 }
 
-PLUGIN_API void	XPluginStop(void) {
+PLUGIN_API void XPluginStop(void) {
     plugin.reset();
 }
 
@@ -54,7 +54,7 @@ PLUGIN_API void XPluginDisable(void) {
 }
 
 PLUGIN_API int XPluginEnable(void) {
-	return 1;
+    return 1;
 }
 
 PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * inParam) {

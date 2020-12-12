@@ -42,7 +42,7 @@ std::vector<std::string> loadListFile(std::ostream & log, const lb::filesystem::
 
 // + character is necessary for A320neo
 inline char isValidDatarefChar(char c) {
-	return std::isalnum(static_cast<unsigned char>(c)) || '_' == c || '/' == c || '-' == c || '.' == c || '+' == c;
+    return std::isalnum(static_cast<unsigned char>(c)) || '_' == c || '/' == c || '-' == c || '.' == c || '+' == c;
 }
 
 const size_t min_dataref_length = 8;
@@ -51,37 +51,37 @@ std::vector<std::string> scanFileForDatarefStrings(std::ostream & log, const lb:
     std::error_code ec;
     mio::mmap_source mmap_file = mio::make_mmap_source(filename.string(), ec);
     if(ec) {
-		return {};
+        return {};
     }
 
-	std::vector<std::string> all_refs;
-	size_t start_pos = 0;
-	const char * file_data = mmap_file.data();
-	bool last_char_valid = false;
+    std::vector<std::string> all_refs;
+    size_t start_pos = 0;
+    const char * file_data = mmap_file.data();
+    bool last_char_valid = false;
     for(size_t i = 0; i < mmap_file.size(); i++) {
-    	if(isValidDatarefChar(file_data[i])) {
-    		if(false == last_char_valid) {
-    			start_pos = i;
-    		}
-    		last_char_valid = true;
-    		continue;
-    	} else {
-    		 if(last_char_valid && (i - start_pos) > min_dataref_length) {
-    			std::string new_dataref(file_data + start_pos, file_data + i);
+        if(isValidDatarefChar(file_data[i])) {
+            if(false == last_char_valid) {
+                start_pos = i;
+            }
+            last_char_valid = true;
+            continue;
+        } else {
+             if(last_char_valid && (i - start_pos) > min_dataref_length) {
+                std::string new_dataref(file_data + start_pos, file_data + i);
 
-    			//get rid of some obvious false positives
-    			if('/' != new_dataref.front() && std::string::npos != new_dataref.find('/')) {
-    				all_refs.push_back(new_dataref);
-    			}
-	    	}
+                //get rid of some obvious false positives
+                if('/' != new_dataref.front() && std::string::npos != new_dataref.find('/')) {
+                    all_refs.push_back(new_dataref);
+                }
+            }
 
-    		last_char_valid = false;
-    	}
+            last_char_valid = false;
+        }
     }
-	
-	deduplicate_vector(all_refs);
+    
+    deduplicate_vector(all_refs);
 
-	log << "Found " << all_refs.size() << " unique possible datarefs in file " << filename << "\n";
+    log << "Found " << all_refs.size() << " unique possible datarefs in file " << filename << "\n";
 
-	return all_refs;
+    return all_refs;
 }

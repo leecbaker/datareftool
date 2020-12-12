@@ -9,7 +9,7 @@
 #include <boost/functional/hash.hpp>
 
 DataRefRecord::DataRefRecord(const std::string & name, XPLMDataRef ref, ref_src_t source) : RefRecord(name, source), ref(ref) {
-    type = 	XPLMGetDataRefTypes(ref);
+    type = XPLMGetDataRefTypes(ref);
     
     if(type & xplmType_Double) {
         value = 0.;

@@ -38,7 +38,7 @@ class SearchWindow : public Window11<SearchWindow> {
     SearchParams params;
     RefRecords & refs;
 
-	std::shared_ptr<SearchResults> results;
+    std::shared_ptr<SearchResults> results;
 protected:
     std::shared_ptr<Widget11TextField> search_box;
 
