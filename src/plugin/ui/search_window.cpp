@@ -188,6 +188,7 @@ SearchWindow::SearchWindow(RefRecords & refs)
 
     setTitle("Search");
     setTopLevelWidget(window_vertical_container);
+    setWindowSize({400, 300});
 }
 
 void SearchWindow::setSelectionAvailable(RefRecord * new_ref_record) {
