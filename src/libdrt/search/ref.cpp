@@ -20,6 +20,9 @@ std::ostream & operator<<(std::ostream & o, const ref_src_t source) {
         case ref_src_t::X_PLANE:
             o << "X-Plane";
             return o;
+        case ref_src_t::LUA:
+            o << "Lua";
+            return o;
         default:
             o << "other";
             return o;

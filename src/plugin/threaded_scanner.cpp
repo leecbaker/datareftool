@@ -81,7 +81,7 @@ void ThreadedScanner::thread_proc() {
                 { // FWL
                     lb::filesystem::path fwl_scripts_dir = system_path / "Resources" / "plugins" / "FlyWithLua" / "Scripts";
                     std::vector<std::string> script_refs = scanLuaFolder(xplog_debug, fwl_scripts_dir);
-                    results_queue.push(ScanResults{ref_src_t::FILE, script_refs});
+                    results_queue.push(ScanResults{ref_src_t::LUA, script_refs});
                 }
             }
                 break;
