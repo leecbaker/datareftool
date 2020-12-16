@@ -175,8 +175,18 @@ void DRTPlugin::savePrefs() {
     }
 }
 
+void DRTPlugin::saveAllRefs() {
+    char system_path_c[1000];
+    XPLMGetSystemPath(system_path_c);
+    lb::filesystem::path system_path(system_path_c);
+    lb::filesystem::path output_dir = system_path / "Output" / "preferences";
+
+    refs.saveToFile(output_dir / "drt_last_run_datarefs.txt", output_dir / "drt_last_run_commandrefs.txt");
+}
+
 DRTPlugin::~DRTPlugin() {
     savePrefs();
+    saveAllRefs();
 }
 
 void DRTPlugin::openAboutWindow() {

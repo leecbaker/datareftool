@@ -58,6 +58,8 @@ public:
     void handleMessage(intptr_t inMessage, void * inParam);
 
     RefRecords & getRefs() { return refs; }
+
+    void saveAllRefs();
 };
 
 extern std::unique_ptr<DRTPlugin> plugin;
