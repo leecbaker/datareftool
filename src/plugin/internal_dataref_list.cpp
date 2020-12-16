@@ -1016,6 +1016,7 @@ sim/private/stats/gfx/pipelines/cube_filter/num_pipelines
 sim/private/stats/gfx/pipelines/debug/num_pipelines
 sim/private/stats/gfx/pipelines/deferred/num_pipelines
 sim/private/stats/gfx/pipelines/deferred_ssao/num_pipelines
+sim/private/stats/gfx/pipelines/depth_resolve/num_pipelines
 sim/private/stats/gfx/pipelines/dome/num_pipelines
 sim/private/stats/gfx/pipelines/font/num_pipelines
 sim/private/stats/gfx/pipelines/ground_lights/num_pipelines
@@ -1038,6 +1039,13 @@ sim/private/stats/gfx/pipelines/terrain/num_pipelines
 sim/private/stats/gfx/pipelines/total_jit_pipelines
 sim/private/stats/gfx/pipelines/total_pipelines
 sim/private/stats/gfx/pipelines/wxr_mask/num_pipelines
+sim/private/stats/gfx/vulkan/descriptors/max_sets
+sim/private/stats/gfx/vulkan/descriptors/pools
+sim/private/stats/gfx/vulkan/descriptors/write/hit
+sim/private/stats/gfx/vulkan/descriptors/write/miss/bind_point
+sim/private/stats/gfx/vulkan/descriptors/write/miss/compatible
+sim/private/stats/gfx/vulkan/descriptors/write/miss/fresh
+sim/private/stats/gfx/vulkan/descriptors/write/miss/layout
 sim/private/stats/instance/num_clusters
 sim/private/stats/instance/num_cluster_objs
 sim/private/stats/lights/3d/atten1
