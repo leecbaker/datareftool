@@ -80,7 +80,7 @@ bool DataRefUpdater::operator()(std::vector<float>&) const {
     int current_array_length = XPLMGetDatavf(dr->ref, nullptr, 0, 0);
     static std::vector<float> scratch_buffer;
     scratch_buffer.resize(current_array_length);
-    std::fill(scratch_buffer.begin(), scratch_buffer.end(), 0);
+    std::fill(scratch_buffer.begin(), scratch_buffer.end(), 0.f);
     int copied = XPLMGetDatavf(dr->ref, scratch_buffer.data(), 0, current_array_length);
     if(copied == current_array_length) {
         size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());

@@ -8,7 +8,8 @@
 // grep private drt_last_run_datarefs.txt > datarefs_keep.txt
 // grep iphone drt_last_run_datarefs.txt >> datarefs_keep.txt
 //
-// This was done on mac. I couldn't get the list consistently on windows.
+// This list is broken into several sections due to limitations of string literal
+// length in the visual studio compiler.
 
 const char * raw_list = R"""(
 sim/private/controls/acf/debug/reload_config
@@ -361,7 +362,8 @@ sim/private/controls/clouds/skip_map
 sim/private/controls/clouds/skip_write
 sim/private/controls/clouds/soft_occlude
 sim/private/controls/clouds/spec_gain
-sim/private/controls/clouds/str/alpha_layer_0
+)"""
+R"""(sim/private/controls/clouds/str/alpha_layer_0
 sim/private/controls/clouds/str/alpha_layer_1
 sim/private/controls/clouds/str/alpha_layer_2
 sim/private/controls/clouds/str/alpha_layer_3
@@ -681,7 +683,8 @@ sim/private/controls/road/max_uv_distort
 sim/private/controls/road/min_smooth_len
 sim/private/controls/road/no_composites
 sim/private/controls/road/no_plug
-sim/private/controls/road/over_under_slop
+)"""
+R"""(sim/private/controls/road/over_under_slop
 sim/private/controls/road/powerline_base_extra
 sim/private/controls/road/powerline_base_max
 sim/private/controls/road/powerline_base_width
@@ -925,7 +928,8 @@ sim/private/controls/water/noise_bias_gen_x
 sim/private/controls/water/noise_bias_gen_y
 sim/private/controls/water/noise_dir
 sim/private/controls/water/noise_speed
-sim/private/controls/water/perlin_wave1_amp
+)"""
+R"""(sim/private/controls/water/perlin_wave1_amp
 sim/private/controls/water/perlin_wave1_hdg
 sim/private/controls/water/perlin_wave1_rat
 sim/private/controls/water/perlin_wave2_amp
