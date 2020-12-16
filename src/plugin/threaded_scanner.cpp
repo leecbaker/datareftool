@@ -1,5 +1,7 @@
 #include "threaded_scanner.h"
 
+#include "internal_dataref_list.h"
+
 #include "logging.h"
 
 #include "scan/scan_entity.h"
@@ -87,8 +89,13 @@ void ThreadedScanner::thread_proc() {
 
                 { // FWL
                     lb::filesystem::path fwl_scripts_dir = system_path / "Resources" / "plugins" / "FlyWithLua" / "Scripts";
-                    std::vector<std::string> script_refs = scanLuaFolder(xplog_debug, fwl_scripts_dir);
+                    const std::vector<std::string> & script_refs = scanLuaFolder(xplog_debug, fwl_scripts_dir);
                     results_queue.push(ScanResults{ref_src_t::LUA, script_refs});
+                }
+
+                { // internal list
+                    const std::vector<std::string> & internal_list = getInternalList();
+                    results_queue.push(ScanResults{ref_src_t::DRT_INTERNAL_LIST, internal_list});
                 }
             }
                 break;
