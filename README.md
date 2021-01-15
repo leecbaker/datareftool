@@ -89,4 +89,4 @@ DRT is available under the MIT license. See the LICENSE file for more details.
 
 DRT is written by Lee C. Baker. If you benefitted from this plugin, please consider purchasing the [PlaneCommand](https://planecommand.com) voice recognition plugin.
 
-&copy; 2017-2020 Lee C. Baker.
+&copy; 2017-2021 Lee C. Baker.

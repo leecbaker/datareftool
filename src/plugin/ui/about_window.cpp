@@ -16,7 +16,7 @@ AboutWindow::AboutWindow() {
     text << "\n";
     text << "Compiled at " << __DATE__ << " " << __TIME__ << "\n";
     text << "\n";
-    text << "(c) 2014-2020 Lee C. Baker";
+    text << "(c) 2014-2021 Lee C. Baker";
 
     std::shared_ptr<Widget11Text> text_widget = std::make_shared<Widget11Text>();
 
