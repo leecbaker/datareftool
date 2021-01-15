@@ -9,6 +9,8 @@ class DRTDatarefs {
     DatarefProvider<bool> impersonate_dre;
     DatarefProvider<bool> auto_reload_plugins;
 
+    DatarefProvider<std::string> build_date;
+
     CommandProvider toggle_debug;
     CommandProvider toggle_impersonate_dre;
     CommandProvider toggle_auto_reload_plugins;

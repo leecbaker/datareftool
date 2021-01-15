@@ -14,7 +14,7 @@ AboutWindow::AboutWindow() {
     text << "\n";
     text << "https://datareftool.com\n";
     text << "\n";
-    text << "Compiled at " << __DATE__ << " " << __TIME__ << "\n";
+    text << "Compiled at " __DATE__ " " __TIME__ "\n";
     text << "\n";
     text << "(c) 2014-2021 Lee C. Baker";
 

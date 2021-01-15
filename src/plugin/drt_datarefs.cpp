@@ -23,6 +23,9 @@ DRTDatarefs::DRTDatarefs()
         setAutoReloadPlugins(b);
     }
 )
+, build_date("leecbaker/datareftool/build_date", []() -> std::string {
+    return std::string(__DATE__ " " __TIME__);
+})
 , toggle_debug("leecbaker/datareftool/debug_toggle", "Toggle debug mode", []() {
     plugin->setDebugMode(!getDebugMode());
     return true;
