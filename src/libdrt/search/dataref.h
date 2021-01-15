@@ -34,6 +34,9 @@ class DataRefRecord : public RefRecord {
     };
 public:
     DataRefRecord(const std::string & name, XPLMDataRef ref, ref_src_t source);
+
+    virtual bool isCommand() const override final { return false; }
+    virtual bool isDataref() const override final { return true; }
     
     /// @return true if updated, false if not
     std::string getLabelString() const;

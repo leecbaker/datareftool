@@ -19,11 +19,14 @@ class SearchParams {
 
     bool regex_fail_ = false;
 
+    bool filterByType(const RefRecord * record) {
+        return (include_drs_ && record->isDataref()) || (include_crs_ && record->isCommand());
+    }
     bool filterByName(const RefRecord * record);
     bool filterByTime(const RefRecord * record, const std::chrono::system_clock::time_point now);
-    bool filterByTimeAndName(const RefRecord * record, const std::chrono::system_clock::time_point now) {
+    bool filter(const RefRecord * record, const std::chrono::system_clock::time_point now) {
         // filter by time first, as it's the cheapest
-        return filterByTime(record, now) && filterByName(record);
+        return filterByTime(record, now) && filterByName(record) && filterByType(record);
     }
 
     std::vector<RefRecord *> working_buffer;

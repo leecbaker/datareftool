@@ -17,12 +17,15 @@ public:
         XPLMRegisterCommandHandler(ref, &cr_callback, 1, this);
     }
 
+    virtual bool isCommand() const override final { return true; }
+    virtual bool isDataref() const override final { return false; }
+
     virtual ~CommandRefRecord() {
         XPLMUnregisterCommandHandler(ref, &cr_callback, 0, this);
         XPLMUnregisterCommandHandler(ref, &cr_callback, 1, this);
     }
 
-    virtual std::string getDisplayString(size_t /*display_length*/) const { return name; }
+    virtual std::string getDisplayString(size_t /*display_length*/) const override { return name; }
 
     void commandOnce() const { XPLMCommandOnce(ref); }
     void commandBegin() const { XPLMCommandBegin(ref); }

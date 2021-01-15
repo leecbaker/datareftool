@@ -105,11 +105,11 @@ void SearchParams::freshSearch(std::vector<RefRecord *> & results_out, const std
 
     //actually perform the search
     if(include_drs_) {
-        std::copy_if(datarefs.cbegin(), datarefs.cend(), result_inserter, [this, now](const RefRecord * r) -> bool { return filterByTimeAndName(r, now); });
+        std::copy_if(datarefs.cbegin(), datarefs.cend(), result_inserter, [this, now](const RefRecord * r) -> bool { return filter(r, now); });
     }
 
     if(include_crs_) {
-        std::copy_if(commandrefs.cbegin(), commandrefs.cend(), result_inserter, [this, now](const RefRecord * r) -> bool { return filterByTimeAndName(r, now); });
+        std::copy_if(commandrefs.cbegin(), commandrefs.cend(), result_inserter, [this, now](const RefRecord * r) -> bool { return filter(r, now); });
     }
 
     sort(results_out);
@@ -128,7 +128,7 @@ std::chrono::system_clock::time_point SearchParams::updateSearch(std::vector<Ref
         {
             auto filter = [this, now](const RefRecord * r) -> bool {
                 if(useOnlyLargeChanges()) { // need additional filtering for only bigger changes then
-                    return filterByTimeAndName(r, now);
+                    return this->filter(r, now);
                 } else {
                     return filterByName(r);
                 }
@@ -149,7 +149,7 @@ std::chrono::system_clock::time_point SearchParams::updateSearch(std::vector<Ref
         if(false == new_refs.empty()) {
             working_buffer.clear();
             std::back_insert_iterator<std::vector<RefRecord *>> working_inserter = std::back_inserter(working_buffer);
-            std::copy_if(new_refs.cbegin(), new_refs.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterByTimeAndName(r, now); });
+            std::copy_if(new_refs.cbegin(), new_refs.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filter(r, now); });
             sort(working_buffer);
             inplace_union(results_in_out, working_buffer);
         }
@@ -159,7 +159,7 @@ std::chrono::system_clock::time_point SearchParams::updateSearch(std::vector<Ref
         if(false == new_refs.empty()) {
             working_buffer.clear();
             std::back_insert_iterator<std::vector<RefRecord *>> working_inserter = std::back_inserter(working_buffer);
-            std::copy_if(new_refs.cbegin(), new_refs.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filterByTimeAndName(r, now); });
+            std::copy_if(new_refs.cbegin(), new_refs.cend(), working_inserter, [this, now](const RefRecord * r) -> bool { return filter(r, now); });
             sort(working_buffer);
             inplace_union(results_in_out, working_buffer);
         }
