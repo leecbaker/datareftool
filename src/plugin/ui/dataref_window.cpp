@@ -119,6 +119,78 @@ std::string getType(DataRefRecord * dr) {
     return ss.str();
 }
 
+class DataRefRow: public SingleAxisLayoutContainer {
+    DataRefRecord * drr;
+    int element_index;
+
+    std::shared_ptr<Widget11TextField> edit_field;
+public:
+    DataRefRow(DataRefRecord * drr, int element_index)
+    : SingleAxisLayoutContainer(SingleAxisLayoutContainer::LayoutAxis::HORIZONTAL)
+    , drr(drr)
+    , element_index(element_index)
+    {
+        std::shared_ptr<Widget11Text> index_label;
+        index_label = std::make_shared<Widget11Text>();
+        index_label->setText(std::to_string(element_index));
+        index_label->setMinimumSize({30, 0});
+
+        edit_field = std::make_shared<Widget11TextField>();
+        edit_field->setPlaceholder("New value");
+
+        edit_field->setContents(drr->getArrayElementEditString(element_index));
+
+        std::shared_ptr<Widget11Spacer> edit_spacer = std::make_shared<Widget11Spacer>(Size{20, 1});
+
+        std::shared_ptr<Widget11Button> set_button;
+        set_button = std::make_shared<Widget11Button>();
+        set_button->setLabel("Set");
+        set_button->setMinimumSize({40, 0});
+
+        edit_field->setTypeAction([this, set_button, drr]() {
+            if(checkValueOK(drr, edit_field->getContents())) {
+                set_button->setEnabled(true);
+            } else {
+                set_button->setEnabled(false);
+            }
+        });
+
+        std::optional<int> index_in_array_if_array;
+        if(drr->isArray()) {
+            index_in_array_if_array = element_index;
+        }
+
+        std::function<void()> set_value_edit_done = [element_index, this, drr, index_in_array_if_array]() {
+            setValue(drr, edit_field->getContents(), index_in_array_if_array);
+            
+            // immediately read the value back into the field. maybe our write was unsuccessful.
+            edit_field->setContents(drr->getArrayElementEditString(element_index));
+
+            edit_field->selectAll();
+        };
+    
+        edit_field->setSubmitAction(set_value_edit_done);
+        set_button->setAction(set_value_edit_done);
+
+        edit_field->setEnabled(drr->writable());
+
+        if(index_label) {
+            this->add(index_label, false, false);
+        }
+        this->add(edit_field, true, true);
+        this->add(edit_spacer, false, false);
+        if(drr->writable()) {
+            this->add(set_button, false, false);
+        }
+    }
+
+    void update() {
+        if(false == edit_field->hasKeyboardFocus()) {
+            edit_field->setContents(drr->getArrayElementEditString(element_index));
+        }
+    }
+};
+
 DatarefWindow::DatarefWindow(DataRefRecord * drr) : drr(drr) {
     std::shared_ptr<Widget11Text> dr_name = std::make_shared<Widget11Text>();
     dr_name->setText(drr->getName());
@@ -145,59 +217,11 @@ DatarefWindow::DatarefWindow(DataRefRecord * drr) : drr(drr) {
 
     std::shared_ptr<SingleAxisLayoutContainer> edit_container = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::VERTICAL);
     for(int element_index = 0; element_index < num_elements; element_index++) {
-        std::shared_ptr<Widget11Text> index_label;
-        if(num_elements > 4) {
-            index_label = std::make_shared<Widget11Text>();
-            index_label->setText(std::to_string(element_index));
-            index_label->setMinimumSize({30, 0});
-        }
-        std::shared_ptr<Widget11TextField> edit_field;
-        edit_field = std::make_shared<Widget11TextField>();
-        edit_field->setPlaceholder("New value");
+        std::shared_ptr<DataRefRow> edit_element_row = std::make_shared<DataRefRow>(drr, element_index);
 
-        edit_field->setContents(drr->getArrayElementEditString(element_index));
+        edit_rows.push_back(edit_element_row);
 
-        std::shared_ptr<Widget11Spacer> edit_spacer = std::make_shared<Widget11Spacer>(Size{20, 1});
-
-        std::shared_ptr<Widget11Button> set_button;
-        set_button = std::make_shared<Widget11Button>();
-        set_button->setLabel("Set");
-        set_button->setAction([this](){this->closeWindow();});
-        set_button->setMinimumSize({40, 0});
-
-        edit_field->setTypeAction([edit_field, set_button, drr]() {
-            if(checkValueOK(drr, edit_field->getContents())) {
-                set_button->setEnabled(true);
-            } else {
-                set_button->setEnabled(false);
-            }
-        });
-        std::optional<int> index_in_array_if_array;
-        if(drr->isArray()) {
-            index_in_array_if_array = element_index;
-        }
-
-        std::function<void()> set_value_edit_done = [element_index, edit_field, drr, index_in_array_if_array]() {
-            setValue(drr, edit_field->getContents(), index_in_array_if_array);
-            
-            // immediately read the value back into the field. maybe our write was unsuccessful.
-            edit_field->setContents(drr->getArrayElementEditString(element_index));
-        };
-    
-        edit_field->setSubmitAction(set_value_edit_done);
-        set_button->setAction(set_value_edit_done);
-
-        std::shared_ptr<SingleAxisLayoutContainer> edit_row;
-        edit_row = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::HORIZONTAL);
-
-        if(index_label) {
-            edit_row->add(index_label, false, false);
-        }
-        edit_row->add(edit_field, true, true);
-        edit_row->add(edit_spacer, false, false);
-        edit_row->add(set_button, false, false);
-
-        edit_container->add(edit_row, true, true);
+        edit_container->add(edit_element_row, true, true);
     }
 
     std::shared_ptr<SingleAxisLayoutContainer> window_container = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::VERTICAL);
@@ -210,18 +234,16 @@ DatarefWindow::DatarefWindow(DataRefRecord * drr) : drr(drr) {
     window_container->add(dr_type, false, true);
     window_container->add(last_change, false, true);
 
-    if(drr->writable()) {
-        window_container->add(std::make_shared<Widget11HorizontalBar>(), false, true);
+    window_container->add(std::make_shared<Widget11HorizontalBar>(), false, true);
 
-        if(num_elements < 10) {
-            window_container->add(edit_container, false, true);
-        } else {
-            std::shared_ptr<ScrollContainer> edit_scroll_container = std::make_shared<ScrollContainer>();
-            edit_scroll_container->setContents(edit_container);
-            edit_scroll_container->setMinimumHeight(130);
+    if(num_elements < 10) {
+        window_container->add(edit_container, false, true);
+    } else {
+        std::shared_ptr<ScrollContainer> edit_scroll_container = std::make_shared<ScrollContainer>();
+        edit_scroll_container->setContents(edit_container);
+        edit_scroll_container->setMinimumHeight(130);
 
-            window_container->add(edit_scroll_container, true, true);
-        }
+        window_container->add(edit_scroll_container, true, true);
     }
 
     std::string title = drr->getName();
@@ -236,10 +258,18 @@ DatarefWindow::DatarefWindow(DataRefRecord * drr) : drr(drr) {
 }
 
 void DatarefWindow::draw(Rect visible_bounds) {
-    if(drr->isArray() && !drr->isData()) {
-        array_value->setText(drr->getDisplayString(visible_bounds.width()));
-    } else {
-        current_value->setText("Value: " + drr->getDisplayString(visible_bounds.width() - 30));
+    if(displayed_values_updated != drr->getLastUpdateTime()) {
+        if(drr->isArray() && !drr->isData()) {
+            array_value->setText(drr->getDisplayString(visible_bounds.width()));
+        } else {
+            current_value->setText("Value: " + drr->getDisplayString(visible_bounds.width() - 30));
+        }
+
+        for(std::shared_ptr<DataRefRow> & row: edit_rows) {
+            row->update();
+        }
+
+        displayed_values_updated = drr->getLastUpdateTime();
     }
 
     std::stringstream ss;
