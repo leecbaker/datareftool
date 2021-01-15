@@ -43,6 +43,9 @@ Glad you asked!
 * Ctrl-X / &#8984;-X : cut
 * Ctrl-C / &#8984;-C : copy
 * Ctrl-V / &#8984;-V : paste
+* Ctrl-A / &#8984;-A : select all
+
+These only work while an edit field is selected. If you want additional keyboard shortcuts (to open a search window, for instance) these can be added by searching for "datareftool" in X-Plane's keyboard settings.
 
 ### FAQ: DRT can't find my dataref
 
@@ -57,6 +60,16 @@ DRT scans files to find datarefs. This might not work if your dataref is in an e
 DRT reads every dataref published by every aircraft and plugin, on every frame of the simulation. Sometimes, they haven't fully been debugged, and may crash. (If you're a developer, the best way to do this is to run X-Plane in a debugger and look at the backtrace of the crash- if you see RefRecords::update() in the backtrace, this is likely what happened.)
 
 If you can figure out which dataref caused the crash, the best way to work around this is to add the name of the dataref to a file called "drt_ignore.txt" in the Resources/plugins directory. This will cause DRT to never read the value of the dataref, even if it does come up in search results.
+
+### FAQ: DataRefTool causes me to loose FPS! Why?
+
+DRT reads datarefs every frame in order to detect changes to values. This takes time; moreover, it takes time for other plugins and for X-Plane to compute the dataref values (which is what actually takes most of the time). It takes CPU time to actually do what DRT does; this is why you're losing FPS.
+
+DRT does stop reading datarefs completely when all windows are closed; you should not lose any FPS at all when all windows are closed.
+
+DRT is written in a highly optimized and efficient manner; however, it just does a lot of work, so there isn't really a way to improve performance much without losing functionality.
+
+Other than telling you to buy a faster CPU, there isn't really much more that can be done.
 
 ## Development details
 
