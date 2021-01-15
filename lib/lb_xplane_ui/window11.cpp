@@ -173,6 +173,24 @@ Window11Base::~Window11Base() {
 #endif
 }
 
+
+std::optional<int> Window11Base::getPoppedOutMonitor() const {
+#ifdef XPLM300
+    if(XPLMWindowIsPoppedOut(window)) {
+        //TODO: it's complicated to figure out which monitor a window is on.
+        // This is such a rare case, and I don't have time to work on it.
+        return 0;
+    }
+#endif
+    return std::nullopt;
+}
+
+void Window11Base::setPoppedOutMonitor([[maybe_unused]] int monitor_number) {
+#ifdef XPLM300
+    XPLMSetWindowPositioningMode(window, xplm_WindowPopOut, monitor_number);
+#endif
+}
+
 void Window11Base::draw(Rect draw_bounds) {
     Rect current_window_bounds = getWindowBounds();
 

@@ -146,6 +146,9 @@ public:
 #endif
     }
 
+    std::optional<int> getPoppedOutMonitor() const;
+    void setPoppedOutMonitor(int monitor_number);
+
     static inline void draw(XPLMWindowID /* inWindowID */, void * inRefcon) {
         Window11Base * pthis = static_cast<Window11Base *>(inRefcon);
 

@@ -116,7 +116,13 @@ SearchWindow::SearchWindow(RefRecords & refs)
             RefRecord * rr = rl_selected->getRecord();
             DataRefRecord * drr = dynamic_cast<DataRefRecord *>(rr);
             if(nullptr != drr) {
-                DatarefWindow::make(drr);
+                std::shared_ptr<DatarefWindow> dr_window = DatarefWindow::make(drr);
+
+                // if this window is popped out into an os window, do the same with the edit window
+                std::optional<int> popped_out_monitor = this->getPoppedOutMonitor();
+                if(popped_out_monitor) {
+                    dr_window->setPoppedOutMonitor(*popped_out_monitor);
+                }
             }
         });
 
@@ -168,7 +174,13 @@ SearchWindow::SearchWindow(RefRecords & refs)
 
             RefRecord * rr = rl_selected->getRecord();
             CommandRefRecord * crr = dynamic_cast<CommandRefRecord *>(rr);
-            CommandrefWindow::make(crr);
+            std::shared_ptr<CommandrefWindow> cr_window = CommandrefWindow::make(crr);
+
+            // if this window is popped out into an os window, do the same with the edit window
+            std::optional<int> popped_out_monitor = this->getPoppedOutMonitor();
+            if(popped_out_monitor) {
+                cr_window->setPoppedOutMonitor(*popped_out_monitor);
+            }
         });
 
         command_action_bar = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::HORIZONTAL);
