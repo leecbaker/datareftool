@@ -32,7 +32,7 @@ DRT is a work in progress; code contributions are welcome.
 
 ## How to install
 
-To install the plugin, download the latest release [on this page](https://github.com/leecbaker/datareftool/releases). Unzip the files, and copy the `DataRefTool_2020_12_06` directory to `X-Plane 11/Resources/plugins/DataRefTool_2020_12_06`.
+To install the plugin, download the latest release [on this page](https://github.com/leecbaker/datareftool/releases). Unzip the files, and copy the `DataRefTool_XP11_2020_12_06` to your plugins directory `X-Plane 11/Resources/plugins/`. Make sure to choose the XP11 version for X-Plane 11, or XP10 for X-Plane 10.
 
 ## Frequently Asked Questions
 

@@ -1,0 +1,18 @@
+DataRefTool Install Instructions
+
+By Lee Baker
+datareftool.com
+
+DOWNLOADING
+
+To download DRT, please visit datareftool.com and click the link there, or visit https://github.com/leecbaker/datareftool/releases to see get the latest released version.
+
+INSTALLING
+
+To install the plugin, download the latest release. Unzip the files, and copy the `DataRefTool_XP11_2021_??_??` to your plugins directory `X-Plane 11/Resources/plugins/`. Make sure to choose the XP11 version for X-Plane 11, or XP10 for X-Plane 10.
+
+SUPPORT
+
+DataRefTool is provided as a free tool to the community, with the hope that it's helpful. There's a discussion thread at the X-Plane.org forums where you can post a question (or answer someone else's question!). The thread can be found at https://forums.x-plane.org/index.php?/forums/topic/82960-datareftool-is-an-improved-datarefeditor-open-source-better-search-change-detection/
+
+If you would like to report a bug, you can do so at https://github.com/leecbaker/datareftool/issues . Please search the existing bug reports to make sure that you aren't duplicating one that already exists.

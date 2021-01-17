@@ -119,41 +119,43 @@ jobs:
       - uses: actions/checkout@v2
       - name: Create directories
         run: |
-          mkdir -p binaries
-          cp LICENSE binaries/
+          mkdir -p xp10/64
+          mkdir -p xp11/64
       - uses: actions/download-artifact@master
         with:
           name: drt_lin_xp10
-          path: binaries/64/
+          path: xp10/64/
       - uses: actions/download-artifact@master
         with:
           name: drt_lin_xp11
-          path: binaries/lin_x64/
+          path: xp11/lin_x64/
       - uses: actions/download-artifact@master
         with:
           name: drt_mac_xp10
-          path: binaries/64/
+          path: xp10/64/
       - uses: actions/download-artifact@master
         with:
           name: drt_mac_xp11
-          path: binaries/mac_x64/
+          path: xp11/mac_x64/
       - uses: actions/download-artifact@master
         with:
           name: drt_win_xp10
-          path: binaries/64/
+          path: xp10/64/
       - uses: actions/download-artifact@master
         with:
           name: drt_win_xp11
-          path: binaries/win_x64/
+          path: xp11/win_x64/
       - name: Zip the distribution
         run: |
-          ls -l binaries/
-          tree binaries/
-          mv binaries/lin_x64/datareftool.xpl binaries/lin_x64/DataRefTool_`date +%Y_%m_%d`.xpl
-          mv binaries/mac_x64/datareftool.xpl binaries/mac_x64/DataRefTool_`date +%Y_%m_%d`.xpl
-          mv binaries/win_x64/datareftool.xpl binaries/win_x64/DataRefTool_`date +%Y_%m_%d`.xpl
-          mv binaries/ DataRefTool_`date +%Y_%m_%d`
-          zip -r DataRefTool_build.zip DataRefTool_`date +%Y_%m_%d`/*
+          tree xp10/
+          tree xp11/
+          mv xp11/lin_x64/datareftool.xpl xp11/64/lin.xpl
+          mv xp11/mac_x64/datareftool.xpl xp11/64/mac.xpl
+          mv xp11/win_x64/datareftool.xpl xp11/64/win.xpl
+          rmdir xp11/lin_x64 xp11/mac_x64 xp11/win_x64
+          mv xp10/ DataRefTool_XP10_`date +%Y_%m_%d`
+          mv xp11/ DataRefTool_XP11_`date +%Y_%m_%d`
+          zip -r DataRefTool_build.zip DataRefTool_XP10_`date +%Y_%m_%d`/64/ DataRefTool_XP11_`date +%Y_%m_%d`/64/ LICENSE INSTALL.txt
           unzip -l DataRefTool_build.zip
       - name: Notarize ZIP
         run: xcrun altool --notarize-app --primary-bundle-id "com.leecbaker.datareftool.zip" --username "lee@leecbaker.com" --password "${{ secrets. APP_STORE_CONNECT_PASSWORD }}" --file DataRefTool_build.zip
