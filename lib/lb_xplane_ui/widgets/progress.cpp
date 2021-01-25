@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "gl_utils.h"
+#include "../gl_utils.h"
 
 #include "XPLMGraphics.h"
 

@@ -2,7 +2,7 @@
 
 #include <XPLMGraphics.h>
 
-#include "gl_utils.h"
+#include "../gl_utils.h"
 
 void Widget11HorizontalBar::draw(Rect) {
     XPLMSetGraphicsState(0, 0, 0, 0, 1, 0, 0);

@@ -21,3 +21,23 @@ endif()
 
 target_link_libraries(lb_xplane_ui_xp10 PUBLIC clipboard lb_xplane_xp10)
 target_link_libraries(lb_xplane_ui_xp11 PUBLIC clipboard lb_xplane_xp11)
+
+
+if(WIN32)
+    find_package(ZLIB REQUIRED)
+	find_package(libpng CONFIG REQUIRED)
+	target_link_libraries(lb_xplane_ui_xp10 PUBLIC png_static ZLIB::ZLIB)
+	target_link_libraries(lb_xplane_ui_xp11 PUBLIC png_static ZLIB::ZLIB)
+else()
+    if(APPLE)
+		FIND_LIBRARY(COCOA_LIBRARY Cocoa)
+		FIND_LIBRARY(PNG_LIBRARY NAMES libpng16.a libpng.a)
+        target_link_libraries(lb_xplane_ui_xp10 PUBLIC ${COCOA_LIBRARY} ${PNG_LIBRARY} z)
+        target_link_libraries(lb_xplane_ui_xp11 PUBLIC ${COCOA_LIBRARY} ${PNG_LIBRARY} z)
+	else()
+		find_package(PNG REQUIRED)
+        target_link_libraries(lb_xplane_ui_xp10 PUBLIC PNG::PNG z)
+        target_link_libraries(lb_xplane_ui_xp11 PUBLIC PNG::PNG z)
+	endif()
+	
+endif(WIN32)

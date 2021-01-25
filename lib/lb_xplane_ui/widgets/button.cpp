@@ -2,9 +2,8 @@
 
 #include <XPLMGraphics.h>
 
-#include "gl_utils.h"
-
 #include "../draw_basic.h"
+#include "../gl_utils.h"
 
 void Widget11Button::setLabel(std::string label) {
     label_ = std::move(label);

@@ -5,7 +5,7 @@
 #include "../widgets/scroll_bar.h"
 
 #include "../draw_basic.h"
-#include "gl_utils.h"
+#include "../gl_utils.h"
 
 void ScrollContainer::setSize(int x, int y, int width, int height) {
     LayoutObject::setSize(x, y, width, height);

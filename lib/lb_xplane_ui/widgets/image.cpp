@@ -2,7 +2,7 @@
 
 #include <XPLMGraphics.h>
 
-#include "gl_utils.h"
+#include "../gl_utils.h"
 
 void Widget11Image::draw(Rect) {
 

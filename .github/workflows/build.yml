@@ -23,7 +23,7 @@ jobs:
           mkdir -p build
           cd build && cmake -DCMAKE_BUILD_TYPE=Release -G Ninja ..; cd ..
       - name: Build
-        run: ninja -C build
+        run: ninja -v -C build
       - name: Code signing
         run: |
           codesign --sign "Lee Baker" --verbose=4 build/src/plugin/mac.xpl
@@ -61,7 +61,7 @@ jobs:
           mkdir -p build
           cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..; cd ..
       - name: Build
-        run: ninja -C build
+        run: ninja -v -C build
       - uses: actions/upload-artifact@master
         with:
           name: drt_lin_xp10

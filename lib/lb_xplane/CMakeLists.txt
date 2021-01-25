@@ -21,21 +21,3 @@ add_xplane_sdk_definitions(lb_xplane_xp11 301)
 
 target_link_libraries(lb_xplane_xp10 PUBLIC lb_filesystem glew)
 target_link_libraries(lb_xplane_xp11 PUBLIC lb_filesystem glew)
-
-
-if(WIN32)
-    find_package(ZLIB REQUIRED)
-	find_package(libpng CONFIG REQUIRED)
-	target_link_libraries(lb_xplane_xp10 PUBLIC png_static ZLIB::ZLIB)
-	target_link_libraries(lb_xplane_xp11 PUBLIC png_static ZLIB::ZLIB)
-else()
-	FIND_LIBRARY(PNG_LIBRARY NAMES libpng16.a libpng.a)
-    target_link_libraries(lb_xplane_xp10 PUBLIC ${PNG_LIBRARY} z)
-    target_link_libraries(lb_xplane_xp11 PUBLIC ${PNG_LIBRARY} z)
-
-    if(APPLE)
-		FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-		target_link_libraries(lb_xplane_xp10 PUBLIC ${COCOA_LIBRARY})
-		target_link_libraries(lb_xplane_xp11 PUBLIC ${COCOA_LIBRARY})
-    endif()
-endif(WIN32)
