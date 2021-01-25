@@ -2,8 +2,10 @@
 
 #include "window11.h"
 
+#include <memory>
+#include "geometry.h"
+
 class CommandRefRecord;
-class Widget11Button;
 class Widget11Text;
 
 class CommandrefWindow : public Window11<CommandrefWindow> {

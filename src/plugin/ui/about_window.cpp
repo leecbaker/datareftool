@@ -1,9 +1,9 @@
 #include "about_window.h"
 
-#include "widgets.h"
-#include "containers.h"
+#include "container/single_axis_layout.h"
+#include "widgets/text.h"
 
-#include <optional>
+#include <memory>
 #include <sstream>
 
 AboutWindow::AboutWindow() {

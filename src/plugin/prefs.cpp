@@ -2,8 +2,6 @@
 
 #include "logging.h"
 
-#include "plugin.h"
-
 #include <fstream>
 
 bool auto_reload_plugins;

@@ -1,14 +1,13 @@
 #pragma once
 
-#include "window11.h"
-
 #include <chrono>
+#include <memory>
 #include <vector>
+
+#include "window11.h"
 
 class DataRefRecord;
 class DataRefRow;
-class Widget11Button;
-class Widget11TextField;
 class Widget11Text;
 
 class DatarefWindow : public Window11<DatarefWindow> {

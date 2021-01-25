@@ -1,11 +1,14 @@
 #include "commandref_window.h"
 
-#include "widgets.h"
-#include "containers.h"
+#include <cstddef>
+#include <sstream>
+
+#include "container/single_axis_layout.h"
+#include "widgets/button.h"
+#include "widgets/horizontal_bar.h"
+#include "widgets/text.h"
 
 #include "search/commandref.h"
-
-#include <sstream>
 
 CommandrefWindow::CommandrefWindow(CommandRefRecord * crr) : crr(crr) {
     std::shared_ptr<Widget11Text> cr_name = std::make_shared<Widget11Text>();

@@ -4,6 +4,7 @@
 
 #include "drt_datarefs.h"
 
+#include "plugin_menu.h"
 #include "threaded_scanner.h"
 #include "search/allrefs.h"
 

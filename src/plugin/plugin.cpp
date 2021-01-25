@@ -1,10 +1,17 @@
 #include "plugin.h"
+
+#include <cstdint>
+#include <ostream>
+
+#include <string.h> //memcpy
+
 #include "drt_plugin.h"
 
 #include "prefs.h"
 
 #include "logging.h"
 
+#include "XPLMDefs.h"
 #include "XPLMPlugin.h"
 
 

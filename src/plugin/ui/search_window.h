@@ -2,14 +2,17 @@
 
 #include <memory>
 
-#include "widgets.h"
 #include "window11.h"
-
-#include "selectable_list.h"
 
 #include "search/search.h"
 
+class RefRecord;
 class RefRecords;
+class ResultsList;
+class ScrollContainer;
+class SingleAxisLayoutContainer;
+class Widget11Button;
+class Widget11TextField;
 
 enum class ChangeFilterType {
     ALL,

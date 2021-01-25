@@ -2,7 +2,14 @@
 
 #include "clipboard.h"
 
-#include "widgets.h"
+#include "container/scroll.h"
+#include "container/single_axis_layout.h"
+
+#include "selectable_list.h"
+
+#include "widgets/button.h"
+#include "widgets/spacer.h"
+#include "widgets/text_field.h"
 
 #include "commandref_window.h"
 #include "dataref_window.h"

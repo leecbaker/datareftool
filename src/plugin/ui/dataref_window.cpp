@@ -1,12 +1,18 @@
 #include "dataref_window.h"
 
+#include <cassert>
+#include <sstream>
+
 #include "container/single_axis_layout.h"
-#include "widgets.h"
-#include "containers.h"
+#include "container/scroll.h"
+#include "widgets/button.h"
+#include "widgets/horizontal_bar.h"
+#include "widgets/spacer.h"
+#include "widgets/text.h"
+#include "widgets/text_field.h"
 
 #include "search/dataref.h"
 
-#include <sstream>
 
 bool checkValueOK(DataRefRecord * drr, const std::string & new_value) {
     if(drr->isDouble()) {

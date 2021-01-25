@@ -7,8 +7,6 @@
 
 #include "filesystem.h"
 
-#include "plugin_menu.h"
-
 class AboutWindow;
 class SearchWindow;
 

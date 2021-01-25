@@ -3,13 +3,10 @@
 #include "logging.h"
 #include "prefs.h"
 
-#include <cstring>
 #include <memory>
 
 #include "ui/about_window.h"
 #include "ui/search_window.h"
-
-#include "filesystem.h"
 
 #include "XPLMPlanes.h"
 #include "XPLMPlugin.h"

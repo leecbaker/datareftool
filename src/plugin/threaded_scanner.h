@@ -1,5 +1,6 @@
 #include <optional>
 #include <thread>
+#include <vector>
 
 #include <filesystem.h>
 
