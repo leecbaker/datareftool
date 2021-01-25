@@ -49,14 +49,14 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y cmake libx11-dev libbz2-dev libgl-dev libglu1-mesa-dev g++-8 ninja-build
+          sudo apt-get install -y cmake libx11-dev libbz2-dev libgl-dev libglu1-mesa-dev ninja-build
       - uses: actions/checkout@v2
         with:
           submodules: recursive
       - name: CMake
         env:
-          CC: gcc-8
-          CXX: g++-8
+          CC: gcc-10
+          CXX: g++-10
         run: |
           mkdir -p build
           cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..; cd ..
