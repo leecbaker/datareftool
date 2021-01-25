@@ -4,8 +4,6 @@
 
 #include <fstream>
 
-#include <boost/algorithm/string.hpp>
-
 #include "mio.hpp"
 
 std::vector<std::string> loadListFile(std::ostream & log, const lb::filesystem::path & filename) {

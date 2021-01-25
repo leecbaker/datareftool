@@ -12,8 +12,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/trim.hpp>
+#include "lb_string.h"
 
 #include <signal.h>
 
@@ -31,7 +30,7 @@ void RefRecords::saveToFile(const lb::filesystem::path & dataref_filename, const
 
     auto sort_and_write_names = [this](std::vector<const std::string *> & names, const lb::filesystem::path & filename) -> bool {
         auto p_str_comparator = [](const std::string * s1, const std::string * s2) -> bool {
-            return boost::ilexicographical_compare(*s1, *s2);
+            return ilexicographical_compare(*s1, *s2);
         };
         std::sort(names.begin(), names.end(), p_str_comparator);
 
@@ -54,8 +53,7 @@ std::vector<RefRecord *> RefRecords::add(const std::vector<std::string> & names,
     std::string name;
     std::vector<RefRecord *> new_records;
     for(const std::string & name_untrimmed : names) {
-        name = name_untrimmed;
-        boost::algorithm::trim(name);
+        name = string_stripped(name_untrimmed);
 
         //check for duplicates:
         NameMapType::const_iterator existing_location = ref_names_loaded.find(name);

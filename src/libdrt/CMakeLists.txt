@@ -13,9 +13,7 @@ LIST(SORT LIB_SRC)
 
 add_library(drt STATIC ${LIB_SRC} ${LIB_HDR})
 
-find_package(Boost 1.54.0 REQUIRED COMPONENTS)
-target_include_directories(drt PUBLIC ${Boost_INCLUDE_DIRS})
-target_link_libraries(drt PUBLIC lb_filesystem mio)
+target_link_libraries(drt PUBLIC lb_filesystem lb_common mio)
 target_include_directories(drt INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # define the minimum X-Plane SDK version that gives us the functions we need for the API

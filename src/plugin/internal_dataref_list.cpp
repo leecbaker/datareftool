@@ -1,7 +1,6 @@
 #include "internal_dataref_list.h"
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
+#include "lb_string.h"
 
 // To generate this list: 
 // cd X-Plane 11/Output/preferences
@@ -1174,8 +1173,7 @@ iphone/indicators/descent_angle_deg
 
 std::vector<std::string> getInternalList() {
 
-    std::vector<std::string> lines;
-    boost::split(lines, raw_list, boost::is_any_of("\n"));
+    std::vector<std::string> lines = string_split(raw_list, '\n');
 
     return lines;
 }

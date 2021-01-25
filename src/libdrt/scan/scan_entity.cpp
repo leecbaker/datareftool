@@ -4,6 +4,8 @@
 
 #include "deduplicate_vector.h"
 
+#include "lb_string.h"
+
 #include <algorithm>
 #include <cctype>
 #include <fstream>
@@ -12,7 +14,6 @@
 #include <unordered_set>
 
 #include <filesystem.h>
-#include <boost/algorithm/string.hpp>
 
 using namespace std::string_literals;
 
@@ -38,10 +39,10 @@ std::vector<std::string> scanAircraft(std::ostream & log, const lb::filesystem::
         file_contents_ss << inFile.rdbuf();
         std::string file_contents = file_contents_ss.str();
 
-        std::vector<std::string> cdataref_entries;
-        boost::split(cdataref_entries, file_contents, boost::is_any_of("\n\r\t, "));
+        std::initializer_list<char> split_charaters = {'\n', '\t' ,'\r', ',', ' '};
+        std::vector<std::string> cdataref_entries = string_split(file_contents, split_charaters);
         for(std::string & s : cdataref_entries) {
-            boost::algorithm::trim(s);
+            string_strip(s);
         }
 
         //remove empty lines
@@ -95,7 +96,7 @@ std::vector<std::string> scanAircraft(std::ostream & log, const lb::filesystem::
 
         if(lb::filesystem::is_regular_file(path)) {
             std::string extension = path.extension().string();
-            boost::algorithm::to_lower(extension);
+            string_to_lower(extension);
             
             if(extensions_to_scan.cend() != extensions_to_scan.find(extension)) {
                 std::vector<std::string> refs = scanFileForDatarefStrings(log, path);
@@ -112,7 +113,9 @@ std::vector<std::string> scanAircraft(std::ostream & log, const lb::filesystem::
 std::vector<std::string> scanLuaFolder(std::ostream & log, const lb::filesystem::path & lua_dir_path) {
     std::vector<std::string> lua_folder_datarefs;
     if(lb::filesystem::is_directory(lua_dir_path)) { // if this is true, it also exists
-        for(auto& file_de : boost::make_iterator_range(lb::filesystem::directory_iterator(lua_dir_path), {})) {
+        for(auto dir_iterator = lb::filesystem::directory_iterator(lua_dir_path); dir_iterator != lb::filesystem::directory_iterator(); dir_iterator++) {
+            auto& file_de = *dir_iterator;
+
             if(file_de.path().extension() == ".lua") {
                 std::vector<std::string> this_script_datarefs = scanFileForDatarefStrings(log, file_de.path());
                 lua_folder_datarefs.insert(lua_folder_datarefs.cend(), this_script_datarefs.begin(), this_script_datarefs.end());

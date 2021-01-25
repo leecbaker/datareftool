@@ -7,7 +7,6 @@
 #include <vector>
 
 #include <locale>
-#include <boost/algorithm/string/compare.hpp>
 
 #include "ref.h"
 

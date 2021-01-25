@@ -1,11 +1,11 @@
 #include "search.h"
 
-#include <boost/algorithm/string.hpp>
+#include "lb_string.h"
 
 void SearchParams::setSearchTerms(const std::string & terms) {
     search_field_ = terms;
     //split search terms, and remove empty ones
-    boost::split(search_terms_, terms, boost::is_any_of(" "));
+    string_split(search_terms_, terms, ' ');
     auto end_it = std::remove_if(search_terms_.begin(), search_terms_.end(), [](const std::string & s)-> bool { return s.empty(); });
     search_terms_.erase(end_it, search_terms_.end());
 

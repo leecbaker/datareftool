@@ -14,7 +14,6 @@
 #include "XPLMPlanes.h"
 #include "XPLMPlugin.h"
 
-#include <boost/functional/hash.hpp>
 #include <filesystem.h>
 
 using namespace std::string_literals;

@@ -1,6 +1,6 @@
 #include "string_util.h"
 
-#include <boost/algorithm/string.hpp>
+#include "lb_string.h"
 
 
 template <typename T>
@@ -26,8 +26,7 @@ bool parseArray(std::ostream & log, const std::string & txt, std::vector<T> & da
         trimmed_txt.pop_back();
     }
 
-    std::vector<std::string> txt_fields;
-    boost::split(txt_fields, trimmed_txt, boost::is_any_of(","));
+    std::vector<std::string> txt_fields = string_split(trimmed_txt, ',');
     
     if(length != int(txt_fields.size())) {
         log << "Save cancelled, as supplied data array doesn't match DR array length\n";

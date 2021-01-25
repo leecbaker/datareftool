@@ -8,10 +8,6 @@
 
 #include <sstream>
 
-
-#include <boost/algorithm/string.hpp>
-
-
 bool checkValueOK(DataRefRecord * drr, const std::string & new_value) {
     if(drr->isDouble()) {
         try {

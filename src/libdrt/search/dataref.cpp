@@ -6,7 +6,7 @@
 #include <cmath>
 #include <sstream>
 
-#include <boost/functional/hash.hpp>
+#include "lb_hash.h"
 
 DataRefRecord::DataRefRecord(const std::string & name, XPLMDataRef ref, ref_src_t source) : RefRecord(name, source), ref(ref) {
     type = XPLMGetDataRefTypes(ref);
@@ -83,7 +83,7 @@ bool DataRefUpdater::operator()(std::vector<float>&) const {
     std::fill(scratch_buffer.begin(), scratch_buffer.end(), 0.f);
     int copied = XPLMGetDatavf(dr->ref, scratch_buffer.data(), 0, current_array_length);
     if(copied == current_array_length) {
-        size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
+        size_t new_hash = hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
         if(new_hash != dr->array_hash) {
             dr->array_hash = new_hash;
             dr->last_updated = current_time;
@@ -106,7 +106,7 @@ bool DataRefUpdater::operator()(std::vector<int>&) const {
     std::fill(scratch_buffer.begin(), scratch_buffer.end(), 0);
     int copied = XPLMGetDatavi(dr->ref, scratch_buffer.data(), 0, current_array_length);
     if(copied == current_array_length) {
-        size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
+        size_t new_hash = hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
         if(new_hash != dr->array_hash) {
             dr->array_hash = new_hash;
             dr->last_updated = current_time;
@@ -128,7 +128,7 @@ bool DataRefUpdater::operator()(std::vector<uint8_t>&) const {
     scratch_buffer.resize(current_array_length);
     int copied = XPLMGetDatab(dr->ref, scratch_buffer.data(), 0, current_array_length);
     if(copied == current_array_length) {
-        size_t new_hash = boost::hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
+        size_t new_hash = hash_range(scratch_buffer.cbegin(), scratch_buffer.cend());
         if(new_hash != dr->array_hash) {
             dr->array_hash = new_hash;
             dr->last_updated = current_time;
