@@ -65,11 +65,20 @@ If you can figure out which dataref caused the crash, the best way to work aroun
 
 DRT reads datarefs every frame in order to detect changes to values. This takes time; moreover, it takes time for other plugins and for X-Plane to compute the dataref values (which is what actually takes most of the time). It takes CPU time to actually do what DRT does; this is why you're losing FPS.
 
-DRT does stop reading datarefs completely when all windows are closed; you should not lose any FPS at all when all windows are closed.
+Here are the best ways to make sure that DRT is having the smallest impact on your FPS:
 
-DRT is written in a highly optimized and efficient manner; however, it just does a lot of work, so there isn't really a way to improve performance much without losing functionality.
+1. Close all DRT windows when you aren't using them. DRT does stop reading datarefs completely when all windows are closed; you should not lose any FPS at all when all windows are closed.
+2. Ignore datarefs from other plugins that are slow to read. You can do this buy creating a file called `X-Plane 11/Resources/Plugins/drt_ignore.txt`, and list the datarefs you want to ignore there. In X-Plane 11, I'd recommend adding these slow datarefs to the ignore file:
 
-Other than telling you to buy a faster CPU, there isn't really much more that can be done.
+    ```text
+    sim/airfoils/afl_cd
+    sim/airfoils/afl_cm
+    sim/airfoils/afl_cl
+    ```
+
+    To identify datarefs that are slow to read, use a CPU profiler (I use X-Code Instruments).
+
+3. Buy a faster CPU! :-) DRT is written in a highly optimized and efficient manner; however, it does a lot of work, and that work takes CPU time.
 
 ## Development details
 
