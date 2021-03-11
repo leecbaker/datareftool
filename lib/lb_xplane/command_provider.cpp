@@ -7,15 +7,15 @@ CommandProvider::CommandProvider(std::string name, std::string description, std:
 {
     cr = XPLMCreateCommand(name.c_str(), description.c_str());
     
-    if(bool(begin_func)) {
+    if(bool(this->begin_func)) {
         XPLMRegisterCommandHandler(cr, CommandProvider::begin_handler, 1, static_cast<void *>(this));
     }
 
-    if(bool(continue_func)) {
+    if(bool(this->continue_func)) {
         XPLMRegisterCommandHandler(cr, CommandProvider::continue_handler, 1, static_cast<void *>(this));
     }
 
-    if(bool(end_func)) {
+    if(bool(this->end_func)) {
         XPLMRegisterCommandHandler(cr, CommandProvider::end_handler, 1, static_cast<void *>(this));
     }
 }
