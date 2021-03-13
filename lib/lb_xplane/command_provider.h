@@ -13,10 +13,9 @@ class CommandProvider {
     std::function<bool(void)> continue_func;
     std::function<bool(void)> end_func;
 
-    static int begin_handler( XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
-    static int continue_handler( XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
-    static int end_handler( XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
+    static int handler( XPLMCommandRef inCommand, XPLMCommandPhase inPhase, void * inRefcon);
 public:
-    CommandProvider(std::string name, std::string description, std::function<bool(void)> begin_func, std::function<bool(void)> continue_func = {}, std::function<bool(void)> end_func = {});
+    CommandProvider(std::string name, std::string description, std::function<bool(void)> func) : CommandProvider(name, description, {}, {}, func) {}
+    CommandProvider(std::string name, std::string description, std::function<bool(void)> begin_func, std::function<bool(void)> continue_func, std::function<bool(void)> end_func);
     ~CommandProvider();
 };

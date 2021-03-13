@@ -1,5 +1,7 @@
 #include "command_provider.h"
 
+#include "logging.h"
+
 CommandProvider::CommandProvider(std::string name, std::string description, std::function<bool(void)> begin_func, std::function<bool(void)> continue_func, std::function<bool(void)> end_func)
 : begin_func(std::move(begin_func))
 , continue_func(std::move(continue_func))
@@ -7,45 +9,34 @@ CommandProvider::CommandProvider(std::string name, std::string description, std:
 {
     cr = XPLMCreateCommand(name.c_str(), description.c_str());
     
-    if(bool(this->begin_func)) {
-        XPLMRegisterCommandHandler(cr, CommandProvider::begin_handler, 1, static_cast<void *>(this));
-    }
-
-    if(bool(this->continue_func)) {
-        XPLMRegisterCommandHandler(cr, CommandProvider::continue_handler, 1, static_cast<void *>(this));
-    }
-
-    if(bool(this->end_func)) {
-        XPLMRegisterCommandHandler(cr, CommandProvider::end_handler, 1, static_cast<void *>(this));
-    }
+    XPLMRegisterCommandHandler(cr, CommandProvider::handler, 0, static_cast<void *>(this));
 }
 
 CommandProvider::~CommandProvider() {
-    if(bool(begin_func)) {
-        XPLMUnregisterCommandHandler(cr, CommandProvider::begin_handler, 1, static_cast<void *>(this));
-    }
-
-    if(bool(continue_func)) {
-        XPLMUnregisterCommandHandler(cr, CommandProvider::continue_handler, 1, static_cast<void *>(this));
-    }
-
-    if(bool(end_func)) {
-        XPLMUnregisterCommandHandler(cr, CommandProvider::end_handler, 1, static_cast<void *>(this));
-    }
+    XPLMUnregisterCommandHandler(cr, CommandProvider::handler, 0, static_cast<void *>(this));
 }
 
 
-int CommandProvider::begin_handler(XPLMCommandRef /* inCommand */, XPLMCommandPhase /* inPhase */, void * inRefcon) {
-    CommandProvider * pthis = static_cast<CommandProvider *>(inRefcon);
-    return pthis->begin_func() ? 1 : 0;
-}
+int CommandProvider::handler(XPLMCommandRef /* inCommand */, XPLMCommandPhase phase, void * inRefcon) {
 
-int CommandProvider::continue_handler(XPLMCommandRef /* inCommand */, XPLMCommandPhase /* inPhase */, void * inRefcon) {
     CommandProvider * pthis = static_cast<CommandProvider *>(inRefcon);
-    return pthis->continue_func() ? 1 : 0;
-}
+    switch(phase) {
+        case xplm_CommandBegin:
+            if(bool(pthis->begin_func)) {
+                return pthis->begin_func() ? 1 : 0;
+            }
+            break;
+        case xplm_CommandContinue:
+            if(bool(pthis->continue_func)) {
+                return pthis->continue_func() ? 1 : 0;
+            }
+            break;
+        case xplm_CommandEnd:
+            if(bool(pthis->end_func)) {
+                return pthis->end_func() ? 1 : 0;
+            }
+            break;
+    }
 
-int CommandProvider::end_handler(XPLMCommandRef /* inCommand */, XPLMCommandPhase /* inPhase */, void * inRefcon ) {
-    CommandProvider * pthis = static_cast<CommandProvider *>(inRefcon);
-    return pthis->end_func() ? 1 : 0;
+    return 0;
 }
