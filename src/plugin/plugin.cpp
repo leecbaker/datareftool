@@ -21,16 +21,20 @@ const char * dre_description = "A plugin that shows all data refs!.";
 
 
 PLUGIN_API int XPluginStart(char * outName, char * outSig, char * outDesc) {
+    // You probably want this on
+    XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
+
     // Plugin details
     strcpy(outName, "DataRefTool");
     strcpy(outSig, "com.leecbaker.datareftool");
     strcpy(outDesc, "More information https://github.com/leecbaker/datareftool");
 
-    xplog.setPrefix("DataRefTool: ");
-    xplog_debug.setPrefix("DataRefTool: ");
+    xplog_aggregator.setPrefix("DataRefTool: ");
+    xplog_debug_aggregator.setPrefix("DataRefToolDebug: ");
 
-    // You probably want this on
-    XPLMEnableFeature("XPLM_USE_NATIVE_PATHS", 1);
+    xplog << "DataRefTool by Lee C. Baker\n";
+    xplog << "www.datareftool.com\n";
+    xplog << "Compiled " __TIMESTAMP__ "\n";
 
     plugin = std::make_unique<DRTPlugin>();
 

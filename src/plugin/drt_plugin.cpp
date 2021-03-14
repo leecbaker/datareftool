@@ -99,7 +99,7 @@ void DRTPlugin::load_dr_callback() {
 
         scanner.scanPlugin(plugin_dir);
 
-        xplog << "Found plugin with name=\"" << name << "\" desc=\"" << description << "\" signature=\"" << signature << "\"";
+        xplog_debug << "Found plugin with name=\"" << name << "\" desc=\"" << description << "\" signature=\"" << signature << "\"\n";
     }
 
     scanner.scanAircraft(getCurrentAircraftPath());
@@ -119,6 +119,17 @@ DRTPlugin::DRTPlugin()
 
     loadPrefs();
 
+    if(getDebugMode()) {
+        xplog << "Debug mode enabled (more logging). To disable debug mode:\n";
+    } else {
+        xplog << "Debug mode disabled. To enable debug mode:\n";
+    }
+
+    xplog << "* Set dataref leecbaker/drt/debug, and restart the plugin; or\n";
+    xplog << "* Change the preferences file at " << prefs_path << "\n";
+
+    xplog_debug.setEnabled(getDebugMode());
+
     load_dr_flcb.scheduleNextFlightLoop();
     update_dr_flcb.scheduleEveryFlightLoop();
     if(getAutoReloadPlugins()) {
@@ -134,8 +145,6 @@ void DRTPlugin::loadPrefs() {
         xplog << "Failed to load prefs from " << prefs_path << "\n";
     }
 
-    setDebugMode(getDebugMode());
-
     menu.update();
 }
 
@@ -144,17 +153,6 @@ void DRTPlugin::setDebugMode(bool debug_mode) {
         return;
     }
     ::setDebugMode(debug_mode);
-
-    xplog_debug.setEnabled(debug_mode);
-
-    if(debug_mode) {
-        xplog << "Debug mode enabled (more logging). To disable debug mode:\n";
-    } else {
-        xplog << "Debug mode disabled. To enable debug mode:\n";
-    }
-
-    xplog << "* Set dataref leecbaker/drt/debug, and restart the plugin; or\n";
-    xplog << "* Change the preferences file at " << prefs_path << "\n";
 }
 
 void DRTPlugin::savePrefs() {
@@ -358,7 +356,7 @@ void DRTPlugin::handleMessage(intptr_t inMessage, void * inParam) {
             break;
         case XPLM_MSG_PLANE_LOADED: {
             int64_t plane_num = int64_t(inParam);
-            xplog << "Plane loaded #: " << plane_num << "\n";
+            xplog_debug << "Plane loaded message for plane #: " << plane_num << "\n";
             if(0 == plane_num) { //user's plane
                 aircraftIsBeingLoaded();
             }

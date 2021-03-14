@@ -11,6 +11,13 @@
 #include "XPLMUtilities.h"
 
 ThreadedScanner::ThreadedScanner() {
+
+    {
+        char system_path_c[1000];
+        XPLMGetSystemPath(system_path_c);
+        system_path = lb::filesystem::path(system_path_c);
+    }
+
     worker_thread = std::thread([this]() {
         this->thread_proc();
     });
@@ -39,9 +46,6 @@ void ThreadedScanner::thread_proc() {
 
         switch(message.type) {
             case ScanMessageType::SCAN_INITIAL: {
-                char system_path_c[1000];
-                XPLMGetSystemPath(system_path_c);
-                lb::filesystem::path system_path(system_path_c);
 
                 { 
                     // Ignore list. This file was previous called blacklist, so that filename
