@@ -8,12 +8,11 @@ thread_local XPLogger xplog_debug(xplog_debug_aggregator);
 
 
 XPLogAggregator::XPLogAggregator() {
-    XPLMCreateFlightLoop_t callback_info{
-        .structSize = sizeof(XPLMCreateFlightLoop_t),
-        .phase = xplm_FlightLoop_Phase_BeforeFlightModel,
-        .callbackFunc = &XPLogAggregator::logging_callback,
-        .refcon = this,
-    };
+    XPLMCreateFlightLoop_t callback_info;
+    callback_info.structSize = sizeof(XPLMCreateFlightLoop_t);
+    callback_info.phase = xplm_FlightLoop_Phase_BeforeFlightModel;
+    callback_info.callbackFunc = &XPLogAggregator::logging_callback;
+    callback_info.refcon = this;
 
     callback_id = XPLMCreateFlightLoop(&callback_info);
 
