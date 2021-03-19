@@ -106,7 +106,7 @@ bool Widget11TextField::mouseClick(Point point, XPLMMouseStatus status) {
 }
 
 void Widget11TextField::keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) {
-    if(virtual_key == XPLM_VK_RETURN || virtual_key == XPLM_VK_ENTER) {
+    if(virtual_key == XPLM_VK_RETURN || virtual_key == XPLM_VK_ENTER || XPLM_VK_NUMPAD_ENT == virtual_key) {
         if(submit_action) {
             submit_action();
         }
