@@ -6,6 +6,8 @@
 
 #include "search/search.h"
 
+class CommandRefRecord;
+class DataRefRecord;
 class RefRecord;
 class RefRecords;
 class ResultsList;
@@ -90,4 +92,8 @@ public:
     void updateSearch();
 
     void update();
+
+    void showEditWindow(DataRefRecord * drr);
+    void showEditWindow(CommandRefRecord * crr);
+    void selectSearchField();
 };

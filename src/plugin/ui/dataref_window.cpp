@@ -191,6 +191,10 @@ public:
             edit_field->setContents(drr->getArrayElementEditString(element_index));
         }
     }
+
+    std::shared_ptr<Widget11TextField> getEditField() {
+        return edit_field;
+    }
 };
 
 DatarefWindow::DatarefWindow(DataRefRecord * drr) : drr(drr) {
@@ -257,6 +261,12 @@ DatarefWindow::DatarefWindow(DataRefRecord * drr) : drr(drr) {
     setTitle("Dataref: " + title);
     setTopLevelWidget(window_container);
     setWindowCentered();
+
+
+    if(false == edit_rows.empty()) {
+        setKeyboardFocusToWidget(edit_rows.front()->getEditField());
+        edit_rows.front()->getEditField()->selectAll();
+    }
 }
 
 void DatarefWindow::draw(Rect visible_bounds) {

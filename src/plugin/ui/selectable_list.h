@@ -10,42 +10,46 @@
 #include "search/search.h"
 
 class RefRecord;
+class SearchWindow;
 
 class SelectableListBase : public SingleAxisLayoutContainer {
 protected:
-    std::weak_ptr<Widget11> selected_element;
-    std::weak_ptr<Widget11> tentative_selected_element;
-    virtual void fireSelectionChange(std::weak_ptr<Widget11> & old_selection, std::weak_ptr<Widget11> & new_selection) = 0;
+    SearchWindow * search_window;
+    std::weak_ptr<LayoutObject> selected_element;
+    virtual void fireSelectionChange(std::weak_ptr<LayoutObject> old_selection, std::weak_ptr<LayoutObject> new_selection) = 0;
 public:
-    SelectableListBase() : SingleAxisLayoutContainer(SingleAxisLayoutContainer::LayoutAxis::VERTICAL) {}
+    SelectableListBase(SearchWindow * search_window) : SingleAxisLayoutContainer(SingleAxisLayoutContainer::LayoutAxis::VERTICAL), search_window(search_window) {}
 
     void draw(Rect visible_bounds) override;
     virtual std::shared_ptr<Widget11> mouseClick(Point point, XPLMMouseStatus status) override;
 
-    virtual bool acceptsKeyboardFocus() const override { return true; }
-
-    virtual void keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override;
-
-
     virtual void clear() override {
-        std::weak_ptr<Widget11> nothing;
+        std::weak_ptr<LayoutObject> nothing;
         fireSelectionChange(selected_element, nothing);
         selected_element.reset();
         SingleAxisLayoutContainer::clear();
     }
+
+    void deselect();
+    void selectNext();
+    void selectPrevious();
+    void activateSelection();
+
+    const SearchWindow * getSearchWindow() const { return search_window; }
+    SearchWindow * getSearchWindow() { return search_window; }
 };
 
 template <class SelectableElement>
 class SelectableList : public SelectableListBase {
     std::function<void(SelectableElement *, SelectableElement *)> selection_change_handler = nullptr;
 
-    virtual void fireSelectionChange(std::weak_ptr<Widget11> & old_selection, std::weak_ptr<Widget11> & new_selection) override {
+    virtual void fireSelectionChange(std::weak_ptr<LayoutObject> old_selection, std::weak_ptr<LayoutObject> new_selection) override {
         if(nullptr == selection_change_handler) {
             return;
         }
 
-        std::shared_ptr<Widget11> old_selection_widget_ptr = old_selection.lock();
-        std::shared_ptr<Widget11> new_selection_widget_ptr = new_selection.lock();
+        std::shared_ptr<LayoutObject> old_selection_widget_ptr = old_selection.lock();
+        std::shared_ptr<LayoutObject> new_selection_widget_ptr = new_selection.lock();
 
         std::shared_ptr<SelectableElement> old_selection_ptr = std::dynamic_pointer_cast<SelectableElement>(old_selection_widget_ptr);
         std::shared_ptr<SelectableElement> new_selection_ptr = std::dynamic_pointer_cast<SelectableElement>(new_selection_widget_ptr);
@@ -53,6 +57,7 @@ class SelectableList : public SelectableListBase {
         selection_change_handler(old_selection_ptr.get(), new_selection_ptr.get());
     }
 public:
+    SelectableList(SearchWindow * search_window) : SelectableListBase(search_window) {}
     void setSelectionChangeAction(std::function<void(SelectableElement*, SelectableElement *)> new_selection_change_handler) {
         selection_change_handler = new_selection_change_handler;
     }
@@ -62,20 +67,26 @@ public:
     }
 };
 
+class ResultsList;
+
 class ResultLine : public Widget11Text {
+    ResultsList * selectable_list_parent;
     RefRecord * record = nullptr;
     const std::chrono::system_clock::time_point * last_update_timestamp;
 public:
-    ResultLine(const std::chrono::system_clock::time_point * last_update_timestamp) : last_update_timestamp(last_update_timestamp) {}
+    ResultLine(ResultsList * selectable_list_parent, const std::chrono::system_clock::time_point * last_update_timestamp) : selectable_list_parent(selectable_list_parent), last_update_timestamp(last_update_timestamp) {}
     void setRecord(RefRecord *);
     RefRecord * getRecord() const { return record; }
     virtual void draw(Rect bounds) override;
+
+    virtual bool acceptsKeyboardFocus() const override { return true; }
+    virtual void keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override;
 };
 
 class ResultsList : public SelectableList<ResultLine> {
     std::shared_ptr<SearchResults> & results;
 public:
-    ResultsList(std::shared_ptr<SearchResults> & results) : results(results) {}
+    ResultsList(SearchWindow * search_window, std::shared_ptr<SearchResults> & results) : SelectableList<ResultLine>(search_window), results(results) {}
     void update();
     virtual void draw(Rect draw_bounds) override;
 };

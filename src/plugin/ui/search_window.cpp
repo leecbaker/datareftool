@@ -69,7 +69,7 @@ SearchWindow::SearchWindow(RefRecords & refs)
 
     list_scroll_container = std::make_shared<ScrollContainer>();
     {
-        selection_list = std::make_shared<ResultsList>(results);
+        selection_list = std::make_shared<ResultsList>(this, results);
         selection_list->setPaddingBetweenElements(0);
         selection_list->setSelectionChangeAction([this](ResultLine * /* old_selection */, ResultLine * new_selection) {
             if(nullptr == new_selection) {
@@ -123,13 +123,7 @@ SearchWindow::SearchWindow(RefRecords & refs)
             RefRecord * rr = rl_selected->getRecord();
             DataRefRecord * drr = dynamic_cast<DataRefRecord *>(rr);
             if(nullptr != drr) {
-                std::shared_ptr<DatarefWindow> dr_window = DatarefWindow::make(drr);
-
-                // if this window is popped out into an os window, do the same with the edit window
-                std::optional<int> popped_out_monitor = this->getPoppedOutMonitor();
-                if(popped_out_monitor) {
-                    dr_window->setPoppedOutMonitor(*popped_out_monitor);
-                }
+                showEditWindow(drr);
             }
         });
 
@@ -181,13 +175,7 @@ SearchWindow::SearchWindow(RefRecords & refs)
 
             RefRecord * rr = rl_selected->getRecord();
             CommandRefRecord * crr = dynamic_cast<CommandRefRecord *>(rr);
-            std::shared_ptr<CommandrefWindow> cr_window = CommandrefWindow::make(crr);
-
-            // if this window is popped out into an os window, do the same with the edit window
-            std::optional<int> popped_out_monitor = this->getPoppedOutMonitor();
-            if(popped_out_monitor) {
-                cr_window->setPoppedOutMonitor(*popped_out_monitor);
-            }
+            showEditWindow(crr);
         });
 
         command_action_bar = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::HORIZONTAL);
@@ -370,4 +358,29 @@ void SearchWindow::updateTitle() { //update title
     window_title << "DataRefTool (" << results->size() << ")";
 
     setTitle(window_title.str());
+}
+
+
+void SearchWindow::showEditWindow(DataRefRecord * drr) {
+    std::shared_ptr<DatarefWindow> dr_window = DatarefWindow::make(drr);
+
+    // if this window is popped out into an os window, do the same with the edit window
+    std::optional<int> popped_out_monitor = this->getPoppedOutMonitor();
+    if(popped_out_monitor) {
+        dr_window->setPoppedOutMonitor(*popped_out_monitor);
+    }
+}
+
+void SearchWindow::showEditWindow(CommandRefRecord * crr) {
+    std::shared_ptr<CommandrefWindow> cr_window = CommandrefWindow::make(crr);
+
+    // if this window is popped out into an os window, do the same with the edit window
+    std::optional<int> popped_out_monitor = this->getPoppedOutMonitor();
+    if(popped_out_monitor) {
+        cr_window->setPoppedOutMonitor(*popped_out_monitor);
+    }
+}
+
+void SearchWindow::selectSearchField() {
+    setKeyboardFocusToWidget(search_box);
 }

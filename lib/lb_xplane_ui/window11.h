@@ -22,6 +22,7 @@
 #define XP10_WIDGET_GUTTER_WIDTH 10
 
 class LayoutObject;
+class Widget11;
 
 
 // This is an XPLM300 window
@@ -179,6 +180,8 @@ public:
     virtual void keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key, int losingFocus);
     virtual XPLMCursorStatus handleCursor(Point point);
     virtual bool handleMouseWheel(Point point, int wheel, int clicks);
+
+    void setKeyboardFocusToWidget(std::shared_ptr<Widget11> widget);
 
 #if defined(XPLM301)
 protected:

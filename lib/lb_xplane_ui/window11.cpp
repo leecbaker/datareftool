@@ -202,6 +202,22 @@ void Window11Base::draw(Rect draw_bounds) {
     layout_object->draw(draw_bounds);
 }
 
+void Window11Base::setKeyboardFocusToWidget(std::shared_ptr<Widget11> new_focus_widget) {
+#ifdef XPLM300
+    XPLMTakeKeyboardFocus(window);
+#else
+    XPSetKeyboardFocus(widget_container);
+#endif
+
+    if(layout_object->hasKeyboardFocus()) {
+        layout_object->removeKeyboardFocus();
+    }
+
+    if(new_focus_widget->acceptsKeyboardFocus()) {
+        new_focus_widget->giveKeyboardFocus();
+    }
+}
+
 bool Window11Base::mouseClick(Point point, XPLMMouseStatus status) {
     std::shared_ptr<Widget11> click_handler;
 
@@ -215,20 +231,14 @@ bool Window11Base::mouseClick(Point point, XPLMMouseStatus status) {
         }
     }
 
-#ifdef XPLM300
-    XPLMTakeKeyboardFocus(window);
-#else
-    XPSetKeyboardFocus(widget_container);
-#endif
-
     if(click_handler) {
-        if(layout_object->hasKeyboardFocus()) {
-            layout_object->removeKeyboardFocus();
-        }
-
-        if(click_handler->acceptsKeyboardFocus()) {
-            click_handler->giveKeyboardFocus();
-        }
+        setKeyboardFocusToWidget(click_handler);
+    } else {
+    #ifdef XPLM300
+        XPLMTakeKeyboardFocus(window);
+    #else
+        XPSetKeyboardFocus(widget_container);
+    #endif
     }
     
     return nullptr != click_handler;
