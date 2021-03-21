@@ -183,6 +183,9 @@ public:
 
     void setKeyboardFocusToWidget(std::shared_ptr<Widget11> widget);
 
+    // Where windows implement their own key handling:
+    virtual bool keyPress(char /* key */, XPLMKeyFlags /* flags */, uint8_t /* virtual_key */);
+
 #if defined(XPLM301)
 protected:
     Dataref<bool> currently_in_vr;

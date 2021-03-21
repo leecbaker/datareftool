@@ -26,6 +26,7 @@ public:
     virtual ~SingleAxisLayoutContainer() = default;
 
     void addNoLayout(std::shared_ptr<LayoutObject> widget, bool expand, bool fill) {
+        widget->setParent(this);
         widgets.emplace_back(std::move(widget));
         widget_attributes.emplace_back(expand, fill);
     }

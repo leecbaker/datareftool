@@ -12,6 +12,7 @@
 #include "search_window.h"
 
 #include "clipboard.h"
+#include "logging.h"
 
 #include <chrono>
 
@@ -73,6 +74,7 @@ void SelectableListBase::selectNext() {
         selected_it = begin();
 
         fireSelectionChange(previous_selection, *selected_it);
+        selected_element = std::dynamic_pointer_cast<Widget11, LayoutObject>(*selected_it);
     } else if(selected_it + 1 != end()) {
         selected_it++;
         fireSelectionChange(previous_selection, *selected_it);
@@ -87,11 +89,12 @@ void SelectableListBase::selectPrevious() {
 
     if(selected_it == end() && end() != begin()) {
         selected_it = end() - 1;
+        selected_element = std::dynamic_pointer_cast<Widget11, LayoutObject>(*selected_it);
         fireSelectionChange(previous_selection, *selected_it);
     } else if(selected_it != end() && selected_it != begin()) {
         selected_it--;
         selected_element = std::dynamic_pointer_cast<Widget11, LayoutObject>(*selected_it);
-        fireSelectionChange(previous_selection, *selected_it);
+        fireSelectionChange(previous_selection, selected_element);
     }
 }
 
@@ -113,48 +116,85 @@ void SelectableListBase::activateSelection() {
     }
 }
 
-void ResultLine::keyPress(char /* key */, XPLMKeyFlags flags, uint8_t virtual_key) {
-
-    if(flags & xplm_DownFlag) {
+bool SelectableListBase::keyPress(char /* key */, XPLMKeyFlags flags, uint8_t virtual_key) {
+    //raw letter presses
+    if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) == 0 && (flags & xplm_OptionAltFlag) == 0) {
         switch(virtual_key) {
             case XPLM_VK_J:
             case XPLM_VK_UP:
-                selectable_list_parent->selectPrevious();
-                break;
+                if(flags & xplm_DownFlag) {
+                    selectPrevious();
+                }
+                return true;
             case XPLM_VK_K:
             case XPLM_VK_DOWN:
-                selectable_list_parent->selectNext();
-                break;
+                if(flags & xplm_DownFlag) {
+                    selectNext();
+                }
+                return true;
             case XPLM_VK_ESCAPE:
-                selectable_list_parent->deselect();
-                break;
+                if(flags & xplm_DownFlag) {
+                    deselect();
+                }
+                return true;
             case XPLM_VK_ENTER:
             case XPLM_VK_NUMPAD_ENT:
             case XPLM_VK_RETURN:
-                selectable_list_parent->activateSelection();
-                break;
-
-            case XPLM_VK_C:
-                if(flags & xplm_ControlFlag) {
-                    std::shared_ptr<ResultLine> rl_selected = selectable_list_parent->getSelection();
-                    if(nullptr != rl_selected) {
-                        setClipboard(rl_selected->getRecord()->getName());
-                        return;
-                    }
-
+                if(flags & xplm_DownFlag) {
+                    activateSelection();
                 }
-                break;
-
-            case XPLM_VK_L:
-                if(flags & xplm_ControlFlag) {
-                    selectable_list_parent->getSearchWindow()->selectSearchField();
-                    return;
-                }
-                break;
+                return true;
             default:
                 break;
         }
     }
+
+    //control keyboard shortcuts
+    if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) != 0 && (flags & xplm_OptionAltFlag) == 0) {
+        switch(virtual_key) {
+            case XPLM_VK_L:
+                if(flags & xplm_ControlFlag) {
+                    getSearchWindow()->selectSearchField();
+                }
+                return true;
+            default:
+                break;
+        }
+    }
+    return false;
+}
+
+bool ResultLine::keyPress(char /* key */, XPLMKeyFlags flags, uint8_t virtual_key) {
+    //control keyboard shortcuts
+    if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) != 0 && (flags & xplm_OptionAltFlag) == 0) {
+        switch(virtual_key) {
+            case XPLM_VK_C:
+                if(flags & xplm_DownFlag) {
+                    setClipboard(record->getName());
+                }
+                return true;
+            default:
+                break;
+        }
+    }
+
+    //control-alt keyboard shortcuts
+    if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) != 0 && (flags & xplm_OptionAltFlag) != 0) {
+        switch(virtual_key) {
+            case XPLM_VK_C:
+                if(flags & xplm_DownFlag) {
+                    DataRefRecord * drr = dynamic_cast<DataRefRecord *>(record);
+                    if(nullptr != drr) {
+                        setClipboard(drr->getEditString());
+                    }
+                }
+                return true;
+            default:
+                break;
+        }
+    }
+
+    return false;
 }
 
 void ResultLine::setRecord(RefRecord * rr) {
@@ -207,7 +247,7 @@ void ResultsList::update() {
     selected_element.reset();
 
     for(RefRecord * rr : (*results)) {
-        std::shared_ptr<ResultLine> line_widget = std::make_shared<ResultLine>(this, &results->getLastUpdateTimestamp());
+        std::shared_ptr<ResultLine> line_widget = std::make_shared<ResultLine>(&results->getLastUpdateTimestamp());
         line_widget->setRecord(rr);
         SingleAxisLayoutContainer::addNoLayout(std::move(line_widget), false, true);
     }

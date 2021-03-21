@@ -11,11 +11,14 @@ class LayoutObject {
 protected:
     Rect bounds_;
     Size min_size{0, 0}; //This is defined when laying out object. Widgets have a minimum size function
+    LayoutObject * parent = nullptr;
 
     virtual Size getWidgetMinimumSize() const { return {0, 0}; }
 public:
     LayoutObject() {}
     LayoutObject(int x, int y) : bounds_{x, y, x, y} {}
+
+    void setParent(LayoutObject * new_parent) { parent = new_parent; }
 
     void setMinimumSize(Size new_min_size) {
         min_size = new_min_size;
@@ -67,5 +70,7 @@ public:
 
     virtual bool advanceKeyboardFocus() = 0;
 
-    virtual void keyPress(char /* key */, XPLMKeyFlags /* flags */, uint8_t /* virtual_key */) = 0;
+    bool dispatchKeyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key);
+
+    virtual bool keyPress(char /* key */, XPLMKeyFlags /* flags */, uint8_t /* virtual_key */) = 0;
 };

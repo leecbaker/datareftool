@@ -28,6 +28,7 @@ public:
     virtual ~ScrollContainer() = default;
 
     void setContents(std::shared_ptr<LayoutObject> contents) {
+        contents->setParent(this);
         object_ = std::move(contents);
     }
 
@@ -56,7 +57,7 @@ public:
 
     virtual void removeKeyboardFocus() override { object_->removeKeyboardFocus(); }
 
-    virtual void keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override { object_->keyPress(key, flags, virtual_key); }
+    virtual bool keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override { return object_->keyPress(key, flags, virtual_key); }
 
     virtual bool advanceKeyboardFocus() override { return object_->advanceKeyboardFocus(); }
 

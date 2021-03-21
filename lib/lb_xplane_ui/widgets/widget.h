@@ -20,7 +20,7 @@ public:
 
     virtual bool mouseWheel(Point, int /* wheel */, int /* clicks */) override { return false; }
     virtual bool mouseClick(Point, XPLMMouseStatus /* status */ ) { return false; }
-    virtual void keyPress(char /* key */, XPLMKeyFlags /* flags */, uint8_t /* virtual_key */) override {}
+    virtual bool keyPress(char /* key */, XPLMKeyFlags /* flags */, uint8_t /* virtual_key */) override { return false; }
 
     virtual bool hasKeyboardFocus() const override { return has_keyboard_focus_; }
 

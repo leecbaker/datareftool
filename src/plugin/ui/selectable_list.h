@@ -37,6 +37,8 @@ public:
 
     const SearchWindow * getSearchWindow() const { return search_window; }
     SearchWindow * getSearchWindow() { return search_window; }
+
+    virtual bool keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override;
 };
 
 template <class SelectableElement>
@@ -70,17 +72,16 @@ public:
 class ResultsList;
 
 class ResultLine : public Widget11Text {
-    ResultsList * selectable_list_parent;
     RefRecord * record = nullptr;
     const std::chrono::system_clock::time_point * last_update_timestamp;
 public:
-    ResultLine(ResultsList * selectable_list_parent, const std::chrono::system_clock::time_point * last_update_timestamp) : selectable_list_parent(selectable_list_parent), last_update_timestamp(last_update_timestamp) {}
+    ResultLine(const std::chrono::system_clock::time_point * last_update_timestamp) : last_update_timestamp(last_update_timestamp) {}
     void setRecord(RefRecord *);
     RefRecord * getRecord() const { return record; }
     virtual void draw(Rect bounds) override;
 
     virtual bool acceptsKeyboardFocus() const override { return true; }
-    virtual void keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override;
+    virtual bool keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override;
 };
 
 class ResultsList : public SelectableList<ResultLine> {

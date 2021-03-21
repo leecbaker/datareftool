@@ -89,6 +89,10 @@ public:
     void clickCaseSensitiveButton();
     void clickCommandDatarefFilterButton();
 
+    void copyName();
+    void copyValue();
+    void actuateCommand(bool active);
+
     void updateSearch();
 
     void update();
@@ -96,4 +100,6 @@ public:
     void showEditWindow(DataRefRecord * drr);
     void showEditWindow(CommandRefRecord * crr);
     void selectSearchField();
+
+    virtual bool keyPress(char /* key */, XPLMKeyFlags /* flags */, uint8_t /* virtual_key */) override;
 };

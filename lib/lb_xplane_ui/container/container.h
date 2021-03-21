@@ -67,12 +67,16 @@ public:
         }
     }
 
-    virtual void keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override {
+    virtual bool keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override {
         for(const std::shared_ptr<LayoutObject> & widget : widgets) {
             if(widget->hasKeyboardFocus()) {
-                widget->keyPress(key, flags, virtual_key);
+                if(widget->keyPress(key, flags, virtual_key)) {
+                    return true;
+                }
             }
         }
+
+        return false;
     }
 
     /// @return the widget that handled the click, or nullptr if it was not handled. This

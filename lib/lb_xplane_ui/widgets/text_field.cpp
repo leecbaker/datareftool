@@ -105,136 +105,242 @@ bool Widget11TextField::mouseClick(Point point, XPLMMouseStatus status) {
     return true;
 }
 
-void Widget11TextField::keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) {
-    if(virtual_key == XPLM_VK_RETURN || virtual_key == XPLM_VK_ENTER || XPLM_VK_NUMPAD_ENT == virtual_key) {
-        if(submit_action) {
-            submit_action();
-        }
-        return;
+bool Widget11TextField::keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) {
+    if(false == is_enabled) {
+        return false;
     }
 
-    if((virtual_key == XPLM_VK_X) && (xplm_ControlFlag & flags)) {
-        if(xplm_DownFlag & flags) {
-            cut();
-        }
-        return;
-    }
-
-    if((virtual_key == XPLM_VK_C) && (xplm_ControlFlag & flags)) {
-        if(xplm_DownFlag & flags) {
-            copy();
-        }
-        return;
-    }
-    if((virtual_key == XPLM_VK_V) && (xplm_ControlFlag & flags)) {
-        if(xplm_DownFlag & flags) {
-            paste();
-        }
-        return;
-    }
-    if((virtual_key == XPLM_VK_A) && (xplm_ControlFlag & flags)) {
-        if(xplm_DownFlag & flags) {
-            selectAll();
-        }
-        return;
-    }
-
-    if(virtual_key == XPLM_VK_LEFT) {
-        if(xplm_DownFlag & flags) {
-            if(cursor1 != 0) {
-                cursor1--;
-            }
-            if(0 == (flags & xplm_ShiftFlag)) {
-                cursor2 = cursor1;
-            }
-        }
-        recomputeCursor();
-        return;
-    }
-    if(virtual_key == XPLM_VK_RIGHT) {
-        if(xplm_DownFlag & flags) {
-            if(cursor2 != contents.size()) {
-                cursor2++;
-            }
-
-            if(0 == (flags & xplm_ShiftFlag)) {
-                cursor1 = cursor2;
-            }
-        }
-        recomputeCursor();
-        return;
-    }
-
-    if(virtual_key == XPLM_VK_UP || virtual_key == XPLM_VK_HOME || virtual_key == XPLM_VK_PRIOR) {
-        if(xplm_DownFlag & flags) {
-            cursor1 = 0;
-            if(0 == (flags & xplm_ShiftFlag)) {
-                cursor2 = cursor1;
-            }
-            recomputeCursor();
-        }
-        return;
-    }
-    if(virtual_key == XPLM_VK_DOWN || virtual_key == XPLM_VK_END || virtual_key == XPLM_VK_NEXT) {
-        if(xplm_DownFlag & flags) {
-            cursor2 = contents.size();
-            if(0 == (flags & xplm_ShiftFlag)) {
-                cursor1 = cursor2;
-            }
-            recomputeCursor();
-        }
-        return;
-    }
-    if(virtual_key == XPLM_KEY_DELETE) {
-        if(xplm_DownFlag & flags) {
-            if(cursor1 != cursor2) {
-                contents.erase(contents.begin() + cursor1, contents.begin() + cursor2);
-            } else {
-                if(0 != cursor1) {
-                    cursor1--;
-                    contents.erase(cursor1, 1);
+    // keyboard shortcuts without modifiers
+    if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) == 0 && (flags & xplm_OptionAltFlag) == 0) {
+        switch(virtual_key) {
+            case XPLM_VK_RETURN:
+            case XPLM_VK_ENTER:
+            case XPLM_VK_NUMPAD_ENT:
+                if(xplm_DownFlag & flags) {
+                    if(submit_action) {
+                        submit_action();
+                    }
                 }
-            }
-            cursor2 = cursor1;
-            if(type_action) {
-                type_action();
-            }
-            recomputeCursor();
-        }
-        return;
-    }
-
-    if(virtual_key == XPLM_VK_DELETE) {
-        if(xplm_DownFlag & flags) {
-            if(cursor1 != cursor2) {
-                contents.erase(contents.begin() + cursor1, contents.begin() + cursor2);
-            } else {
-                if(contents.size() != cursor1) {
-                    contents.erase(cursor1);
+                return true;
+            case XPLM_VK_DELETE:
+                if(xplm_DownFlag & flags) {
+                    if(cursor1 != cursor2) {
+                        contents.erase(contents.begin() + cursor1, contents.begin() + cursor2);
+                    } else {
+                        if(contents.size() != cursor1) {
+                            contents.erase(cursor1, 1);
+                        }
+                    }
+                    cursor2 = cursor1;
+                    if(type_action) {
+                        type_action();
+                    }
+                    recomputeCursor();
                 }
-            }
-            cursor2 = cursor1;
-            if(type_action) {
-                type_action();
-            }
-            recomputeCursor();
+                return true;
+            case XPLM_KEY_DELETE:
+                if(xplm_DownFlag & flags) {
+                    if(cursor1 != cursor2) {
+                        contents.erase(contents.begin() + cursor1, contents.begin() + cursor2);
+                    } else {
+                        if(0 != cursor1) {
+                            cursor1--;
+                            contents.erase(cursor1, 1);
+                        }
+                    }
+                    cursor2 = cursor1;
+                    if(type_action) {
+                        type_action();
+                    }
+                    recomputeCursor();
+                }
+                return true;
+
+            case XPLM_VK_LEFT:
+                if(xplm_DownFlag & flags) {
+                    if(cursor1 != 0) {
+                        cursor1--;
+                    }
+                    cursor2 = cursor1;
+                    recomputeCursor();
+                }
+                return true;
+
+            case XPLM_VK_RIGHT:
+                if(xplm_DownFlag & flags) {
+                    if(cursor2 != contents.size()) {
+                        cursor2++;
+                    }
+                    cursor1 = cursor2;
+                    recomputeCursor();
+                }
+                return true;
+
+            case XPLM_VK_UP:
+            case XPLM_VK_HOME:
+            case XPLM_VK_PRIOR:
+                if(xplm_DownFlag & flags) {
+                    cursor1 = cursor2 = 0;
+                    cursor2 = cursor1;
+                    recomputeCursor();
+                }
+                return true;
+            case XPLM_VK_DOWN:
+            case XPLM_VK_END:
+            case XPLM_VK_NEXT:
+                if(xplm_DownFlag & flags) {
+                    cursor1 = cursor2 = contents.size();
+                    recomputeCursor();
+                }
+                return true;
+
+            case XPLM_VK_ESCAPE: //do nothing
+                break;
+            default: // normal typing
+                if(xplm_DownFlag & flags) {
+                    if(cursor1 != cursor2) {
+                        contents.erase(contents.begin() + cursor1, contents.begin() + cursor2);
+                    }
+                    contents.insert(cursor1, 1, key);
+                    cursor1++;
+
+                    cursor2 = cursor1;
+                    if(type_action) {
+                        type_action();
+                    }
+                    recomputeCursor();
+                }
+                return true;
         }
-        return;
     }
 
-    if(xplm_DownFlag & flags) {
-        if(cursor1 != cursor2) {
-            contents.erase(contents.begin() + cursor1, contents.begin() + cursor2);
-        }
-        contents.insert(cursor1, 1, key);
-        cursor1++;
+    // keyboard shortcuts with only shift (e.g. arrows)
+    if((flags & xplm_ShiftFlag) != 0 && (flags & xplm_ControlFlag) == 0 && (flags & xplm_OptionAltFlag) == 0) {
+        switch(virtual_key) {
+            case XPLM_VK_LEFT:
+                if(xplm_DownFlag & flags) {
+                    if(cursor1 != 0) {
+                        cursor1--;
+                    }
+                    recomputeCursor();
+                }
+                return true;
 
-        cursor2 = cursor1;
-        if(type_action) {
-            type_action();
+            case XPLM_VK_RIGHT:
+                if(xplm_DownFlag & flags) {
+                    if(cursor2 != contents.size()) {
+                        cursor2++;
+                    }
+                    recomputeCursor();
+                }
+                return true;
+
+            case XPLM_VK_UP:
+            case XPLM_VK_HOME:
+            case XPLM_VK_PRIOR:
+                if(xplm_DownFlag & flags) {
+                    cursor2 = 0;
+                    recomputeCursor();
+                }
+                return true;
+            case XPLM_VK_DOWN:
+            case XPLM_VK_END:
+            case XPLM_VK_NEXT:
+                if(xplm_DownFlag & flags) {
+                    cursor1 = contents.size();
+                    recomputeCursor();
+                }
+                return true;
+
+            // same as non-shift case
+            case XPLM_VK_DELETE:
+                if(xplm_DownFlag & flags) {
+                    if(cursor1 != cursor2) {
+                        contents.erase(contents.begin() + cursor1, contents.begin() + cursor2);
+                    } else {
+                        if(contents.size() != cursor1) {
+                            contents.erase(cursor1, 1);
+                        }
+                    }
+                    cursor2 = cursor1;
+                    if(type_action) {
+                        type_action();
+                    }
+                    recomputeCursor();
+                }
+                return true;
+            //same as non-shift case
+            case XPLM_KEY_DELETE:
+                if(xplm_DownFlag & flags) {
+                    if(cursor1 != cursor2) {
+                        contents.erase(contents.begin() + cursor1, contents.begin() + cursor2);
+                    } else {
+                        if(0 != cursor1) {
+                            cursor1--;
+                            contents.erase(cursor1, 1);
+                        }
+                    }
+                    cursor2 = cursor1;
+                    if(type_action) {
+                        type_action();
+                    }
+                    recomputeCursor();
+                }
+                return true;
+
+                //do nothing
+            case XPLM_VK_ESCAPE:
+            case XPLM_VK_ENTER:
+            case XPLM_VK_RETURN:
+            case XPLM_VK_NUMPAD_ENT:
+                break;
+            default: // normal typing
+                if(xplm_DownFlag & flags) {
+                    if(cursor1 != cursor2) {
+                        contents.erase(contents.begin() + cursor1, contents.begin() + cursor2);
+                    }
+                    contents.insert(cursor1, 1, key);
+                    cursor1++;
+
+                    cursor2 = cursor1;
+                    if(type_action) {
+                        type_action();
+                    }
+                    recomputeCursor();
+                }
+                return true;
         }
-        recomputeCursor();
     }
+
+    // keyboard shortcuts with only control (ie normal stuff)
+    if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) != 0 && (flags & xplm_OptionAltFlag) == 0) {
+        switch(virtual_key) {
+            case XPLM_VK_A:
+                if(xplm_DownFlag & flags) {
+                    selectAll();
+                }
+                return true;
+            case XPLM_VK_X:
+                if(xplm_DownFlag & flags) {
+                    cut();
+                }
+                return true;
+            case XPLM_VK_C:
+                if(xplm_DownFlag & flags) {
+                    copy();
+                }
+                return true;
+            case XPLM_VK_V:
+                if(xplm_DownFlag & flags) {
+                    paste();
+                }
+                return true;
+            default:
+                break;
+        }
+    }
+
+    return false;
 }
 
 void Widget11TextField::recomputeCursor() {

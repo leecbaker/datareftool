@@ -42,7 +42,7 @@ public:
 
     virtual bool acceptsKeyboardFocus() const override { return true; }
 
-    virtual void keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override;
+    virtual bool keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override;
     virtual bool mouseClick(Point point, XPLMMouseStatus /* status */ ) override;
 
     void setTypeAction(std::function<void()> action) { type_action = std::move(action); }

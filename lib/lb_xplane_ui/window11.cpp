@@ -72,6 +72,12 @@ Window11Base::Window11Base()
     widget_container = XPCreateCustomWidget(width / 2 - 400, height / 2 + 200, width / 2 + 400, height / 2 - 200, 1, "widget title", 0, widget, &Window11Base::container_callback);
     XPSetWidgetProperty(widget_container, xpProperty_Refcon, reinterpret_cast<intptr_t>(this));
 #endif
+
+#ifdef XPLM300
+    XPLMTakeKeyboardFocus(window);
+#else
+    XPSetKeyboardFocus(widget_container);
+#endif
 }  
 
 #ifndef XPLM300
@@ -260,8 +266,28 @@ void Window11Base::keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key, i
     }
 
     if(layout_object->hasKeyboardFocus()) {
-        layout_object->keyPress(key, flags, virtual_key);
+        if(layout_object->dispatchKeyPress(key, flags, virtual_key)) {
+            return;
+        }
     }
+
+    //If no object handles it, then the window finally should get a try.
+    this->keyPress(key, flags, virtual_key);
+}
+
+bool Window11Base::keyPress(char /* key */, XPLMKeyFlags flags, uint8_t virtual_key) {
+    if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) != 0 && (flags & xplm_OptionAltFlag) == 0) {
+        switch(virtual_key) {
+            case XPLM_VK_W:
+                if((flags & xplm_DownFlag) != 0) {
+                    closeWindow();
+                }
+                return true;
+            default:
+                break;
+        }
+    }
+    return false;
 }
 
 /// Widgets get to handle cursor if the mouse is over them. They are also
