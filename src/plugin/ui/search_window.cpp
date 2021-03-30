@@ -18,7 +18,105 @@
 
 #include "../drt_plugin.h"
 
+#include "dataref_edit_panel.h"
+
 #include <sstream>
+
+
+std::shared_ptr<WidgetContainer> SearchWindow::makeCommandActionBar() {
+    std::shared_ptr<Widget11Button> copy_name_button = std::make_shared<Widget11Button>();
+    copy_name_button->setLabel("Copy name");
+    copy_name_button->setMinimumSize({90, 0});
+    copy_name_button->setButtonStyle(Widget11Button::ButtonStyle::SECONDARY);
+    copy_name_button->setAction([this](){
+        copyName();
+    });
+
+    std::shared_ptr<Widget11Button> actuate_button = std::make_shared<Widget11Button>();
+    actuate_button->setLabel("Actuate");
+    actuate_button->setMinimumSize({90, 0});
+    actuate_button->setPushAction([this](bool active) {
+        actuateCommand(active);
+    });
+
+    std::shared_ptr<Widget11Button> details_button = std::make_shared<Widget11Button>();
+    details_button->setLabel("Details...");
+    details_button->setMinimumSize({90, 0});
+    details_button->setAction([this](){
+        std::shared_ptr<ResultLine> rl_selected = selection_list->getSelection();
+        if(nullptr == rl_selected) {
+            return;
+        }
+
+        RefRecord * rr = rl_selected->getRecord();
+        CommandRefRecord * crr = dynamic_cast<CommandRefRecord *>(rr);
+        showEditWindow(crr);
+    });
+
+    std::shared_ptr<SingleAxisLayoutContainer> command_action_bar = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::HORIZONTAL);
+    command_action_bar->add(copy_name_button, false, true);
+
+    command_action_bar->add(std::make_shared<Widget11Spacer>(), true, true);
+
+    command_action_bar->add(actuate_button, false, true);
+    command_action_bar->add(details_button, false, true);
+
+    return command_action_bar;
+}
+
+std::shared_ptr<WidgetContainer> SearchWindow::makeDatarefActionBar(DataRefRecord * drr) {
+    std::shared_ptr<Widget11Button> copy_name_button = std::make_shared<Widget11Button>();
+    copy_name_button->setLabel("Copy name");
+    copy_name_button->setMinimumSize({90, 0});
+    copy_name_button->setButtonStyle(Widget11Button::ButtonStyle::SECONDARY);
+    copy_name_button->setAction([this](){
+        copyName();
+    });
+    std::shared_ptr<Widget11Button> copy_value_button = std::make_shared<Widget11Button>();
+    copy_value_button->setLabel("Copy value");
+    copy_value_button->setMinimumSize({90, 0});
+    copy_value_button->setButtonStyle(Widget11Button::ButtonStyle::SECONDARY);
+    copy_value_button->setAction([this](){
+        copyValue();
+    });
+
+    std::shared_ptr<Widget11Button> edit_button = std::make_shared<Widget11Button>();
+    edit_button->setLabel(drr->writable() ? "Edit..." : "View...");
+    edit_button->setMinimumSize({90, 0});
+    edit_button->setAction([this](){
+        std::shared_ptr<ResultLine> rl_selected = selection_list->getSelection();
+        if(nullptr == rl_selected) {
+            return;
+        }
+
+        RefRecord * rr = rl_selected->getRecord();
+        DataRefRecord * drr = dynamic_cast<DataRefRecord *>(rr);
+        if(nullptr != drr) {
+            showEditWindow(drr);
+        }
+    });
+
+    std::shared_ptr<DatarefEditField> edit_field;
+    if(false == drr->isArray() && drr->writable()) {
+        edit_field = std::make_shared<DatarefEditField>(drr, 0);
+        edit_field->setMinimumSize({90, 0});
+        action_bar_edit_field = edit_field;
+    }
+
+    std::shared_ptr<SingleAxisLayoutContainer> dataref_action_bar = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::HORIZONTAL);
+    dataref_action_bar->add(copy_name_button, false, true);
+    dataref_action_bar->add(copy_value_button, false, true);
+
+    dataref_action_bar->add(std::make_shared<Widget11Spacer>(), true, true);
+
+    if(edit_field) {
+        dataref_action_bar->add(edit_field, false, true);
+    }
+
+    dataref_action_bar->add(edit_button, false, true);
+    return dataref_action_bar;
+}
+
 
 SearchWindow::SearchWindow(RefRecords & refs)
 : refs(refs) {
@@ -84,86 +182,6 @@ SearchWindow::SearchWindow(RefRecords & refs)
         list_scroll_container->setContents(selection_list);
     }
 
-    {
-        std::shared_ptr<Widget11Button> copy_name_button = std::make_shared<Widget11Button>();
-        copy_name_button->setLabel("Copy name");
-        copy_name_button->setMinimumSize({90, 0});
-        copy_name_button->setButtonStyle(Widget11Button::ButtonStyle::SECONDARY);
-        copy_name_button->setAction([this](){
-            copyName();
-        });
-        std::shared_ptr<Widget11Button> copy_value_button = std::make_shared<Widget11Button>();
-        copy_value_button->setLabel("Copy value");
-        copy_value_button->setMinimumSize({90, 0});
-        copy_value_button->setButtonStyle(Widget11Button::ButtonStyle::SECONDARY);
-        copy_value_button->setAction([this](){
-            copyValue();
-        });
-
-        edit_button = std::make_shared<Widget11Button>();
-        edit_button->setLabel("Edit...");
-        edit_button->setMinimumSize({90, 0});
-        edit_button->setAction([this](){
-            std::shared_ptr<ResultLine> rl_selected = selection_list->getSelection();
-            if(nullptr == rl_selected) {
-                return;
-            }
-
-            RefRecord * rr = rl_selected->getRecord();
-            DataRefRecord * drr = dynamic_cast<DataRefRecord *>(rr);
-            if(nullptr != drr) {
-                showEditWindow(drr);
-            }
-        });
-
-        dataref_action_bar = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::HORIZONTAL);
-        dataref_action_bar->add(copy_name_button, false, true);
-        dataref_action_bar->add(copy_value_button, false, true);
-
-        dataref_action_bar->add(std::make_shared<Widget11Spacer>(), true, true);
-
-        dataref_action_bar->add(edit_button, false, true);
-    }
-
-    {
-        std::shared_ptr<Widget11Button> copy_name_button = std::make_shared<Widget11Button>();
-        copy_name_button->setLabel("Copy name");
-        copy_name_button->setMinimumSize({90, 0});
-        copy_name_button->setButtonStyle(Widget11Button::ButtonStyle::SECONDARY);
-        copy_name_button->setAction([this](){
-            copyName();
-        });
-
-        std::shared_ptr<Widget11Button> actuate_button = std::make_shared<Widget11Button>();
-        actuate_button->setLabel("Actuate");
-        actuate_button->setMinimumSize({90, 0});
-        actuate_button->setPushAction([this](bool active) {
-            actuateCommand(active);
-        });
-
-        std::shared_ptr<Widget11Button> details_button = std::make_shared<Widget11Button>();
-        details_button->setLabel("Details...");
-        details_button->setMinimumSize({90, 0});
-        details_button->setAction([this](){
-            std::shared_ptr<ResultLine> rl_selected = selection_list->getSelection();
-            if(nullptr == rl_selected) {
-                return;
-            }
-
-            RefRecord * rr = rl_selected->getRecord();
-            CommandRefRecord * crr = dynamic_cast<CommandRefRecord *>(rr);
-            showEditWindow(crr);
-        });
-
-        command_action_bar = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::HORIZONTAL);
-        command_action_bar->add(copy_name_button, false, true);
-
-        command_action_bar->add(std::make_shared<Widget11Spacer>(), true, true);
-
-        command_action_bar->add(actuate_button, false, true);
-        command_action_bar->add(details_button, false, true);
-    }
-
     window_vertical_container = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::VERTICAL);
     window_vertical_container->add(search_bar, false, true);
     window_vertical_container->add(list_scroll_container, true, true);
@@ -207,16 +225,11 @@ void SearchWindow::setSelectionAvailable(RefRecord * new_ref_record) {
         DataRefRecord * drr = dynamic_cast<DataRefRecord*>(new_ref_record);
 
         if(nullptr != drr) {
-            window_vertical_container->add(dataref_action_bar, false, true);
-            if(drr->writable()) {
-                edit_button->setLabel("Edit...");
-            } else {
-                edit_button->setLabel("View...");
-            }
+            window_vertical_container->add(makeDatarefActionBar(drr), false, true);
         }
 
         if(nullptr != crr) {
-            window_vertical_container->add(command_action_bar, false, true);
+            window_vertical_container->add(makeCommandActionBar(), false, true);
         }
     }
 }
@@ -360,7 +373,8 @@ void SearchWindow::updateTitle() { //update title
 
 
 void SearchWindow::showEditWindow(DataRefRecord * drr) {
-    std::shared_ptr<DatarefWindow> dr_window = DatarefWindow::make(drr);
+    std::weak_ptr<SearchWindow> this_window_backref = std::dynamic_pointer_cast<SearchWindow>(this_ref);
+    std::shared_ptr<DatarefWindow> dr_window = DatarefWindow::make(drr, this_window_backref);
 
     // if this window is popped out into an os window, do the same with the edit window
     std::optional<int> popped_out_monitor = this->getPoppedOutMonitor();
@@ -370,7 +384,8 @@ void SearchWindow::showEditWindow(DataRefRecord * drr) {
 }
 
 void SearchWindow::showEditWindow(CommandRefRecord * crr) {
-    std::shared_ptr<CommandrefWindow> cr_window = CommandrefWindow::make(crr);
+    std::weak_ptr<SearchWindow> this_window_backref = std::dynamic_pointer_cast<SearchWindow>(this_ref);
+    std::shared_ptr<CommandrefWindow> cr_window = CommandrefWindow::make(crr, this_window_backref);
 
     // if this window is popped out into an os window, do the same with the edit window
     std::optional<int> popped_out_monitor = this->getPoppedOutMonitor();
@@ -381,6 +396,17 @@ void SearchWindow::showEditWindow(CommandRefRecord * crr) {
 
 void SearchWindow::selectSearchField() {
     setKeyboardFocusToWidget(search_box);
+}
+
+std::shared_ptr<DatarefEditField> SearchWindow::setKeyboardFocusEditField() {
+    std::shared_ptr<DatarefEditField> edit_field_sp = action_bar_edit_field.lock();
+
+    if(!edit_field_sp) {
+        return {};
+    }
+
+    setKeyboardFocusToWidget(edit_field_sp);
+    return edit_field_sp;
 }
 
 bool SearchWindow::keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) {

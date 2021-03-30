@@ -14,6 +14,8 @@
 #include "clipboard.h"
 #include "logging.h"
 
+#include "dataref_edit_panel.h"
+
 #include <chrono>
 
 const XPLMFontID font = xplmFont_Basic;
@@ -116,7 +118,7 @@ void SelectableListBase::activateSelection() {
     }
 }
 
-bool SelectableListBase::keyPress(char /* key */, XPLMKeyFlags flags, uint8_t virtual_key) {
+bool SelectableListBase::keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) {
     //raw letter presses
     if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) == 0 && (flags & xplm_OptionAltFlag) == 0) {
         switch(virtual_key) {
@@ -161,6 +163,45 @@ bool SelectableListBase::keyPress(char /* key */, XPLMKeyFlags flags, uint8_t vi
                 break;
         }
     }
+
+    //typing 
+    if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) == 0 && (flags & xplm_OptionAltFlag) == 0) {
+        switch(virtual_key) {
+            case XPLM_VK_0:
+            case XPLM_VK_1:
+            case XPLM_VK_2:
+            case XPLM_VK_3:
+            case XPLM_VK_4:
+            case XPLM_VK_5:
+            case XPLM_VK_6:
+            case XPLM_VK_7:
+            case XPLM_VK_8:
+            case XPLM_VK_9:
+            case XPLM_VK_PERIOD:
+            case XPLM_VK_NUMPAD0:
+            case XPLM_VK_NUMPAD1:
+            case XPLM_VK_NUMPAD2:
+            case XPLM_VK_NUMPAD3:
+            case XPLM_VK_NUMPAD4:
+            case XPLM_VK_NUMPAD5:
+            case XPLM_VK_NUMPAD6:
+            case XPLM_VK_NUMPAD7:
+            case XPLM_VK_NUMPAD8:
+            case XPLM_VK_NUMPAD9:
+            case XPLM_VK_DECIMAL: {
+                // select edit field in the action row. User is trying to type something.
+                std::shared_ptr<DatarefEditField> edit_field = this->search_window->setKeyboardFocusEditField();
+                if(edit_field) {
+                    edit_field->selectAll();
+                    return edit_field->keyPress(key, flags, virtual_key);
+                }
+            }
+                return true;
+            default:
+                break;
+        }
+    }
+
     return false;
 }
 

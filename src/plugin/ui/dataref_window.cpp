@@ -13,78 +13,9 @@
 
 #include "search/dataref.h"
 
+#include "dataref_edit_panel.h"
+#include "search_window.h"
 
-bool checkValueOK(DataRefRecord * drr, const std::string & new_value) {
-    if(drr->isDouble()) {
-        try {
-            std::stold(new_value);
-        } catch(std::exception &) {
-            return false;
-        }
-    } else if(drr->isFloat() || drr->isFloatArray()) {
-        try {
-            std::stof(new_value);
-        } catch(std::exception &) {
-            return false;
-        }
-    } else if(drr->isInt() || drr->isIntArray()) {
-        try {
-            std::stoi(new_value);
-        } catch(std::exception &) {
-            return false;
-        }
-    } else if(drr->isData()) {
-    }
-
-    return true;
-}
-
-void setValue(DataRefRecord * drr, const std::string & new_value, std::optional<int> index) {
-    if(drr->isDouble()) {
-        assert(!index);
-        try {
-            double d = std::stold(new_value);
-            drr->setDouble(d);
-        } catch(std::exception &) {
-            return;
-        }
-    } else if(drr->isFloat()) {
-        assert(!index);
-        try {
-            float f = std::stof(new_value);
-            drr->setFloat(f);
-        } catch(std::exception &) {
-            return;
-        }
-    } else if(drr->isInt()) {
-        assert(!index);
-        try {
-            int i = std::stoi(new_value);
-            drr->setInt(i);
-        } catch(std::exception &) {
-            return;
-        }
-    } else if(drr->isFloatArray()) {
-        assert(index);
-        try {
-            float f = std::stof(new_value);
-            drr->setFloatArrayElement(f, *index);
-        } catch(std::exception &) {
-            return;
-        }
-    } else if(drr->isIntArray()) {
-        assert(index);
-        try {
-            int i = std::stoi(new_value);
-            drr->setIntArrayElement(i, *index);
-        } catch(std::exception &) {
-            return;
-        }
-    } else if(drr->isData()) {
-        assert(!index);
-        drr->setData(new_value);
-    }
-}
 
 std::string getType(DataRefRecord * dr) {
     std::vector<std::string> type_list;
@@ -121,83 +52,7 @@ std::string getType(DataRefRecord * dr) {
     return ss.str();
 }
 
-class DataRefRow: public SingleAxisLayoutContainer {
-    DataRefRecord * drr;
-    int element_index;
-
-    std::shared_ptr<Widget11TextField> edit_field;
-public:
-    DataRefRow(DataRefRecord * drr, int element_index)
-    : SingleAxisLayoutContainer(SingleAxisLayoutContainer::LayoutAxis::HORIZONTAL)
-    , drr(drr)
-    , element_index(element_index)
-    {
-        std::shared_ptr<Widget11Text> index_label;
-        index_label = std::make_shared<Widget11Text>();
-        index_label->setText(std::to_string(element_index));
-        index_label->setMinimumSize({30, 0});
-
-        edit_field = std::make_shared<Widget11TextField>();
-        edit_field->setPlaceholder("New value");
-
-        edit_field->setContents(drr->getArrayElementEditString(element_index));
-
-        std::shared_ptr<Widget11Spacer> edit_spacer = std::make_shared<Widget11Spacer>(Size{20, 1});
-
-        std::shared_ptr<Widget11Button> set_button;
-        set_button = std::make_shared<Widget11Button>();
-        set_button->setLabel("Set");
-        set_button->setMinimumSize({40, 0});
-
-        edit_field->setTypeAction([this, set_button, drr]() {
-            if(checkValueOK(drr, edit_field->getContents())) {
-                set_button->setEnabled(true);
-            } else {
-                set_button->setEnabled(false);
-            }
-        });
-
-        std::optional<int> index_in_array_if_array;
-        if(drr->isArray()) {
-            index_in_array_if_array = element_index;
-        }
-
-        std::function<void()> set_value_edit_done = [element_index, this, drr, index_in_array_if_array]() {
-            setValue(drr, edit_field->getContents(), index_in_array_if_array);
-            
-            // immediately read the value back into the field. maybe our write was unsuccessful.
-            edit_field->setContents(drr->getArrayElementEditString(element_index));
-
-            edit_field->selectAll();
-        };
-    
-        edit_field->setSubmitAction(set_value_edit_done);
-        set_button->setAction(set_value_edit_done);
-
-        edit_field->setEnabled(drr->writable());
-
-        if(index_label) {
-            this->add(index_label, false, false);
-        }
-        this->add(edit_field, true, true);
-        this->add(edit_spacer, false, false);
-        if(drr->writable()) {
-            this->add(set_button, false, false);
-        }
-    }
-
-    void update() {
-        if(false == edit_field->hasKeyboardFocus()) {
-            edit_field->setContents(drr->getArrayElementEditString(element_index));
-        }
-    }
-
-    std::shared_ptr<Widget11TextField> getEditField() {
-        return edit_field;
-    }
-};
-
-DatarefWindow::DatarefWindow(DataRefRecord * drr) : drr(drr) {
+DatarefWindow::DatarefWindow(DataRefRecord * drr, std::weak_ptr<SearchWindow> parent_search_window) : drr(drr), parent_search_window(parent_search_window) {
     std::shared_ptr<Widget11Text> dr_name = std::make_shared<Widget11Text>();
     dr_name->setText(drr->getName());
 
@@ -223,7 +78,7 @@ DatarefWindow::DatarefWindow(DataRefRecord * drr) : drr(drr) {
 
     std::shared_ptr<SingleAxisLayoutContainer> edit_container = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::VERTICAL);
     for(int element_index = 0; element_index < num_elements; element_index++) {
-        std::shared_ptr<DataRefRow> edit_element_row = std::make_shared<DataRefRow>(drr, element_index);
+        std::shared_ptr<DatarefEditPanel> edit_element_row = std::make_shared<DatarefEditPanel>(drr, element_index);
 
         edit_rows.push_back(edit_element_row);
 
@@ -277,7 +132,7 @@ void DatarefWindow::draw(Rect visible_bounds) {
             current_value->setText("Value: " + drr->getDisplayString(visible_bounds.width() - 30));
         }
 
-        for(std::shared_ptr<DataRefRow> & row: edit_rows) {
+        for(std::shared_ptr<DatarefEditPanel> & row: edit_rows) {
             row->update();
         }
 
@@ -306,4 +161,25 @@ void DatarefWindow::draw(Rect visible_bounds) {
     last_change->setText(ss.str());
 
     Window11<DatarefWindow>::draw(visible_bounds);
+}
+
+bool DatarefWindow::keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) {
+    // no modifiers
+    if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) == 0 && (flags & xplm_OptionAltFlag) == 0) {
+        switch(virtual_key) {
+            case XPLM_VK_ESCAPE:
+                closeWindow();
+                {
+                    std::shared_ptr<SearchWindow> search_window = parent_search_window.lock();
+                    if(search_window) {
+                        search_window->selectSearchField();
+                    }
+                }
+                return true;
+            default:
+                break;
+        }
+    }
+
+    return Window11::keyPress(key, flags, virtual_key);
 }

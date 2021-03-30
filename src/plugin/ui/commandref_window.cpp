@@ -10,7 +10,9 @@
 
 #include "search/commandref.h"
 
-CommandrefWindow::CommandrefWindow(CommandRefRecord * crr) : crr(crr) {
+#include "search_window.h"
+
+CommandrefWindow::CommandrefWindow(CommandRefRecord * crr, std::weak_ptr<SearchWindow> parent_search_window) : crr(crr), parent_search_window(parent_search_window) {
     std::shared_ptr<Widget11Text> cr_name = std::make_shared<Widget11Text>();
     cr_name->setText(crr->getName());
     cr_activated = std::make_shared<Widget11Text>();
@@ -72,4 +74,25 @@ void CommandrefWindow::draw(Rect visible_bounds) {
     }
 
     Window11<CommandrefWindow>::draw(visible_bounds);
+}
+
+bool CommandrefWindow::keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) {
+    // no modifiers
+    if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) == 0 && (flags & xplm_OptionAltFlag) == 0) {
+        switch(virtual_key) {
+            case XPLM_VK_ESCAPE:
+                closeWindow();
+                {
+                    std::shared_ptr<SearchWindow> search_window = parent_search_window.lock();
+                    if(search_window) {
+                        search_window->selectSearchField();
+                    }
+                }
+                return true;
+            default:
+                break;
+        }
+    }
+
+    return Window11::keyPress(key, flags, virtual_key);
 }

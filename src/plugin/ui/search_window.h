@@ -8,12 +8,14 @@
 
 class CommandRefRecord;
 class DataRefRecord;
+class DatarefEditField;
 class RefRecord;
 class RefRecords;
 class ResultsList;
 class ScrollContainer;
 class SingleAxisLayoutContainer;
 class Widget11Button;
+class WidgetContainer;
 class Widget11TextField;
 
 enum class ChangeFilterType {
@@ -44,6 +46,7 @@ class SearchWindow : public Window11<SearchWindow> {
     RefRecords & refs;
 
     std::shared_ptr<SearchResults> results;
+    std::weak_ptr<DatarefEditField> action_bar_edit_field;
 protected:
     std::shared_ptr<Widget11TextField> search_box;
 
@@ -52,13 +55,8 @@ protected:
     std::shared_ptr<Widget11Button> filter_change;
     std::shared_ptr<Widget11Button> filter_dataref_command;
 
-    std::shared_ptr<Widget11Button> edit_button;
-
     std::shared_ptr<ResultsList> selection_list;
     std::shared_ptr<ScrollContainer> list_scroll_container;
-
-    std::shared_ptr<SingleAxisLayoutContainer> command_action_bar;
-    std::shared_ptr<SingleAxisLayoutContainer> dataref_action_bar;
 
     std::shared_ptr<SingleAxisLayoutContainer> window_vertical_container;
 
@@ -66,6 +64,9 @@ protected:
     void setSelectionAvailable(RefRecord * new_ref_record);
 
     void updateTitle();
+
+    std::shared_ptr<WidgetContainer> makeCommandActionBar();
+    std::shared_ptr<WidgetContainer> makeDatarefActionBar(DataRefRecord * drr);
 public:
     SearchWindow(RefRecords & refs);
 
@@ -100,6 +101,10 @@ public:
     void showEditWindow(DataRefRecord * drr);
     void showEditWindow(CommandRefRecord * crr);
     void selectSearchField();
+
+    // Try to set the keyboard focus on the edit row's dataref edit field if available.
+    // Return it so that the caller can forward keyboard events if necessary.
+    std::shared_ptr<DatarefEditField> setKeyboardFocusEditField();
 
     virtual bool keyPress(char /* key */, XPLMKeyFlags /* flags */, uint8_t /* virtual_key */) override;
 };
