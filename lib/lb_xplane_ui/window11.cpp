@@ -255,14 +255,33 @@ void Window11Base::keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key, i
         layout_object->removeKeyboardFocus();
         return;
     }
-    if(XPLM_KEY_TAB == virtual_key) {
-        if(flags & xplm_DownFlag) {
-            // tab to next field
-            if(!layout_object->advanceKeyboardFocus()) { // perhaps we reached the end of the dialog, and should start at the beginning
-                layout_object->advanceKeyboardFocus();
-            }
+    if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) == 0 && (flags & xplm_OptionAltFlag) == 0) {
+        switch(virtual_key) {
+            case XPLM_KEY_TAB:
+                if(flags & xplm_DownFlag) {
+                    // tab to next field
+                    if(!layout_object->nextKeyboardFocus()) { // perhaps we reached the end of the dialog, and should start at the beginning
+                        layout_object->nextKeyboardFocus();
+                    }
+                }
+                return;
+            default:
+                break;
         }
-        return;
+    }
+    if((flags & xplm_ShiftFlag) != 0 && (flags & xplm_ControlFlag) == 0 && (flags & xplm_OptionAltFlag) == 0) {
+        switch(virtual_key) {
+            case XPLM_KEY_TAB:
+                if(flags & xplm_DownFlag) {
+                    // tab to previous field
+                    if(!layout_object->previousKeyboardFocus()) { // perhaps we reached the beginning of the dialog, and should start at the end
+                        layout_object->previousKeyboardFocus();
+                    }
+                }
+                return;
+            default:
+                break;
+        }
     }
 
     if(layout_object->hasKeyboardFocus()) {

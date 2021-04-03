@@ -73,34 +73,48 @@ void SelectableListBase::deselect() {
 }
 
 void SelectableListBase::selectNext() {
+    std::shared_ptr<LayoutObject> previous_selection = selected_element.lock();
+    std::shared_ptr<Widget11> next_selection = std::dynamic_pointer_cast<Widget11, LayoutObject>(previous_selection);
+
     SelectableListBase::widget_iterator_type selected_it = std::find(begin(), end(), selected_element.lock());
 
-    std::weak_ptr<LayoutObject> previous_selection(*selected_it);
-    if(selected_it == end()) {
+    if(selected_it == end() && end() != begin()) {
         selected_it = begin();
-
-        fireSelectionChange(previous_selection, *selected_it);
-        selected_element = std::dynamic_pointer_cast<Widget11, LayoutObject>(*selected_it);
+        next_selection = std::dynamic_pointer_cast<Widget11, LayoutObject>(*selected_it);
     } else if(selected_it + 1 != end()) {
         selected_it++;
-        fireSelectionChange(previous_selection, *selected_it);
-        selected_element = std::dynamic_pointer_cast<Widget11, LayoutObject>(*selected_it);
+        next_selection = std::dynamic_pointer_cast<Widget11, LayoutObject>(*selected_it);
     }
 
+    if(previous_selection != next_selection) {
+        previous_selection->removeKeyboardFocus();
+        fireSelectionChange(previous_selection, next_selection);
+        next_selection->giveKeyboardFocus();
+
+        selected_element = next_selection;
+    }
 }
 
 void SelectableListBase::selectPrevious() {
-    SelectableListBase::widget_iterator_type selected_it = std::find(begin(), end(), selected_element.lock());
-    std::weak_ptr<LayoutObject> previous_selection(*selected_it);
+    std::shared_ptr<LayoutObject> previous_selection = selected_element.lock();
+    std::shared_ptr<Widget11> next_selection = std::dynamic_pointer_cast<Widget11, LayoutObject>(previous_selection);
 
-    if(selected_it == end() && end() != begin()) {
-        selected_it = end() - 1;
-        selected_element = std::dynamic_pointer_cast<Widget11, LayoutObject>(*selected_it);
-        fireSelectionChange(previous_selection, *selected_it);
-    } else if(selected_it != end() && selected_it != begin()) {
-        selected_it--;
-        selected_element = std::dynamic_pointer_cast<Widget11, LayoutObject>(*selected_it);
-        fireSelectionChange(previous_selection, selected_element);
+    SelectableListBase::widget_reverse_iterator_type selected_it = std::find(rbegin(), rend(), previous_selection);
+
+    if(selected_it == rend() && rend() != rbegin()) {
+        selected_it = rbegin();
+        next_selection = std::dynamic_pointer_cast<Widget11, LayoutObject>(*selected_it);
+    } else if(selected_it + 1 != rend()) {
+        selected_it++;
+        next_selection = std::dynamic_pointer_cast<Widget11, LayoutObject>(*selected_it);
+    }
+
+    if(previous_selection != next_selection) {
+        previous_selection->removeKeyboardFocus();
+        fireSelectionChange(previous_selection, next_selection);
+        next_selection->giveKeyboardFocus();
+
+        selected_element = next_selection;
     }
 }
 
@@ -123,6 +137,13 @@ void SelectableListBase::activateSelection() {
 }
 
 bool SelectableListBase::keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) {
+    {
+        std::shared_ptr<LayoutObject> selected_element_sp = selected_element.lock();
+        if(selected_element_sp && selected_element_sp->keyPress(key, flags, virtual_key)) {
+            return true;
+        }
+    }
+
     //raw letter presses
     if((flags & xplm_ShiftFlag) == 0 && (flags & xplm_ControlFlag) == 0 && (flags & xplm_OptionAltFlag) == 0) {
         switch(virtual_key) {

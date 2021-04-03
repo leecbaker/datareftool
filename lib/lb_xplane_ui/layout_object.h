@@ -68,7 +68,8 @@ public:
 
     virtual void removeKeyboardFocus() = 0;
 
-    virtual bool advanceKeyboardFocus() = 0;
+    virtual bool nextKeyboardFocus() = 0;
+    virtual bool previousKeyboardFocus() = 0;
 
     bool dispatchKeyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key);
 

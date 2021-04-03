@@ -39,6 +39,40 @@ public:
     SearchWindow * getSearchWindow() { return search_window; }
 
     virtual bool keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override;
+
+    virtual bool acceptsKeyboardFocus() const override { return true; }
+        // for keyboard focus purposes, this behaves as a single object
+        virtual bool nextKeyboardFocus() override {
+        if(hasKeyboardFocus()) {
+            removeKeyboardFocus();
+            return false;
+        }
+
+        std::shared_ptr<Widget11> selected_element_widget = std::dynamic_pointer_cast<Widget11, LayoutObject>(selected_element.lock());
+
+        if(acceptsKeyboardFocus() && selected_element_widget) {
+            selected_element_widget->giveKeyboardFocus();
+            return true;
+        }
+
+        return false;
+    }
+
+    virtual bool previousKeyboardFocus() override {
+        if(hasKeyboardFocus()) {
+            removeKeyboardFocus();
+            return false;
+        }
+
+        std::shared_ptr<Widget11> selected_element_widget = std::dynamic_pointer_cast<Widget11, LayoutObject>(selected_element.lock());
+
+        if(acceptsKeyboardFocus() && selected_element_widget) {
+            selected_element_widget->giveKeyboardFocus();
+            return true;
+        }
+
+        return false;
+    }
 };
 
 template <class SelectableElement>

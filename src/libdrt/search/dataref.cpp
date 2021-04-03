@@ -44,6 +44,7 @@ bool DataRefUpdater::operator()(float & old_val) const {
             dr->last_updated_big = current_time;
         }
         dr->last_updated = current_time;
+        dr->previous_value = dr->value;
         dr->value = newval;
         return true;
     } else {
@@ -58,6 +59,7 @@ bool DataRefUpdater::operator()(double& oldval) const {
             dr->last_updated_big = current_time;
         }
         dr->last_updated = current_time;
+        dr->previous_value = dr->value;
         dr->value = newval;
         return true;
     } else {
@@ -69,6 +71,7 @@ bool DataRefUpdater::operator()(int& oldval) const {
     int newval = XPLMGetDatai(dr->ref);
     if(newval != oldval) {
         dr->last_updated = current_time;
+        dr->previous_value = dr->value;
         dr->value = newval;
         return true;
     } else {

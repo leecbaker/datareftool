@@ -59,7 +59,8 @@ public:
 
     virtual bool keyPress(char key, XPLMKeyFlags flags, uint8_t virtual_key) override { return object_->keyPress(key, flags, virtual_key); }
 
-    virtual bool advanceKeyboardFocus() override { return object_->advanceKeyboardFocus(); }
+    virtual bool nextKeyboardFocus() override { return object_->nextKeyboardFocus(); }
+    virtual bool previousKeyboardFocus() override { return object_->previousKeyboardFocus(); }
 
 
     virtual XPLMCursorStatus handleCursor(Point point, bool mouse_inside) override { return object_->handleCursor(point.translated(0, -scroll_distance), mouse_inside); }

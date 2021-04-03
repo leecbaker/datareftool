@@ -20,6 +20,8 @@ public:
     using widget_container_type = std::vector<std::shared_ptr<LayoutObject>>;
     using widget_iterator_type = widget_container_type::iterator;
     using widget_const_iterator_type = widget_container_type::const_iterator;
+    using widget_reverse_iterator_type = widget_container_type::reverse_iterator;
+    using widget_const_reverse_iterator_type = widget_container_type::const_reverse_iterator;
 protected:
     widget_container_type widgets;
     std::unordered_set<std::shared_ptr<LayoutObject>> current_hover;
@@ -43,7 +45,23 @@ public:
         return std::any_of(widgets.cbegin(), widgets.cend(), [](std::shared_ptr<LayoutObject> widget) -> bool { return widget->acceptsKeyboardFocus(); });
      }
 
-    virtual bool advanceKeyboardFocus() override {
+    virtual bool previousKeyboardFocus() override {
+        auto candidate_widget_it = widgets.rbegin();
+
+        if(hasKeyboardFocus()) {
+            candidate_widget_it = std::find_if(widgets.rbegin(), widgets.rend(), [](const std::shared_ptr<LayoutObject> & widget) -> bool { return widget->hasKeyboardFocus(); });
+        }
+
+        for(; candidate_widget_it != widgets.rend(); ++candidate_widget_it) {
+            if((*candidate_widget_it)->previousKeyboardFocus()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    virtual bool nextKeyboardFocus() override {
         auto candidate_widget_it = widgets.begin();
 
         if(hasKeyboardFocus()) {
@@ -51,7 +69,7 @@ public:
         }
 
         for(; candidate_widget_it != widgets.end(); ++candidate_widget_it) {
-            if((*candidate_widget_it)->advanceKeyboardFocus()) {
+            if((*candidate_widget_it)->nextKeyboardFocus()) {
                 return true;
             }
         }
@@ -97,6 +115,19 @@ public:
     }
     widget_const_iterator_type end() const {
         return widgets.cend();
+    }
+
+    widget_reverse_iterator_type rbegin() {
+        return widgets.rbegin();
+    }
+    widget_const_reverse_iterator_type rbegin() const {
+        return widgets.crbegin();
+    }
+    widget_reverse_iterator_type rend() {
+        return widgets.rend();
+    }
+    widget_const_reverse_iterator_type rend() const {
+        return widgets.crend();
     }
 
     size_t widget_count() const

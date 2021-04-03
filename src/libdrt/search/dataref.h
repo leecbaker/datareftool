@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -17,6 +18,7 @@ class DataRefRecord : public RefRecord {
     friend class DataRefUpdater;
     using value_type = std::variant<float,double, int, std::vector<float>, std::vector<int>, std::vector<uint8_t>, std::nullptr_t>;
     value_type value;
+    std::optional<value_type> previous_value;
     
     XPLMDataTypeID type;
     XPLMDataRef ref;

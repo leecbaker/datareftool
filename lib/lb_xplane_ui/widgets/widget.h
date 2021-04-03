@@ -24,7 +24,21 @@ public:
 
     virtual bool hasKeyboardFocus() const override { return has_keyboard_focus_; }
 
-    virtual bool advanceKeyboardFocus() override {
+    virtual bool nextKeyboardFocus() override {
+        if(hasKeyboardFocus()) {
+            removeKeyboardFocus();
+            return false;
+        }
+
+        if(acceptsKeyboardFocus()) {
+            giveKeyboardFocus();
+            return true;
+        }
+
+        return false;
+    }
+
+    virtual bool previousKeyboardFocus() override {
         if(hasKeyboardFocus()) {
             removeKeyboardFocus();
             return false;
