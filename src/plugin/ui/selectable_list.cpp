@@ -32,7 +32,11 @@ void SelectableListBase::draw(Rect visible_bounds) {
     if(widget_locked) {
         std::optional<Rect> overlap_rect = visible_bounds.intersection(widget_locked->getBounds());
         if(overlap_rect) {
-            color3fGL(color3fFromHex(0x36, 0x78, 0xb0));
+            if(hasKeyboardFocus()) {
+                color3fGL(color3fFromHex(0x16, 0x78, 0xb5));
+            } else {
+                color3fGL(color3fFromHex(0x47, 0x4f, 0x59));
+            }
             drawRect(*overlap_rect);
         }
     }
