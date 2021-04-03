@@ -64,4 +64,6 @@ public:
 
 
     virtual XPLMCursorStatus handleCursor(Point point, bool mouse_inside) override { return object_->handleCursor(point.translated(0, -scroll_distance), mouse_inside); }
+
+    void scrollIntoView(Rect rect);
 };

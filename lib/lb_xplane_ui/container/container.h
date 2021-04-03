@@ -130,6 +130,22 @@ public:
         return widgets.crend();
     }
 
+    widget_container_type::reference front() {
+        return widgets.front();
+    }
+
+    widget_container_type::const_reference front() const {
+        return widgets.front();
+    }
+
+    widget_container_type::reference back() {
+        return widgets.back();
+    }
+
+    widget_container_type::const_reference back() const {
+        return widgets.back();
+    }
+
     size_t widget_count() const
     {
         return widgets.size();

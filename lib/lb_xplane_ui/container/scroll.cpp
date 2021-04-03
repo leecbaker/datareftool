@@ -162,3 +162,25 @@ std::shared_ptr<Widget11> ScrollContainer::mouseClick(Point point, XPLMMouseStat
 
     return nullptr;
 }
+
+void ScrollContainer::scrollIntoView(Rect rect) {
+    const Rect translated_rect = rect.translated(0, scroll_distance);
+    const Rect bounds = getBounds();
+
+    // rect is already in the viewport, no need to scroll
+    if(bounds.top >= translated_rect.top && bounds.bottom <= translated_rect.bottom) {
+        return;
+    }
+
+
+    int scroll_distance_top_aligned = bounds.top - rect.top;
+    int scroll_distance_bottom_aligned = bounds.bottom - rect.bottom;
+
+    // if desired target is taller than the scroll viewport, just set the viewport to the top of the target
+    if(rect.height() >= bounds.height()) {
+        scroll_distance = scroll_distance_top_aligned;
+    } else {
+        // center the target within the viewport
+        scroll_distance = (scroll_distance_top_aligned + scroll_distance_bottom_aligned) / 2;
+    }
+}

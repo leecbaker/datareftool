@@ -318,6 +318,10 @@ void ResultsList::update() {
         SingleAxisLayoutContainer::addNoLayout(std::move(line_widget), false, true);
     }
 
+    if(begin() != end()) {
+        selected_element = front();
+    }
+
     recomputeLayout();
 }
 

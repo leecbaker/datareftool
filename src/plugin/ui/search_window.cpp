@@ -176,6 +176,7 @@ SearchWindow::SearchWindow(RefRecords & refs)
                 setSelectionAvailable(nullptr);
             } else {
                 setSelectionAvailable(new_selection->getRecord());
+                list_scroll_container->scrollIntoView(new_selection->getBounds());
             }
         });
 
