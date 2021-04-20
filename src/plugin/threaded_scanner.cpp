@@ -1,5 +1,7 @@
 #include "threaded_scanner.h"
 
+#include "scan/deduplicate_vector.h"
+
 #include "internal_dataref_list.h"
 
 #include "logging.h"
@@ -41,28 +43,30 @@ void ThreadedScanner::scanPlugin(lb::filesystem::path plugin_directory) {
 }
 
 void ThreadedScanner::thread_proc() {
+    { 
+        // Ignore list. This file was previous called blacklist, so that filename
+        // is included for backwards compatibility. These files should be scanned before anything else,
+        // so I am scanning them before actually processing messages at all. This should happen as soon as the plugin is loaded.
+        lb::filesystem::path blacklist_path = system_path / "Resources" / "plugins" / "drt_blacklist.txt";
+        std::vector<std::string> ignore_list_1 = loadListFile(xplog_debug, blacklist_path);
+        ignore_list.insert(ignore_list.end(), ignore_list_1.cbegin(), ignore_list_1.cend());
+
+        lb::filesystem::path ignorelist_path = system_path / "Resources" / "plugins" / "drt_ignore.txt";
+        std::vector<std::string> ignore_list_2 = loadListFile(xplog_debug, ignorelist_path);
+        ignore_list.insert(ignore_list.end(), ignore_list_2.cbegin(), ignore_list_2.cend());
+
+        // Work around bug in X-Plane 11
+        ignore_list.push_back("iphone/flightmodel/ground_status");
+        deduplicate_vector(ignore_list);
+        results_queue.push(ScanResults{ref_src_t::IGNORE_FILE, ignore_list});
+        xplog_debug << "Found " << ignore_list.size() << " entries to be ignored.\n";
+    }
+
     while(true) {
         ScanTaskMessage message = task_queue.get_blocking();
 
         switch(message.type) {
             case ScanMessageType::SCAN_INITIAL: {
-
-                { 
-                    // Ignore list. This file was previous called blacklist, so that filename
-                    // is included for backwars compatibility.
-                    lb::filesystem::path blacklist_path = system_path / "Resources" / "plugins" / "drt_blacklist.txt";
-                    std::vector<std::string> ignore_list_1 = loadListFile(xplog_debug, blacklist_path);
-                    ignore_list.insert(ignore_list.end(), ignore_list_1.cbegin(), ignore_list_1.cend());
-
-                    lb::filesystem::path ignorelist_path = system_path / "Resources" / "plugins" / "drt_ignore.txt";
-                    std::vector<std::string> ignore_list_2 = loadListFile(xplog_debug, ignorelist_path);
-                    ignore_list.insert(ignore_list.end(), ignore_list_2.cbegin(), ignore_list_2.cend());
-
-                    // Work around bug in X-Plane 11
-                    ignore_list.push_back("iphone/flightmodel/ground_status");
-                    results_queue.push(ScanResults{ref_src_t::IGNORE_FILE, ignore_list});
-                }
-
                 { // Scan X-Plane binary
 #if __APPLE__
                     lb::filesystem::path xplane_binary = system_path / "X-Plane.app" / "Contents" / "MacOS" / "X-Plane";
