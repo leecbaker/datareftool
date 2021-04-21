@@ -40,12 +40,37 @@ To install the plugin, download the latest release [on this page](https://github
 
 Glad you asked!
 
+In general, normal text editing shortcuts are respected:
+
 * Ctrl-X / &#8984;-X : cut
 * Ctrl-C / &#8984;-C : copy
 * Ctrl-V / &#8984;-V : paste
 * Ctrl-A / &#8984;-A : select all
 
-These only work while an edit field is selected. If you want additional keyboard shortcuts (to open a search window, for instance) these can be added by searching for "datareftool" in X-Plane's keyboard settings.
+In the search window, there are some additional things you can do:
+
+* Ctrl-N / &#8984;-N : open a new search window
+* Ctrl-W / &#8984;-W : close current window
+* Tab / shift-tab : switch between search field and results
+
+Search field:
+
+* Ctrl-F / &#8984;-F or Ctrl-L / &#8984;-L : go to the search field
+* Ctrl-alt-C / &#8997;&#8984;-C : Toggle Change detection
+* Ctrl-alt-I / &#8997;&#8984;-I : Toggle case-Insensitive search
+* Ctrl-alt-R / &#8997;&#8984;-R : Toggle Regex search
+* Ctrl-alt-S / &#8997;&#8984;-S : Toggle Source (dataref/command/all)
+
+Search results:
+
+* Enter/return : open details window for the current dataref/command
+* Ctrl-C / &#8984;-C: Copy currently-selected dataref name
+* Ctrl-alt-C / &#8984;&#8997;-C : Copy currently-selected dataref value
+* Type a number : Set new value for currently-selected scalar dataref (int/float/double only)
+* Space: activate current command
+* J/K or up/down arrow : Go up or down in the list (like vim)
+
+If you want additional keyboard shortcuts (to open a search window, for instance) these can be added by searching for "datareftool" in X-Plane's keyboard settings.
 
 ### FAQ: DRT can't find my dataref
 
@@ -59,7 +84,19 @@ DRT scans files to find datarefs. This might not work if your dataref is in an e
 
 DRT reads every dataref published by every aircraft and plugin, on every frame of the simulation. Sometimes, they haven't fully been debugged, and may crash. (If you're a developer, the best way to do this is to run X-Plane in a debugger and look at the backtrace of the crash- if you see RefRecords::update() in the backtrace, this is likely what happened.)
 
-If you can figure out which dataref caused the crash, the best way to work around this is to add the name of the dataref to a file called "drt_ignore.txt" in the Resources/plugins directory. This will cause DRT to never read the value of the dataref, even if it does come up in search results.
+If you can figure out which dataref caused the crash, the best way to work around this is to add the name of the dataref to a file called `X-Plane 11/Resources/plugins/drt_ignore.txt`. This will cause DRT to never read the value of the dataref, even if it does come up in search results.
+
+### FAQ: Using DRT with the Bell 407 causes X-Plane to crash
+
+If you're flying the Bell 407, there is a known issue with this aircraft where reading some datarefs triggers an immediate crash. To work around this, create a file called `X-Plane 11/Resources/plugins/drt_ignore.txt`, and add the following lines to the file:
+
+```txt
+B407/Lights/CL1
+B407/Lights/CL2
+B407/Lights/CL3
+```
+
+The Bell 407 problem is being tracked in issue #33 in this repository.
 
 ### FAQ: DataRefTool causes me to loose FPS! Why?
 
