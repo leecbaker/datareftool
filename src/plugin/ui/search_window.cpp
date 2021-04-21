@@ -508,9 +508,11 @@ void SearchWindow::actuateCommand(bool active) {
 
     RefRecord * rr = rl_selected->getRecord();
     CommandRefRecord * crr = dynamic_cast<CommandRefRecord *>(rr);
-    if(active) {
-        crr->commandBegin();
-    } else {
-        crr->commandEnd();
+    if(crr != nullptr) { // is this actually a command?
+        if(active) {
+            crr->commandBegin();
+        } else {
+            crr->commandEnd();
+        }
     }
 }
