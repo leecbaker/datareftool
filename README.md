@@ -127,6 +127,10 @@ The steps for how to build DRT can be seen in the [Github Actions file](.github/
 
 You can use DRT to display your plugin's custom datarefs. Just send a message of type 0x01000000 with a pointer to the name of the dataref as the payload. There is an example of how to do this in [plugin_custom_dataref.cpp](src/plugin_custom_dataref.cpp). (This is exactly the same method that you use to add a custom dataref to Data Ref Editor.)
 
+### Searching DRT from another plugin
+
+DRT provides an API to allow other plugins to search the dataref list. See [doc/API.md](doc/API.md) for details.
+
 ## License
 
 DRT is available under the MIT license. See the LICENSE file for more details.
