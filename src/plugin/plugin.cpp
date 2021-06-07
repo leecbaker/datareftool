@@ -1,6 +1,5 @@
 #include "plugin.h"
 
-#include <cstdint>
 #include <ostream>
 
 #include <string.h> //memcpy
@@ -68,6 +67,6 @@ PLUGIN_API int XPluginEnable(void) {
     return 1;
 }
 
-PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, intptr_t inMessage, void * inParam) {
+PLUGIN_API void XPluginReceiveMessage(XPLMPluginID, int inMessage, void * inParam) {
     plugin->handleMessage(inMessage, inParam);
 }

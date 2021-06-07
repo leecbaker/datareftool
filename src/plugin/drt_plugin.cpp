@@ -1,5 +1,6 @@
 #include "drt_plugin.h"
 
+#include "search_api.h"
 #include "logging.h"
 #include "prefs.h"
 
@@ -341,10 +342,12 @@ void DRTPlugin::reloadScenery() {
 }
 
 
-const intptr_t MSG_ADD_DATAREF = 0x01000000;
-const intptr_t MSG_ADD_COMMANDREF = 0x01000099;
+const int MSG_ADD_DATAREF = 0x01000000;
+const int MSG_ADD_COMMANDREF = 0x01000099;
 
-void DRTPlugin::handleMessage(intptr_t inMessage, void * inParam) {
+const int DRT_API_SEARCH_MESSAGE = 0x44525453;
+
+void DRTPlugin::handleMessage(int inMessage, void * inParam) {
     switch(inMessage) {
         // Add custom datarefs in the style of DRE:
         // http://www.xsquawkbox.net/xpsdk/mediawiki/Register_Custom_DataRef_in_DRE
@@ -364,6 +367,12 @@ void DRTPlugin::handleMessage(intptr_t inMessage, void * inParam) {
         }
 
         case XPLM_MSG_WILL_WRITE_PREFS:
+            savePrefs();
+            saveAllRefs();
+            break;
+
+        case DRT_API_SEARCH_MESSAGE:
+            performSearchFromMessage(reinterpret_cast<DRTSearchParameters *>(inParam));
             break;
 #if defined(XPLM301)
         case XPLM_MSG_ENTERED_VR:
