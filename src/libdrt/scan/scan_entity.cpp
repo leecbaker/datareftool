@@ -69,7 +69,9 @@ std::vector<std::string> scanAircraft(std::ostream & log, const lb::filesystem::
         lb::filesystem::path file_path = dir_it->path();
 
         if(lb::filesystem::is_regular_file(file_path)) {
-            if(".obj" == file_path.extension() || ".acf" == file_path.extension()) {
+            std::string extension = file_path.extension().string();
+            string_to_lower(extension);
+            if(".obj" == extension || ".acf" == extension) {
                 paths.push_back(file_path);
             }
         }
@@ -77,12 +79,13 @@ std::vector<std::string> scanAircraft(std::ostream & log, const lb::filesystem::
     
     paths.push_back(aircraft_dir / "Custom Avionics");  // apparently SASL / LUA code is often in this directory
     paths.push_back(aircraft_dir / "objects");
+    paths.push_back(aircraft_dir / "fmod");
     lb::filesystem::path xlua_scripts_dir = aircraft_dir / "plugins" / "xlua" / "scripts"; // find xlua LUA scripts from X-Plane 11.00+
     if(lb::filesystem::exists(xlua_scripts_dir)) {
         paths.push_back(xlua_scripts_dir);
     }
 
-    std::unordered_set<std::string> extensions_to_scan = {".obj", ".acf", ".lua"};
+    std::unordered_set<std::string> extensions_to_scan = {".obj", ".acf", ".lua", ".snd"};
     while(false == paths.empty()) {
         lb::filesystem::path path = paths.back();
         paths.pop_back();
@@ -116,7 +119,10 @@ std::vector<std::string> scanLuaFolder(std::ostream & log, const lb::filesystem:
         for(auto dir_iterator = lb::filesystem::directory_iterator(lua_dir_path); dir_iterator != lb::filesystem::directory_iterator(); dir_iterator++) {
             auto& file_de = *dir_iterator;
 
-            if(file_de.path().extension() == ".lua") {
+            std::string extension = file_de.path().extension().string();
+            string_to_lower(extension);
+            
+            if(extension == ".lua") {
                 std::vector<std::string> this_script_datarefs = scanFileForDatarefStrings(log, file_de.path());
                 lua_folder_datarefs.insert(lua_folder_datarefs.cend(), this_script_datarefs.begin(), this_script_datarefs.end());
             }
