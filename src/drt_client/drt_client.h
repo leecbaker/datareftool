@@ -60,6 +60,9 @@ typedef struct DRTSearchParameters_ {
     /* Set this equal to the struct size */
     int struct_size;
 
+    /* Flags to set search options */
+    int flags;
+
     /* Optional user-defined data to pass to the callback */
     void * refcon;
 
@@ -73,9 +76,6 @@ typedef struct DRTSearchParameters_ {
      * search terms can be separated by spaces, just as in DRT.
      */
     const char * search_term;
-
-    /* Flags to set search options */
-    int flags;
 
     /* Output- this is the number of search results */
     int result_count;
