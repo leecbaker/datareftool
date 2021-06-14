@@ -49,8 +49,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y cmake libx11-dev libbz2-dev libgl-dev libglu1-mesa-dev ninja-build
+          apt-get update -qq
+          apt-get install -y cmake libx11-dev libbz2-dev libgl-dev libglu1-mesa-dev ninja-build
       - uses: actions/checkout@v2
         with:
           submodules: recursive
