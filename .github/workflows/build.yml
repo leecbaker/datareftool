@@ -45,6 +45,7 @@ jobs:
 
   build-lin:
     runs-on: ubuntu-18.04
+    container: gcc:8-buster
     steps:
       - name: Install dependencies
         run: |
@@ -54,9 +55,6 @@ jobs:
         with:
           submodules: recursive
       - name: CMake
-        env:
-          CC: gcc-10
-          CXX: g++-10
         run: |
           mkdir -p build
           cd build && cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..; cd ..
