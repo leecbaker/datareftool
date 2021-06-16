@@ -37,7 +37,9 @@ void performSearchFromMessage(DRTSearchParameters * search_parameters) {
 
     if(search_parameters->callback) {
         for(RefRecord * rr: results) {
-            search_parameters->callback(search_parameters->refcon, rr->getName().c_str());
+            if(false == rr->isBlacklisted()) {
+                search_parameters->callback(search_parameters->refcon, rr->getName().c_str());
+            }
         }
     }
 }
