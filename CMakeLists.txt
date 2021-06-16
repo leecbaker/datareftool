@@ -16,11 +16,6 @@ if(WIN32)
     add_compile_definitions(NOMINMAX)
 endif()
 
-if(UNIX AND NOT APPLE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libstdc++")
-    set(CMAKE_LD_FLAGS "${CMAKE_LD_FLAGS} -static-libstdc++")
-endif()
-
 add_subdirectory(lib)
 add_subdirectory(src)
 
