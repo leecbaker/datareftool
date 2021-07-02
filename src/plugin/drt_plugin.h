@@ -56,7 +56,7 @@ public:
     void toggleImpersonateDRE();
     void toggleAutoReloadPlugins();
 
-    void handleMessage(intptr_t inMessage, void * inParam);
+    void handleMessage(int inMessage, void * inParam);
 
     RefRecords & getRefs() { return refs; }
 
