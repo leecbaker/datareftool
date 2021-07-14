@@ -18,7 +18,7 @@
 
 #include <chrono>
 
-const XPLMFontID font = xplmFont_Basic;
+const XPLMFontID font = xplmFont_Proportional;
 
 void SelectableListBase::draw(Rect visible_bounds) {
     XPLMSetGraphicsState(0,0,0,0,1,0,0);
@@ -281,10 +281,7 @@ void ResultLine::draw(Rect /* draw_bounds */) {
         float name_width = XPLMMeasureString(font, const_cast<char *>(name.c_str()), name.size());
         float space_for_value_string = getWidth() - name_width;
 
-        int char_width = 0;
-        XPLMGetFontDimensions(font, &char_width, nullptr, nullptr);
-
-        value = dr_record->getDisplayString(static_cast<int>(space_for_value_string) / char_width);
+        value = dr_record->getDisplayString(static_cast<int>(space_for_value_string));
 
         if(record->isBlacklisted()) {
             colors = {{1.f, .3f, .3f}}; //red ish

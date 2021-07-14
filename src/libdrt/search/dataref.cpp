@@ -6,6 +6,8 @@
 #include <cmath>
 #include <sstream>
 
+#include "XPLMGraphics.h"
+
 #include "lb_hash.h"
 
 DataRefRecord::DataRefRecord(const std::string & name, XPLMDataRef ref, ref_src_t source) : RefRecord(name, source), ref(ref) {
@@ -165,25 +167,35 @@ std::string DataRefRecord::getLabelString() const {
 }
 
 template <class T>
-std::string makeArrayString(std::string (*stringify_func)(T), const std::vector<T> & array, size_t max_chars) {
+std::string makeArrayString(std::string (*stringify_func)(T), const std::vector<T> & array, size_t max_pixels) {
     std::stringstream s;
     s << "[";
     
-    size_t current_length = 2;  //for the braces
-    const std::string elipses = "...";
-    
-    for(const T & element : array) {
-        const std::string & s_element = stringify_func(element);
+    static const std::string elipses = "..";
+    static const float elipses_length = XPLMMeasureString(xplmFont_Proportional, elipses.c_str(), elipses.size());
+    static const float comma_length = XPLMMeasureString(xplmFont_Proportional, ",", 1);
+    static const float braces_length = XPLMMeasureString(xplmFont_Proportional, "[]", 2);
+
+    float current_length = braces_length;
+
+    for(typename std::vector<T>::const_iterator element_it = array.cbegin(); element_it != array.cend(); element_it++) {
+        const std::string & s_element = stringify_func(*element_it);
+
+        float value_length = XPLMMeasureString(xplmFont_Proportional, s_element.c_str(), s_element.size());
         
-        size_t max_length_if_ending_now = current_length + elipses.size();
-        size_t max_length_if_ending_next = max_length_if_ending_now + 1 + s_element.size(); //comma + value
-        
-        if(max_length_if_ending_next < max_chars) {
-            if(current_length != 2) {
+        //float max_length_if_ending_now = current_length + elipses_length;
+        float max_length_if_ending_next = current_length + comma_length + value_length;
+
+        if(element_it + 1 != array.cend()) {
+            max_length_if_ending_next += elipses_length;
+        }
+
+        if(max_length_if_ending_next < max_pixels) {
+            if(element_it != array.cbegin()) {
                 s << ",";
             }
             s << s_element;
-            current_length += 1 + s_element.size();
+            current_length += comma_length + value_length;
         } else {
             s << elipses;
             break;
@@ -195,18 +207,18 @@ std::string makeArrayString(std::string (*stringify_func)(T), const std::vector<
 }
 
 class DatarefDisplayStringifier {
-    size_t max_chars;
+    size_t max_pixels;
 public:
-    DatarefDisplayStringifier(size_t max_chars) : max_chars(max_chars) {}
+    DatarefDisplayStringifier(size_t max_pixels) : max_pixels(max_pixels) {}
     std::string operator()(const float & f) const { return compactFpString(f); }
     std::string operator()(const double & f) const { return compactFpString(f); }
     std::string operator()(const int & i) const { return std::to_string(i); }
     std::string operator()(const std::vector<float> & fv) const {
-        return makeArrayString<float>(compactFpString<float>, fv, max_chars);
+        return makeArrayString<float>(compactFpString<float>, fv, max_pixels);
     }
     std::string operator()(const std::vector<int> & iv) const {
         std::string (*stringify_func)(int) = std::to_string;
-        return makeArrayString<int>(stringify_func, iv, max_chars);
+        return makeArrayString<int>(stringify_func, iv, max_pixels);
     }
     std::string operator()(const std::vector<uint8_t> & iv) const {
         return "\"" + printableFromByteArray(iv) + "\"";

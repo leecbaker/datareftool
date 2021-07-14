@@ -16,6 +16,8 @@
 #include "dataref_edit_panel.h"
 #include "search_window.h"
 
+#include "XPLMGraphics.h"
+
 
 std::string getType(DataRefRecord * dr) {
     std::vector<std::string> type_list;
@@ -90,7 +92,12 @@ DatarefWindow::DatarefWindow(DataRefRecord * drr, std::weak_ptr<SearchWindow> pa
     window_container->add(dr_name, false, true);
     window_container->add(current_value, false, true);
     if(array_value) {
-        window_container->add(array_value, false, true);
+        // It's not currently possible for a text widget to communicate to its container that it can be expanded horizontally,
+        // so we'll include an expandable container to put it in. This way, the window will be horizontally resizeable
+        // when the window is for an array dataref.
+        std::shared_ptr<SingleAxisLayoutContainer> array_value_container = std::make_shared<SingleAxisLayoutContainer>(SingleAxisLayoutContainer::LayoutAxis::HORIZONTAL);
+        array_value_container->add(array_value, true, false);
+        window_container->add(array_value_container, false, true);
     }
     window_container->add(dr_type, false, true);
     window_container->add(last_change, false, true);
@@ -127,7 +134,7 @@ DatarefWindow::DatarefWindow(DataRefRecord * drr, std::weak_ptr<SearchWindow> pa
 void DatarefWindow::draw(Rect visible_bounds) {
     if(displayed_values_updated != drr->getLastUpdateTime()) {
         if(drr->isArray() && !drr->isData()) {
-            array_value->setText(drr->getDisplayString(visible_bounds.width()));
+            array_value->setText(drr->getDisplayString(array_value->getBounds().width()));
         } else {
             current_value->setText("Value: " + drr->getDisplayString(visible_bounds.width() - 30));
         }
