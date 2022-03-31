@@ -76,7 +76,7 @@ jobs:
           ldd build/src/plugin/datareftool.xpl
 
   build-win:
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
       - name: Install dependencies
         run: vcpkg install libpng:x64-windows-static
