@@ -1,4 +1,12 @@
-# Data Ref Tool for X-Plane plugin development
+# DataRefTool has moved to DataRefTool.com
+
+All future activity will be at [DataRefTool.com](https://datareftool.com).
+
+This github repo contains DRT version 1, which is compatible with X-Plane 10 and 11, and remains only as an archive. No further development will be tracked here, and I won't be reading any new Issues or Pull Requests.
+
+---
+
+### Data Ref Tool for X-Plane plugin development
 
 **[Download from GitHub](https://github.com/leecbaker/datareftool/releases)**
 
